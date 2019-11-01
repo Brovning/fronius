@@ -1,0 +1,15 @@
+{
+    "id": "{850BFB11-5B5F-4A86-76D9-C3DDFDFF055C}",
+    "name": "Fronius",
+    "type": 3,
+    "vendor": "Fronius",
+    "aliases":
+	[
+		"Symo"
+	],
+    "url": "https://github.com/Brovning/fronius",
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "FRO"
+}

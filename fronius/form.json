@@ -1,0 +1,14 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "caption": "IP",
+            "name": "IP"
+        }
+        {
+            "type": "ValidationTextBox",
+            "caption": "Port",
+            "name": "Port"
+        }
+    ]
+}

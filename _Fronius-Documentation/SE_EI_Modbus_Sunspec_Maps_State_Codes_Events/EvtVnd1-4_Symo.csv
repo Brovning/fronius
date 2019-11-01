@@ -1,0 +1,82 @@
+"Event Flags 1
+(hex)","Event Flags 2
+(hex)","Event Flags 3
+(hex)","Event Flags 4
+(hex)","Event Flags 1
+(dec)","Event Flags 2
+(dec)","Event Flags 3
+(dec)","Event Flags 4
+(dec)",State Codes,Error Class,Name
+1,0,0,0,1,0,0,0,447;475;502,DC Insulation fault,INSULATION_FAULT
+2,0,0,0,2,0,0,0,107;108,Grid error,GRID_ERROR
+4,0,0,0,4,0,0,0,301,Overcurrent AC,AC_OVERCURRENT
+8,0,0,0,8,0,0,0,302,Overcurrent DC,DC_OVERCURRENT
+10,0,0,0,16,0,0,0,303,Over-temperature,OVER_TEMP
+20,0,0,0,32,0,0,0,306,Power low,POWER_LOW
+40,0,0,0,64,0,0,0,307;522;523,DC low,DC_LOW
+80,0,0,0,128,0,0,0,308;426,Intermediate circuit error,INTERMEDIATE_FAULT
+100,0,0,0,256,0,0,0,105,AC frequency too high,FREQUENCY_HIGH
+200,0,0,0,512,0,0,0,106,AC frequency too low,FREQUENCY_LOW
+400,0,0,0,1024,0,0,0,102;112,AC voltage too high,AC_VOLTAGE_HIGH
+800,0,0,0,2048,0,0,0,103,AC voltage too low,AC_VOLTAGE_LOW
+1000,0,0,0,4096,0,0,0,408,Direct current feed in,DIRECT_CURRENT
+2000,0,0,0,8192,0,0,0,457,Relay problem,RELAY_FAULT
+4000,0,0,0,16384,0,0,0,417;427;431;432;436;437;438;445;450;460;461;516,Internal power stage error,POWER_STAGE_FAULT
+8000,0,0,0,32768,0,0,0,,Control problems,CONTROL_FAULT
+10000,0,0,0,65536,0,0,0,453,Guard Controller - AC voltage error,GC_GRID_VOLT_ERR
+20000,0,0,0,131072,0,0,0,454,Guard Controller - AC Frequency Error,GC_GRID_FREQU_ERR
+40000,0,0,0,262144,0,0,0,,Energy transfer not possible,ENERGY_TRANSFER_FAULT
+80000,0,0,0,524288,0,0,0,,Reference power source AC outside tolerances,REF_POWER_SOURCE_AC
+100000,0,0,0,1048576,0,0,0,456,Error during anti islanding test,ANTI_ISLANDING_FAULT
+200000,0,0,0,2097152,0,0,0,412,Fixed voltage lower than current MPP voltage,FIXED_VOLTAGE_FAULT
+400000,0,0,0,4194304,0,0,0,451;711;712;713;714;715;721;722;723;724;725;726;727;728;729;730,Memory fault,MEMORY_FAULT
+800000,0,0,0,8388608,0,0,0,,Display,DISPLAY_FAULT
+1000000,0,0,0,16777216,0,0,0,401;416;425;452;519,Internal communication error,COMMUNICATION_FAULT
+2000000,0,0,0,33554432,0,0,0,406;407,Temperature sensors defective,TEMP_SENSORS_FAULT
+4000000,0,0,0,67108864,0,0,0,461,DC or AC board fault,DC_AC_BOARD_FAULT
+8000000,0,0,0,134217728,0,0,0,415,ENS error,ENS_FAULT
+10000000,0,0,0,268435456,0,0,0,,Fan error,FAN_FAULT
+20000000,0,0,0,536870912,0,0,0,472,Defective fuse,DEFECTIVE_FUSE
+40000000,0,0,0,1073741824,0,0,0,,Output choke connected to wrong poles,OUTPUT_CHOKE_FAULT
+80000000,0,0,0,2147483648,0,0,0,,The buck converter relay does not open at high DC voltage,CONVERTER_RELAY_FAULT
+0,1,0,0,0,1,0,0,,No SolarNet communication,NO_SOLARNET_COMM
+0,2,0,0,0,2,0,0,,Inverter address incorrect,INV_ADDRESS_FAULT
+0,4,0,0,0,4,0,0,509,24h no feed in,NO_FEED_IN_24H
+0,8,0,0,0,8,0,0,,Faulty plug connections,PLUG_FAULT
+0,10,0,0,0,16,0,0,,Incorrect phase allocation,PHASE_ALLOC_FAULT
+0,20,0,0,0,32,0,0,,Grid conductor open or supply phase has failed,GRID_CONDUCTOR_OPEN
+0,40,0,0,0,64,0,0,558,Incompatible or old software,SOFTWARE_ISSUE
+0,80,0,0,0,128,0,0,517,Power Derating Due To Overtemperature,POWER_DERATING
+0,100,0,0,0,256,0,0,,Jumper set incorrectly,JUMPER_INCORRECT
+0,200,0,0,0,512,0,0,559,Incompatible feature,INCOMPATIBLE_FEATURE
+0,400,0,0,0,1024,0,0,,Defective ventilator/air vents blocked,VENTS_BLOCKED
+0,800,0,0,0,2048,0,0,560,Power reduction on error,POWER_REDUCTION_ERROR
+0,1000,0,0,0,4096,0,0,240,Arc Detected,ARC_DETECTED
+0,2000,0,0,0,8192,0,0,245,AFCI Self Test Failed,AFCI_SELF_TEST_FAILED
+0,4000,0,0,0,16384,0,0,247,Current Sensor Error,CURRENT_SENSOR_ERROR
+0,8000,0,0,0,32768,0,0,,DC switch fault,DC_SWITCH_FAULT
+0,10000,0,0,0,65536,0,0,249,AFCI Defective,AFCI_DEFECTIVE
+0,20000,0,0,0,131072,0,0,,AFCI Manual Test Successful,AFCI_MANUAL_TEST_OK
+0,40000,0,0,0,262144,0,0,476,Power Stack Supply Missing,PS_PWR_SUPPLY_ISSUE
+0,80000,0,0,0,524288,0,0,,AFCI Communication Stopped,AFCI_NO_COMM
+0,100000,0,0,0,1048576,0,0,,AFCI Manual Test Failed,AFCI_MANUAL_TEST_FAILED
+0,200000,0,0,0,2097152,0,0,463,AC polarity reversed,AC_POLARITY_REVERSED
+0,400000,0,0,0,4194304,0,0,,AC measurement device fault,FAULTY_AC_DEVICE
+0,800000,0,0,0,8388608,0,0,782;783;784;789;794,Flash fault,FLASH_FAULT
+0,1000000,0,0,0,16777216,0,0,772;773;775,General error,GENERAL_ERROR
+0,2000000,0,0,0,33554432,0,0,,Grounding fault,GROUNDING_ISSUE
+0,4000000,0,0,0,67108864,0,0,761;762;765;766;767;768,Power limitation fault,LIMITATION_FAULT
+0,8000000,0,0,0,134217728,0,0,,External NO contact open,OPEN_CONTACT
+0,10000000,0,0,0,268435456,0,0,,External overvoltage protection has tripped,OVERVOLTAGE_PROTECTION
+0,20000000,0,0,0,536870912,0,0,707,Internal processor program status,PROGRAM_STATUS
+0,40000000,0,0,0,1073741824,0,0,701;702;703;706,SolarNet issue,SOLARNET_ISSUE
+0,80000000,0,0,0,2147483648,0,0,,Supply voltage fault,SUPPLY_VOLTAGE_FAULT
+0,0,1,0,0,0,1,0,751;754;755;757;758;760,Time error,TIME_FAULT
+0,0,2,0,0,0,2,0,731;732;733;734;735;736;737;738;740;741;743;745;746,USB error,USB_FAULT
+0,0,4,0,0,0,4,0,309;313,DC high,DC_HIGH
+0,0,8,0,0,0,8,0,482,Init error,INIT_ERROR
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,

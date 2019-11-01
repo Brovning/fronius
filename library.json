@@ -1,0 +1,12 @@
+{
+    "id": "{850BFB11-5B5F-4A86-76D9-C3DDFDFF055C}",
+    "author": "Brovning",
+    "name": "Fronius",
+    "url": "https://github.com/Brovning/fronius",
+    "compatibility": {
+        "version": "5.0"
+    },
+    "version": "0.1",
+    "build": 0,
+    "date": 0
+}

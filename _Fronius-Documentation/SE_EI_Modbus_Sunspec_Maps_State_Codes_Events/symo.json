@@ -1,0 +1,56 @@
+{
+  "symo": {
+    "EvtVnd1": 
+    [
+      { "hex": 2, "dec": 2, "codes": "107,108", "class": "Grid error"},
+      { "hex": 4, "dec": 4, "codes": "301", "class": "Overcurrent AC"},
+      { "hex": 8, "dec": 8, "codes": "302", "class": "Overcurrent DC"},
+      { "hex": 10, "dec": 16, "codes": "303", "class": "Over-temperature"},
+      { "hex": 20, "dec": 32, "codes": "306", "class": "Power low"},
+      { "hex": 40, "dec": 64, "codes": "307,522,523", "class": "DC low"},
+      { "hex": 80, "dec": 128, "codes": "308,426", "class": "Intermediate circuit error"},
+      { "hex": 100, "dec": 256, "codes": "105", "class": "AC frequency too high"},
+      { "hex": 200, "dec": 512, "codes": "106", "class": "AC frequency too low"},
+      { "hex": 400, "dec": 1024, "codes": "102,112", "class": "AC voltage too high"},
+      { "hex": 800, "dec": 2048, "codes": "103", "class": "AC voltage too low"},
+      { "hex": 1000, "dec": 4096, "codes": "408", "class": "Direct current feed in"},
+      { "hex": 2000, "dec": 8192, "codes": "457", "class": "Relay problem"},
+      { "hex": 4000, "dec": 16384, "codes": "417,427,431,432,436,437,438,445,450,460,461,516", "class": "Internal power stage error"},
+      { "hex": 10000, "dec": 65536, "codes": "453", "class": "Guard Controller - AC voltage error"},
+      { "hex": 20000, "dec": 131072, "codes": "454", "class": "Guard Controller - AC Frequency Error"},
+      { "hex": 100000, "dec": 1048576, "codes": "456", "class": "Error during anti islanding test"},
+      { "hex": 200000, "dec": 2097152, "codes": "412", "class": "Fixed voltage lower than current MPP voltage"},
+      { "hex": 400000, "dec": 4194304, "codes": "451,711,712,713,714,715,721,722,723,724,725,726,727,728,729,730", "class": "Memory fault"},
+      { "hex": 1000000, "dec": 16777216, "codes": "401,416,425,452,519", "class": "Internal communication error"},
+      { "hex": 2000000, "dec": 33554432, "codes": "406,407", "class": "Temperature sensors defective"},
+      { "hex": 4000000, "dec": 67108864, "codes": "461", "class": "DC or AC board fault"},
+      { "hex": 8000000, "dec": 134217728, "codes": "415", "class": "ENS error"},
+      { "hex": 20000000, "dec": 536870912, "codes": "472", "class": "Defective fuse"}
+    ],
+    "EvtVnd2": 
+    [
+      { "hex": 4, "dec": 4, "codes": "509", "class": "24h no feed in"},
+      { "hex": 40, "dec": 64, "codes": "558", "class": "Incompatible or old software"},
+      { "hex": 80, "dec": 128, "codes": "517", "class": "Power Derating Due To Overtemperature"},
+      { "hex": 200, "dec": 512, "codes": "559", "class": "Incompatible feature"},
+      { "hex": 800, "dec": 2048, "codes": "560", "class": "Power reduction on error"},
+      { "hex": 1000, "dec": 4096, "codes": "240", "class": "Arc Detected"},
+      { "hex": 2000, "dec": 8192, "codes": "245", "class": "AFCI Self Test Failed"},
+      { "hex": 4000, "dec": 16384, "codes": "247", "class": "Current Sensor Error"},
+      { "hex": 10000, "dec": 65536, "codes": "249", "class": "AFCI Defective"},
+      { "hex": 40000, "dec": 262144, "codes": "476", "class": "Power Stack Supply Missing"},
+      { "hex": 200000, "dec": 2097152, "codes": "463", "class": "AC polarity reversed"},
+      { "hex": 800000, "dec": 8388608, "codes": "782,783,784,789,794", "class": "Flash fault"},
+      { "hex": 1000000, "dec": 16777216, "codes": "772,773,775", "class": "General error"},
+      { "hex": 4000000, "dec": 67108864, "codes": "761,762,765,766,767,768", "class": "Power limitation fault"},
+      { "hex": 20000000, "dec": 536870912, "codes": "707", "class": "Internal processor program status"},
+      { "hex": 40000000, "dec": 1073741824, "codes": "701,702,703,706", "class": "SolarNet issue"}
+    ],
+    "EvtVnd3": 
+    [
+      { "hex": 1, "dec": 1, "codes": "751,754,755,757,758,760", "class": "Time error"},
+      { "hex": 2, "dec": 2, "codes": "731,732,733,734,735,736,737,738,740,741,743,745,746", "class": "USB error"},
+      { "hex": 4, "dec": 4, "codes": "309,313", "class": "DC high"}
+    ]
+  }
+}

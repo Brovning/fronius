@@ -1,0 +1,149 @@
+102,AC voltage too high
+103,AC voltage too low
+105,AC frequency too high
+106,AC frequency too low
+107,No AC grid detected / Wrong AC Grid State detected
+108,Islanding detected
+112,Residual Current Detected
+240,Arc Detected
+241,Arc detection confirmation 1
+242,Arc detection confirmation 2
+245,Arc Fault Cicruit Interrupter (AFCI) Selftest failed
+247,Arc Fault Cicruit Interrupter (AFCI) current sensor error
+249,Arc Fault Cicruit Interrupter (AFCI) detected unplausibel measurement values
+301,Overcurrent AC
+302,Overcurrent DC
+303,Channel 1 Overtemperature
+306,Power Low
+307,DC Voltage Low
+308,Intermediate circuit voltage too high
+309,DC1 Input Overvoltage
+313,DC2 Input Overvoltage
+406,Error temperature sensor on DC board
+407,Error temperature sensor on AC board
+408,DC detected in grid
+412,DC1 Fix Voltage Out Of Range
+415,Wired Shutdown Triggered
+416,RECERBO - Power Stack Communication Error
+417,Hardware-ID Collision
+425,Data Exchange Timeout
+426,Intermediate Circuit Loading Timeout
+427,Power Stack Ready Timeout
+431,Power Stack In Bootmode
+432,Consistent error in power stack management
+433,Allocation error of dynamic addresses
+436,Invalid Bitmap Received
+437,Power Stack Event Handling Error
+438,Problem while error transmission from power stack to Recerbo
+445,Invalid Parameters detected
+447,Isolation Error
+448,No Neutral Wire
+450,Guard Controller - Communication Error
+451,Memory Check Error
+452,Power Stack - Filter Communication Error
+453,Guard Controller - AC voltage error
+454,Guard Controller - AC Frequency Error
+456,Guard Controller - Anti Islanding Selftest Error
+457,Grid Relay Error
+458,Residual Current Monitoring Unit (RCMU) Error
+459,Guard Controller - Isolation Selftest Error
+460,Power Stack / Filter Print Reference Voltage Error
+461,RAM Error / Collective Fault
+462,Guard Controller - DC injection into grid detected
+463,AC Poles reversed
+472,Ground-Fault Detector Interrupter Fuse Broken
+474,Residual Current Sensor defect
+475,Isolation Too Low Error
+476,Power Stack Supply Missing
+479,Intermediate Circuit Relay Switched Off
+480,Incompatible feature
+481,Not supported feature
+482,Installation wizard aborted
+483,DC fix voltage out of range
+484,CAN transfer timeout
+485,CAN transmit buffer full
+502,Warning - Isolation Too Low
+509,No Feed In For 24 Hours
+516,Power Stack EEPROM Error
+517,Power Derating Due To Overtemperature
+519,Filter Board - EEPROM Error
+520,MPP Tracker #1 - No Feed In For 24 Hours
+521,MPP Tracker #2 - No Feed In For 24 Hours
+522,DC1 Input Voltage To Low
+523,DC2 Input Voltage Low
+558,Incompatible Power Stack Software
+559,Incompatible RECERBO Feature
+560,Power Derating Due To High Grid Frequency
+565,Arc Fault Cicruit Interrupter SD Card Error [US only]
+566,Arc Fault Cicruit Interrupter Deactivated Warning [US only]
+567,Grid Voltage Dependent Power Derating
+701,Solar Net - Node Type Out Of Range
+702,Solar Net - Receive Buffer Full
+703,Solar Net - Send Buffer Full
+705,Solar Net - Node Type Conflict
+706,CapKey - Get Version Failed
+707,CapKey - Update Failed
+711,EEPROM Write - Wrong Data Length
+712,EEPROM Write - Descriptor Not Found
+713,EEPROM Read - Descriptor Not Found
+714,EEPROM Read Warning - CRC Header Fail Will Retry
+715,EEPROM Read - CRC Header Fail Give It Up
+721,EEPROM - Reinitialized
+722,EEPROM - Wait Busy Timeout
+723,EEPROM Write - Verify Fail Will Retry
+724,EEPROM Write - Verify Fail Give It Up
+725,EEPROM Read - CRC Data Fail Will Retry
+726,EEPROM Read - CRC Data Fail Give It Up
+727,EEPROM Check Data Warning - All Data Corrupt
+730,EEPROM Check Data - Data Restored
+731,USB Flash Drive Initializing Error
+732,USB Flash Drive Overcurrent
+733,No USB Flash Drive Inserted
+734,No Software Update Found On USB Flash Drive
+735,No Supported Software Update Found On USB Flash Drive
+736,USB Flash Drive Flash Drive Read/Write Error
+737,Software Update Can Not Be Read From The USB Flash Drive
+738,Log-File Can't Be Created On The USB Flash Drive
+740,USB Flash Drive Enumeration Error
+741,USB Flash Drive Logging Write Error
+743,Software Update Failed
+745,Software Update Checksum Wrong
+746,Product Matrix Code (PMC) Read Error During Software Update
+751,Real Time Clock - Time Lost
+752,Real Time Clock - Hardware Error
+754,Real Time Clock - Time Set
+755,EEPROM Data Written
+757,Real Time Clock - Hardware Error
+758,Real Time Clock - Emergency Mode
+760,System Crystal Broken
+761,Device Data Unit Memory Read Error
+762,Plugged Device Data Unit Read Error
+765,Random Number Generator Error
+766,Power Limit Not Found
+767,Power Limiter Communication Error
+768,Power Limit Not Identical
+772,Memory Not Available
+773,Update Group Zero
+775,Power Stack Product Matrix Code Invalid
+782,Update Flash - CRC Error
+783,Update Flash - Header CRC Error
+784,Update Flash - Timeout
+789,Update Flash - Read Value (Header CRC Error)
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
+,
