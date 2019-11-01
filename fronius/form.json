@@ -1,14 +1,52 @@
 {
     "elements": [
         {
+            "type": "Label",
+            "label": "Der Fronius Wechselrichter muss Modbus TCP unterstützen!"
+        },
+        {
+            "type": "Label",
+            "label": "Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe über Modbus per 'TCP' und der Sunspec Model Type 'float' aktiviert werden."
+        },
+        {
+            "type": "Label",
+            "label": ""
+        },
+        {
             "type": "ValidationTextBox",
             "caption": "IP",
-            "name": "IP"
+            "name": "hostIp"
         },
         {
             "type": "ValidationTextBox",
             "caption": "Port",
-            "name": "Port"
+            "name": "hostPort"
+        },
+        {
+            "type": "Label",
+            "label": ""
+        },
+        {
+            "type": "Label",
+            "label": "Sollen die erweiterte Leistungsdaten (bspw. Scheinleistung, Blindleistung, cos(),...) des Nameplate Modell angezeigt werden?"
+        },
+        {
+            "type": "CheckBox",
+            "caption": "Nameplate Modell",
+            "name": "readNameplate"
+        },
+        {
+            "type": "Label",
+            "label": ""
+        },
+        {
+            "type": "ValidationTextBox",
+            "caption": "Abfrage-Intervall (in ms)",
+            "name": "pollCycle"
+        },
+        {
+            "type": "Label",
+            "label": "Achtung: Abfrage-Intervall nicht zu klein wählen, um die Systemlast und auch die Archiv-Größe bei Logging nicht unnötig zu erhöhen!"
         }
     ]
 }

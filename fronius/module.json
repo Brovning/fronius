@@ -5,7 +5,7 @@
     "vendor": "Fronius",
     "aliases":
 	[
-		"Symo"
+		"Fronius"
 	],
     "url": "https://github.com/Brovning/fronius",
     "parentRequirements": [],
