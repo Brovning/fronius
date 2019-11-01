@@ -1,5 +1,6 @@
 # Fronius
-Beschreibung des Moduls.
+IP-Symcon (IPS) Modul für Fronius Wechselrichter mit TCP ModBus Unterstützung (bspw. Symo, Symo Hybrid,...).
+
 
 ### Inhaltsverzeichnis
 
