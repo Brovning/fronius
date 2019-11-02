@@ -6,22 +6,87 @@ if (!defined('DEBUG'))
 }
 
 // ModBus RTU TCP
-if (!defined('modbusInstances'))
+if (!defined('MODBUS_INSTANCES'))
 {
-	define("modbusInstances", "{A5F663AB-C400-4FE5-B207-4D67CC030564}");
+	define("MODBUS_INSTANCES", "{A5F663AB-C400-4FE5-B207-4D67CC030564}");
 }
-if (!defined('clientSockets'))
+if (!defined('CLIENT_SOCKETS'))
 {
-	define("clientSockets", "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
+	define("CLIENT_SOCKETS", "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
 }
-if (!defined('modbusAddresses'))
+if (!defined('MODBUS_ADDRESSES'))
 {
-	define("modbusAddresses", "{CB197E50-273D-4535-8C91-BB35273E3CA5}");
+	define("MODBUS_ADDRESSES", "{CB197E50-273D-4535-8C91-BB35273E3CA5}");
 }
-if (!defined('froniusInstances'))
+
+// Modul Prefix
+if (!defined('MODUL_PREFIX'))
 {
-	define("froniusInstances", "{850BFB11-5B5F-4A86-76D9-C3DDFDFF055C}");
+	define("MODUL_PREFIX", "Fronius");
 }
+
+// Offset von Register (erster Wert 1) zu Adresse (erster Wert 0) ist -1
+if (!defined('REGISTER_TO_ADDRESS_OFFSET'))
+{
+	define("REGISTER_TO_ADDRESS_OFFSET", -1);
+}
+
+// ArrayOffsets
+if (!defined('IMR_START_REGISTER'))
+{
+	define("IMR_START_REGISTER", 0);
+}
+/*if (!defined('IMR_END_REGISTER'))
+{
+	define("IMR_END_REGISTER", 3);
+}*/
+if (!defined('IMR_SIZE'))
+{
+	define("IMR_SIZE", 1);
+}
+if (!defined('IMR_RW'))
+{
+	define("IMR_RW", 2);
+}
+if (!defined('IMR_FUNCTION_CODE'))
+{
+	define("IMR_FUNCTION_CODE", 3);
+}
+if (!defined('IMR_NAME'))
+{
+	define("IMR_NAME", 4);
+}
+if (!defined('IMR_TYPE'))
+{
+	define("IMR_TYPE", 5);
+}
+if (!defined('IMR_UNITS'))
+{
+	define("IMR_UNITS", 6);
+}
+if (!defined('IMR_DESCRIPTION'))
+{
+	define("IMR_DESCRIPTION", 7);
+}
+
+// profileAssociation Offsets
+if (!defined('PAO_NAME'))
+{
+	define("PAO_NAME", 0);
+}
+if (!defined('PAO_VALUE'))
+{
+	define("PAO_VALUE", 1);
+}
+if (!defined('PAO_DESCRIPTION'))
+{
+	define("PAO_DESCRIPTION", 2);
+}
+if (!defined('PAO_COLOR'))
+{
+	define("PAO_COLOR", 3);
+}
+
 
 
 	class Fronius extends IPSModule {
@@ -31,12 +96,88 @@ if (!defined('froniusInstances'))
 			//Never delete this line!
 			parent::Create();
 
-			//Properties
+
+			// *** Properties ***
+			$this->RegisterPropertyBoolean('active', 'true');
 			$this->RegisterPropertyString('hostIp', '');
 			$this->RegisterPropertyInteger('hostPort', '502');
-			$this->RegisterPropertyInteger('pollCycle', '60000');
 			$this->RegisterPropertyBoolean('readNameplate', 'false');
+			$this->RegisterPropertyInteger('pollCycle', '60000');
 
+
+			// *** Erstelle deaktivierte Timer ***
+			// Evt1
+			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"Evt1\", ".$this->InstanceID.");
+\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+
+\$bitArray = array(\"I_EVENT_GROUND_FAULT\", \"I_EVENT_DC_OVER_VOLT\", \"I_EVENT_AC_DISCONNECT\", \"I_EVENT_DC_DISCONNECT\", \"I_EVENT_GRID_DISCONNECT\", \"I_EVENT_CABINET_OPEN\", \"I_EVENT_MANUAL_SHUTDOWN\", \"I_EVENT_OVER_TEMP\", \"I_EVENT_OVER_FREQUENCY\", \"I_EVENT_UNDER_FREQUENCY\", \"I_EVENT_AC_OVER_VOLT\", \"I_EVENT_AC_UNDER_VOLT\", \"I_EVENT_BLOWN_STRING_FUSE\", \"I_EVENT_UNDER_TEMP\", \"I_EVENT_MEMORY_LOSS\", \"I_EVENT_HW_TEST_FAILURE\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+    \$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}");
+
+
+			// EvtVnd1
+			$this->RegisterTimer("Update-EvtVnd1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd1\", ".$this->InstanceID.");
+\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+
+\$bitArray = array(\"INSULATION_FAULT\", \"GRID_ERROR\", \"AC_OVERCURRENT\", \"DC_OVERCURRENT\", \"OVER_TEMP\", \"POWER_LOW\", \"DC_LOW\", \"INTERMEDIATE_FAULT\", \"FREQUENCY_HIGH\", \"FREQUENCY_LOW\", \"AC_VOLTAGE_HIGH\", \"AC_VOLTAGE_LOW\", \"DIRECT_CURRENT\", \"RELAY_FAULT\", \"POWER_STAGE_FAULT\", \"CONTROL_FAULT\", \"GC_GRID_VOLT_ERR\", \"GC_GRID_FREQU_ERR\", \"ENERGY_TRANSFER_FAULT\", \"REF_POWER_SOURCE_AC\", \"ANTI_ISLANDING_FAULT\", \"FIXED_VOLTAGE_FAULT\", \"MEMORY_FAULT\", \"DISPLAY_FAULT\", \"COMMUNICATION_FAULT\", \"TEMP_SENSORS_FAULT\", \"DC_AC_BOARD_FAULT\", \"ENS_FAULT\", \"FAN_FAULT\", \"DEFECTIVE_FUSE\", \"OUTPUT_CHOKE_FAULT\", \"CONVERTER_RELAY_FAULT\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+    \$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}");
+
+
+			// EvtVnd2
+			$this->RegisterTimer("Update-EvtVnd2", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd2\", ".$this->InstanceID.");
+\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+
+\$bitArray = array(\"NO_SOLARNET_COMM\", \"INV_ADDRESS_FAULT\", \"NO_FEED_IN_24H\", \"PLUG_FAULT\", \"PHASE_ALLOC_FAULT\", \"GRID_CONDUCTOR_OPEN\", \"SOFTWARE_ISSUE\", \"POWER_DERATING\", \"JUMPER_INCORRECT\", \"INCOMPATIBLE_FEATURE\", \"VENTS_BLOCKED\", \"POWER_REDUCTION_ERROR\", \"ARC_DETECTED\", \"AFCI_SELF_TEST_FAILED\", \"CURRENT_SENSOR_ERROR\", \"DC_SWITCH_FAULT\", \"AFCI_DEFECTIVE\", \"AFCI_MANUAL_TEST_OK\", \"PS_PWR_SUPPLY_ISSUE\", \"AFCI_NO_COMM\", \"AFCI_MANUAL_TEST_FAILED\", \"AC_POLARITY_REVERSED\", \"FAULTY_AC_DEVICE\", \"FLASH_FAULT\", \"GENERAL_ERROR\", \"GROUNDING_ISSUE\", \"LIMITATION_FAULT\", \"OPEN_CONTACT\", \"OVERVOLTAGE_PROTECTION\", \"PROGRAM_STATUS\", \"SOLARNET_ISSUE\", \"SUPPLY_VOLTAGE_FAULT\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+    \$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}");
+
+
+			// EvtVnd3
+			$this->RegisterTimer("Update-EvtVnd3", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd3\", ".$this->InstanceID.");
+\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+
+\$bitArray = array(\"TIME_FAULT\", \"USB_FAULT\", \"DC_HIGH\", \"INIT_ERROR\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+    \$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}");
+
+			// *** Erstelle Variablen-Profile ***
 			$this->checkProfiles();
 		}
 
@@ -52,30 +193,22 @@ if (!defined('froniusInstances'))
 			parent::ApplyChanges();
 
 			//Properties
+			$active = $this->ReadPropertyBoolean('active');
 			$hostIp = $this->ReadPropertyString('hostIp');
 			$hostPort = $this->ReadPropertyInteger('hostPort');
-			$pollCycle = $this->ReadPropertyInteger('pollCycle');
 			$readNameplate = $this->ReadPropertyBoolean('readNameplate');
+			$pollCycle = $this->ReadPropertyInteger('pollCycle');
 
-			$portOpen = false;
-			$waitTimeoutInSeconds = 1; 
-			if($fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
-			{   
-				// It worked
-				$portOpen = true;
-				fclose($fp);
-			}
-	
-			if($portOpen)
+			if("" != $hostIp)
 			{
 				$this->checkProfiles();
 				
 				// Splitter-Instance
-				$gatewayId = 0;//36219;
+				$gatewayId = 0;
 				// I/O Instance
-				$interfaceId = 0;//38897;
+				$interfaceId = 0;
 
-				foreach(IPS_GetInstanceListByModuleID(modbusInstances) AS $modbusInstanceId)
+				foreach(IPS_GetInstanceListByModuleID(MODBUS_INSTANCES) AS $modbusInstanceId)
 				{
 					$connectionInstanceId = IPS_GetInstance($modbusInstanceId)['ConnectionID'];
 
@@ -94,8 +227,8 @@ if (!defined('froniusInstances'))
 					if(DEBUG) echo "ModBus Instance not found!\n";
 
 					// ModBus Gateway erstellen
-					$gatewayId = IPS_CreateInstance(modbusInstances); 
-					IPS_SetName($gatewayId, "FroniusModbusGateway");
+					$gatewayId = IPS_CreateInstance(MODBUS_INSTANCES); 
+					IPS_SetName($gatewayId, MODUL_PREFIX."ModbusGateway");
 					IPS_SetProperty($gatewayId, "GatewayMode", 0);
 					IPS_SetProperty($gatewayId, "DeviceID", 1);
 					IPS_SetProperty($gatewayId, "SwapWords", 0);
@@ -108,8 +241,8 @@ if (!defined('froniusInstances'))
 					if(DEBUG) echo "Client Socket not found!\n";
 
 					// Client Soket erstellen
-					$interfaceId = IPS_CreateInstance(clientSockets);
-					IPS_SetName($interfaceId, "FroniusClientSoket");
+					$interfaceId = IPS_CreateInstance(CLIENT_SOCKETS);
+					IPS_SetName($interfaceId, MODUL_PREFIX."ClientSoket");
 					IPS_SetProperty($interfaceId, "Host", $hostIp);
 					IPS_SetProperty($interfaceId, "Port", $hostPort);
 					IPS_SetProperty($interfaceId, "Open", true);
@@ -122,7 +255,7 @@ if (!defined('froniusInstances'))
 				}
 
 
-				$parentId = IPS_GetInstance(IPS_GetInstanceListByModuleID(froniusInstances)[0])['InstanceID'];
+				$parentId = $this->InstanceID;
 
 
 
@@ -202,6 +335,182 @@ if (!defined('froniusInstances'))
 				$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
 
 
+				// Bit 0 - 15 für "Evt1" erstellen
+				$bitArray = array(
+					array('varName' => "I_EVENT_GROUND_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Ground fault - StateCodes: 471;472;474;475;494;502"),
+					array('varName' => "I_EVENT_DC_OVER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "DC over voltage - StateCodes: 309;313"),
+					array('varName' => "I_EVENT_AC_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "AC disconnect open - StateCodes: 107;117;127;137"),
+					array('varName' => "I_EVENT_DC_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "DC disconnect open - StateCodes: "),
+					array('varName' => "I_EVENT_GRID_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "Grid shutdown - StateCodes: "),
+					array('varName' => "I_EVENT_CABINET_OPEN", 'varProfile' => "~Alert", 'varInfo' => "Cabinet open - StateCodes: "),
+					array('varName' => "I_EVENT_MANUAL_SHUTDOWN", 'varProfile' => "~Alert", 'varInfo' => "Manual shutdown - StateCodes: "),
+					array('varName' => "I_EVENT_OVER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Over temperature - StateCodes: 303;304;531"),
+					array('varName' => "I_EVENT_OVER_FREQUENCY", 'varProfile' => "~Alert", 'varInfo' => "Frequency above limit - StateCodes: 104;105;115;125;135;203;204"),
+					array('varName' => "I_EVENT_UNDER_FREQUENCY", 'varProfile' => "~Alert", 'varInfo' => "Frequency under limit - StateCodes: 104;106;116;126;136;203;204"),
+					array('varName' => "I_EVENT_AC_OVER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "AC voltage above limit - StateCodes: 101;102;112;122;132;201;202"),
+					array('varName' => "I_EVENT_AC_UNDER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "AC voltage under limit - StateCodes: 101;103;113;123;133;201;202"),
+					array('varName' => "I_EVENT_BLOWN_STRING_FUSE", 'varProfile' => "~Alert", 'varInfo' => "Blown string fuse - StateCodes: 550;551"),
+					array('varName' => "I_EVENT_UNDER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Under temperature - StateCodes: "),
+					array('varName' => "I_EVENT_MEMORY_LOSS", 'varProfile' => "~Alert", 'varInfo' => "Generic Memory or Communication error (internal) - StateCodes: 401;402;403;404;405;414;416;417;419;421;425;431;451;452;453;454;460;461;464;465;466;467;476;477;490;491;504;505;506;507;508;510;511;514;516;517;519;541;553;558;711;712;713;714;715;716;721;722;723;724;725;726;727;728;729;730;799"),
+					array('varName' => "I_EVENT_HW_TEST_FAILURE", 'varProfile' => "~Alert", 'varInfo' => "Hardware test failure - StateCodes: 245;406;407;457;469;478;515;532;533;535;555"),
+				);
+
+				$instanceId = IPS_GetInstanceIDByName("Evt1", $categoryId);
+				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				IPS_SetHidden($varId, true);
+				
+				foreach($bitArray AS $bit)
+				{
+					$varName = $bit['varName'];
+					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
+					if(false === $varId)
+					{
+						$varId = IPS_CreateVariable(0);
+						IPS_SetName($varId, $varName);
+						IPS_SetParent($varId, $instanceId);
+					}
+					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
+					IPS_SetInfo($varId, $bit['varInfo']);
+				}
+
+				// Bit 0 - 15 für "EvtVnd1" erstellen
+				$bitArray = array(
+					array('varName' => "INSULATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC Insulation fault - StateCodes: 447;459;474;475;502"),
+					array('varName' => "GRID_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Grid error - StateCodes: 101;104;107;108;109;117;127;137;205;206;305"),
+					array('varName' => "AC_OVERCURRENT", 'varProfile' => "~Alert", 'varInfo' => "Overcurrent AC - StateCodes: 301;321"),
+					array('varName' => "DC_OVERCURRENT", 'varProfile' => "~Alert", 'varInfo' => "Overcurrent DC - StateCodes: 302"),
+					array('varName' => "OVER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Over-temperature - StateCodes: 303;304;322"),
+					array('varName' => "POWER_LOW", 'varProfile' => "~Alert", 'varInfo' => "Power low - StateCodes: 306"),
+					array('varName' => "DC_LOW", 'varProfile' => "~Alert", 'varInfo' => "DC low - StateCodes: 307;310;522;523"),
+					array('varName' => "INTERMEDIATE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Intermediate circuit error - StateCodes: 308;426"),
+					array('varName' => "FREQUENCY_HIGH", 'varProfile' => "~Alert", 'varInfo' => "AC frequency too high - StateCodes: 105;115;125;135;203"),
+					array('varName' => "FREQUENCY_LOW", 'varProfile' => "~Alert", 'varInfo' => "AC frequency too low - StateCodes: 106;116;126;136;204"),
+					array('varName' => "AC_VOLTAGE_HIGH", 'varProfile' => "~Alert", 'varInfo' => "AC voltage too high - StateCodes: 102;112;122;132;201"),
+					array('varName' => "AC_VOLTAGE_LOW", 'varProfile' => "~Alert", 'varInfo' => "AC voltage too low - StateCodes: 103;113;123;133;202"),
+					array('varName' => "DIRECT_CURRENT", 'varProfile' => "~Alert", 'varInfo' => "Direct current feed in - StateCodes: 408"),
+					array('varName' => "RELAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Relay problem - StateCodes: 207;208;457"),
+					array('varName' => "POWER_STAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Internal power stage error - StateCodes: 417;419;421;427;428;429;431;432;433;436;437;438;439;442;445;450;462;512;513;514;516;553"),
+					array('varName' => "CONTROL_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Control problems - StateCodes: 409;413"),
+					array('varName' => "GC_GRID_VOLT_ERR", 'varProfile' => "~Alert", 'varInfo' => "Guard Controller - AC voltage error - StateCodes: 453"),
+					array('varName' => "GC_GRID_FREQU_ERR", 'varProfile' => "~Alert", 'varInfo' => "Guard Controller - AC Frequency Error - StateCodes: 454"),
+					array('varName' => "ENERGY_TRANSFER_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Energy transfer not possible - StateCodes: 443"),
+					array('varName' => "REF_POWER_SOURCE_AC", 'varProfile' => "~Alert", 'varInfo' => "Reference power source AC outside tolerances - StateCodes: 455"),
+					array('varName' => "ANTI_ISLANDING_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Error during anti islanding test - StateCodes: 456"),
+					array('varName' => "FIXED_VOLTAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Fixed voltage lower than current MPP voltage - StateCodes: 412"),
+					array('varName' => "MEMORY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Memory fault - StateCodes: 403;414;451;505;506;507;510;511;711;712;713;714;715;716;721;722;723;724;725;726;727;728;729;730"),
+					array('varName' => "DISPLAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Display - StateCodes: 464;465;466;467"),
+					array('varName' => "COMMUNICATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Internal communication error - StateCodes: 401;402;416;425;452;490;491;519;799"),
+					array('varName' => "TEMP_SENSORS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Temperature sensors defective - StateCodes: 406;407;487;532;533"),
+					array('varName' => "DC_AC_BOARD_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC or AC board fault - StateCodes: 460;461;518"),
+					array('varName' => "ENS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "ENS error - StateCodes: 248;404;405;415"),
+					array('varName' => "FAN_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Fan error - StateCodes: 530;531;534;535;536;537;540;541;555;557"),
+					array('varName' => "DEFECTIVE_FUSE", 'varProfile' => "~Alert", 'varInfo' => "Defective fuse - StateCodes: 471;472;551"),
+					array('varName' => "OUTPUT_CHOKE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Output choke connected to wrong poles - StateCodes: 469"),
+					array('varName' => "CONVERTER_RELAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "The buck converter relay does not open at high DC voltage - StateCodes: 470"),
+				);
+
+				$instanceId = IPS_GetInstanceIDByName("EvtVnd1", $categoryId);
+				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				IPS_SetHidden($varId, true);
+				
+				foreach($bitArray AS $bit)
+				{
+					$varName = $bit['varName'];
+					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
+					if(false === $varId)
+					{
+						$varId = IPS_CreateVariable(0);
+						IPS_SetName($varId, $varName);
+						IPS_SetParent($varId, $instanceId);
+					}
+					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
+					IPS_SetInfo($varId, $bit['varInfo']);
+				}
+
+
+				// Bit 0 - 15 für "EvtVnd2" erstellen
+				$bitArray = array(
+					array('varName' => "NO_SOLARNET_COMM", 'varProfile' => "~Alert", 'varInfo' => "No SolarNet communication - StateCodes: 504"),
+					array('varName' => "INV_ADDRESS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Inverter address incorrect - StateCodes: 508"),
+					array('varName' => "NO_FEED_IN_24H", 'varProfile' => "~Alert", 'varInfo' => "24h no feed in - StateCodes: 509"),
+					array('varName' => "PLUG_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Faulty plug connections - StateCodes: 410;515"),
+					array('varName' => "PHASE_ALLOC_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Incorrect phase allocation - StateCodes: 473"),
+					array('varName' => "GRID_CONDUCTOR_OPEN", 'varProfile' => "~Alert", 'varInfo' => "Grid conductor open or supply phase has failed - StateCodes: 210"),
+					array('varName' => "SOFTWARE_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Incompatible or old software - StateCodes: 558"),
+					array('varName' => "POWER_DERATING", 'varProfile' => "~Alert", 'varInfo' => "Power Derating Due To Overtemperature - StateCodes: 517"),
+					array('varName' => "JUMPER_INCORRECT", 'varProfile' => "~Alert", 'varInfo' => "Jumper set incorrectly - StateCodes: 550"),
+					array('varName' => "INCOMPATIBLE_FEATURE", 'varProfile' => "~Alert", 'varInfo' => "Incompatible feature - StateCodes: 559"),
+					array('varName' => "VENTS_BLOCKED", 'varProfile' => "~Alert", 'varInfo' => "Defective ventilator/air vents blocked - StateCodes: 501"),
+					array('varName' => "POWER_REDUCTION_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Power reduction on error - StateCodes: 560;561"),
+					array('varName' => "ARC_DETECTED", 'varProfile' => "~Alert", 'varInfo' => "Arc Detected - StateCodes: 240"),
+					array('varName' => "AFCI_SELF_TEST_FAILED", 'varProfile' => "~Alert", 'varInfo' => "AFCI Self Test Failed - StateCodes: 245"),
+					array('varName' => "CURRENT_SENSOR_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Current Sensor Error - StateCodes: 247"),
+					array('varName' => "DC_SWITCH_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC switch fault - StateCodes: 492;493"),
+					array('varName' => "AFCI_DEFECTIVE", 'varProfile' => "~Alert", 'varInfo' => "AFCI Defective - StateCodes: 249"),
+					array('varName' => "AFCI_MANUAL_TEST_OK", 'varProfile' => "~Alert", 'varInfo' => "AFCI Manual Test Successful - StateCodes: 250"),
+					array('varName' => "PS_PWR_SUPPLY_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Power Stack Supply Missing - StateCodes: 476"),
+					array('varName' => "AFCI_NO_COMM", 'varProfile' => "~Alert", 'varInfo' => "AFCI Communication Stopped - StateCodes: 477"),
+					array('varName' => "AFCI_MANUAL_TEST_FAILED", 'varProfile' => "~Alert", 'varInfo' => "AFCI Manual Test Failed - StateCodes: 478"),
+					array('varName' => "AC_POLARITY_REVERSED", 'varProfile' => "~Alert", 'varInfo' => "AC polarity reversed - StateCodes: 463"),
+					array('varName' => "FAULTY_AC_DEVICE", 'varProfile' => "~Alert", 'varInfo' => "AC measurement device fault - StateCodes: 488"),
+					array('varName' => "FLASH_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Flash fault - StateCodes: 781;782;783;784;785;786;787;788;789;790;791;792;793;794"),
+					array('varName' => "GENERAL_ERROR", 'varProfile' => "~Alert", 'varInfo' => "General error - StateCodes: 772;773;775;776"),
+					array('varName' => "GROUNDING_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Grounding fault - StateCodes: 494"),
+					array('varName' => "LIMITATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Power limitation fault - StateCodes: 761;762;763;764;765;766;767;768"),
+					array('varName' => "OPEN_CONTACT", 'varProfile' => "~Alert", 'varInfo' => "External NO contact open - StateCodes: 486"),
+					array('varName' => "OVERVOLTAGE_PROTECTION", 'varProfile' => "~Alert", 'varInfo' => "External overvoltage protection has tripped - StateCodes: 597;598;599"),
+					array('varName' => "PROGRAM_STATUS", 'varProfile' => "~Alert", 'varInfo' => "Internal processor program status - StateCodes: 707;708;709;710;1000-1299"),
+					array('varName' => "SOLARNET_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "SolarNet issue - StateCodes: 701;702;703;704;705;706"),
+					array('varName' => "SUPPLY_VOLTAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Supply voltage fault - StateCodes: 495;496;497;498;499"),
+				);
+
+				$instanceId = IPS_GetInstanceIDByName("EvtVnd2", $categoryId);
+				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				IPS_SetHidden($varId, true);
+				
+				foreach($bitArray AS $bit)
+				{
+					$varName = $bit['varName'];
+					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
+					if(false === $varId)
+					{
+						$varId = IPS_CreateVariable(0);
+						IPS_SetName($varId, $varName);
+						IPS_SetParent($varId, $instanceId);
+					}
+					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
+					IPS_SetInfo($varId, $bit['varInfo']);
+				}
+
+
+				// Bit 0 - 15 für "EvtVnd3" erstellen
+				$bitArray = array(
+					array('varName' => "TIME_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Time error - StateCodes: 751;752;753;754;755;756;757;758;760"),
+					array('varName' => "USB_FAULT", 'varProfile' => "~Alert", 'varInfo' => "USB error - StateCodes: 731;732;733;734;735;736;737;738;739;740;741;743;744;745;746;747;748;749;750"),
+					array('varName' => "DC_HIGH", 'varProfile' => "~Alert", 'varInfo' => "DC high - StateCodes: 309;313"),
+					array('varName' => "INIT_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Init error - StateCodes: 482"),
+				);
+
+				$instanceId = IPS_GetInstanceIDByName("EvtVnd3", $categoryId);
+				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				IPS_SetHidden($varId, true);
+				
+				foreach($bitArray AS $bit)
+				{
+					$varName = $bit['varName'];
+					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
+					if(false === $varId)
+					{
+						$varId = IPS_CreateVariable(0);
+						IPS_SetName($varId, $varName);
+						IPS_SetParent($varId, $instanceId);
+					}
+					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
+					IPS_SetInfo($varId, $bit['varInfo']);
+				}
+
+
+
 				$categoryName = "Nameplate";
 				$categoryId = @IPS_GetCategoryIDByName($categoryName, $parentId);
 				if($readNameplate)
@@ -278,170 +587,215 @@ if (!defined('froniusInstances'))
 						IPS_DeleteCategory($categoryId);
 					}
 				}
+
+
+				if($active)
+				{
+					// Timer aktivieren
+					$this->SetTimerInterval("Update-Evt1", 5000);
+					$this->SetTimerInterval("Update-EvtVnd1", 5000);
+					$this->SetTimerInterval("Update-EvtVnd2", 5000);
+					$this->SetTimerInterval("Update-EvtVnd3", 5000);
+
+					// Erreichbarkeit von IP und Port prüfen
+					$portOpen = false;
+					$waitTimeoutInSeconds = 1; 
+					if($fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
+					{   
+						// It worked
+						$portOpen = true;
+						fclose($fp);
+
+						// Client Soket aktivieren
+						IPS_SetProperty($interfaceId, "Open", true);
+						IPS_ApplyChanges($interfaceId);
+						IPS_Sleep(100);
+
+						// aktiv
+						$this->SetStatus(102);
+					}
+					else
+					{
+						// IP oder Port nicht erreichbar
+						$this->SetStatus(200);
+					}
+				}
+				else
+				{
+					// Client Soket deaktivieren
+					IPS_SetProperty($interfaceId, "Open", false);
+					IPS_ApplyChanges($interfaceId);
+					IPS_Sleep(100);
+
+					// inaktiv
+					$this->SetStatus(104);
+				}
+			}
+			else
+			{
+				// keine IP --> inaktiv
+				$this->SetStatus(104);
 			}
 		}
 
 		private function createModbusInstances($inverterModelRegister_array, $parentId, $gatewayId, $pollCycle)
 		{
-			// Offset von Register (erster Wert 1) zu Adresse (erster Wert 0) ist -1
-			$registerToAdressOffset = -1;
-
-			// ArrayOffsets
-			$IMR_StartRegister = 0;
-			//$IMR_EndRegister = 1;
-			$IMR_Size = 1;
-			$IMR_RW = 2;
-			$IMR_FunctionCode = 3;
-			$IMR_Name = 4;
-			$IMR_Type = 5;
-			$IMR_Units = 6;
-			$IMR_Description = 7;
-
 			// Erstelle Modbus Instancen
 			foreach($inverterModelRegister_array AS $inverterModelRegister)
 			{
-				if(DEBUG) echo "REG_".$inverterModelRegister[$IMR_StartRegister]. " - ".$inverterModelRegister[$IMR_Name]."\n";
+				if(DEBUG) echo "REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".$inverterModelRegister[IMR_NAME]."\n";
 				// Datentyp ermitteln
 				// 0=Bit, 1=Byte, 2=Word, 3=DWord, 4=ShortInt, 5=SmallInt, 6=Integer, 7=Real
-				if("uint16" == $inverterModelRegister[$IMR_Type]
-					|| "enum16" == $inverterModelRegister[$IMR_Type])
+				if("uint16" == strtolower($inverterModelRegister[IMR_TYPE])
+					|| "enum16" == strtolower($inverterModelRegister[IMR_TYPE])
+					|| "uint8+uint8" == strtolower($inverterModelRegister[IMR_TYPE]))
 				{
 					$datenTyp = 2;
 				}
-				elseif("int16" == $inverterModelRegister[$IMR_Type]
-					|| "sunssf" == $inverterModelRegister[$IMR_Type])
+				elseif("uint32" == strtolower($inverterModelRegister[IMR_TYPE]))
+				{
+					$datenTyp = 3;
+				}
+				elseif("int16" == strtolower($inverterModelRegister[IMR_TYPE])
+					|| "sunssf" == strtolower($inverterModelRegister[IMR_TYPE]))
 				{
 					$datenTyp = 4;
 				}
-				elseif("uint32" == $inverterModelRegister[$IMR_Type])
+				elseif("int32" == strtolower($inverterModelRegister[IMR_TYPE]))
 				{
 					$datenTyp = 6;
 				}
-				elseif("float32" == $inverterModelRegister[$IMR_Type])
+				elseif("float32" == strtolower($inverterModelRegister[IMR_TYPE]))
 				{
 					$datenTyp = 7;
 				}
-				elseif("String32" == $inverterModelRegister[$IMR_Type] || "String16" == $inverterModelRegister[$IMR_Type])
+				elseif("string32" == strtolower($inverterModelRegister[IMR_TYPE])
+					|| "string16" == strtolower($inverterModelRegister[IMR_TYPE])
+					|| "string" == strtolower($inverterModelRegister[IMR_TYPE]))
 				{
-					echo "Datentyp ".$inverterModelRegister[$IMR_Type]." wird von Modbus nicht unterstützt! --> skip\n";
+					echo "Datentyp '".$inverterModelRegister[IMR_TYPE]."' wird von Modbus in IPS nicht unterstützt! --> skip\n";
 					continue;
 				}
 				else
 				{
-					echo "Fehler: Unbekannter Datentyp ".$inverterModelRegister[$IMR_Type]."! --> skip\n";
+					echo "Fehler: Unbekannter Datentyp '".$inverterModelRegister[IMR_TYPE]."'! --> skip\n";
 					continue;
 				}
 
 				// Profil ermitteln
-				if("A" == $inverterModelRegister[$IMR_Units] && "uint16" == $inverterModelRegister[$IMR_Type])
-				{
-					$profile = "Fronius.Ampere.Int";
-				}
-				elseif("A" == $inverterModelRegister[$IMR_Units])
+				if("a" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
 					$profile = "~Ampere";
 				}
-				elseif("AH" == $inverterModelRegister[$IMR_Units])
+				elseif("a" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
-					$profile = "Fronius.AmpereHour.Int";
+					$profile = MODUL_PREFIX.".Ampere.Int";
 				}
-				elseif("V" == $inverterModelRegister[$IMR_Units])
+				elseif("ah" == strtolower($inverterModelRegister[IMR_UNITS]))
+				{
+					$profile = MODUL_PREFIX.".AmpereHour.Int";
+				}
+				elseif("v" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
 					$profile = "~Volt";
 				}
-				elseif("W" == $inverterModelRegister[$IMR_Units] && "uint16" == $inverterModelRegister[$IMR_Type])
-				{
-					$profile = "Fronius.Watt.Int";
-				}
-				elseif("W" == $inverterModelRegister[$IMR_Units])
+				elseif("w" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
 					$profile = "~Watt.14490";
 				}
-				elseif("Hz" == $inverterModelRegister[$IMR_Units])
+				elseif("w" == strtolower($inverterModelRegister[IMR_UNITS]))
+				{
+					$profile = MODUL_PREFIX.".Watt.Int";
+				}
+				elseif("hz" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
 					$profile = "~Hertz";
 				}
 				// Voltampere für elektrische Scheinleistung
-				elseif("VA" == $inverterModelRegister[$IMR_Units] && "float32" == $inverterModelRegister[$IMR_Type])
+				elseif("va" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
-					$profile = "Fronius.Scheinleistung.Float";
+					$profile = MODUL_PREFIX.".Scheinleistung.Float";
 				}
 				// Voltampere für elektrische Scheinleistung
-				elseif("VA" == $inverterModelRegister[$IMR_Units])
+				elseif("va" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
-					$profile = "Fronius.Scheinleistung";
+					$profile = MODUL_PREFIX.".Scheinleistung";
 				}
 				// Var für elektrische Blindleistung
-				elseif(("VAr" == $inverterModelRegister[$IMR_Units] || "var" == $inverterModelRegister[$IMR_Units]) && "float32" == $inverterModelRegister[$IMR_Type])
+				elseif("var" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
-					$profile = "Fronius.Blindleistung.Float";
+					$profile = MODUL_PREFIX.".Blindleistung.Float";
 				}
 				// Var für elektrische Blindleistung
-				elseif("VAr" == $inverterModelRegister[$IMR_Units] || "var" == $inverterModelRegister[$IMR_Units])
+				elseif("var" == strtolower($inverterModelRegister[IMR_UNITS]) || "var" == $inverterModelRegister[IMR_UNITS])
 				{
-					$profile = "Fronius.Blindleistung";
+					$profile = MODUL_PREFIX.".Blindleistung";
 				}
-				elseif("%" == $inverterModelRegister[$IMR_Units])
+				elseif("%" == $inverterModelRegister[IMR_UNITS] && 7 == $datenTyp)
 				{
 					$profile = "~Valve.F";
 				}
-				elseif("Wh" == $inverterModelRegister[$IMR_Units] && "uint16" == $inverterModelRegister[$IMR_Type])
+				elseif("%" == $inverterModelRegister[IMR_UNITS])
 				{
-					$profile = "Fronius.Electricity.Int";
+					$profile = "~Valve";
 				}
-				elseif("Wh" == $inverterModelRegister[$IMR_Units])
+				elseif("wh" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
 					$profile = "~Electricity.HM";
 				}
-				elseif("° C" == $inverterModelRegister[$IMR_Units])
+				elseif("wh" == strtolower($inverterModelRegister[IMR_UNITS]))
+				{
+					$profile = MODUL_PREFIX.".Electricity.Int";
+				}
+				elseif("° C" == $inverterModelRegister[IMR_UNITS])
 				{
 					$profile = "~Temperature";
 				}
-				elseif("cos()" == $inverterModelRegister[$IMR_Units])
+				elseif("cos()" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
-					$profile = "Fronius.Angle";
+					$profile = MODUL_PREFIX.".Angle";
 				}
-				elseif("Enumerated" == $inverterModelRegister[$IMR_Units] && "St" == $inverterModelRegister[$IMR_Name])
+				elseif("enumerated" == strtolower($inverterModelRegister[IMR_UNITS]) && "st" == strtolower($inverterModelRegister[IMR_NAME]))
 				{
 					$profile = "SunSpec.StateCodes";
 				}
-				elseif("Enumerated" == $inverterModelRegister[$IMR_Units] && "StVnd" == $inverterModelRegister[$IMR_Name])
+				elseif("enumerated" == strtolower($inverterModelRegister[IMR_UNITS]) && "stvnd" == strtolower($inverterModelRegister[IMR_NAME]))
 				{
-					$profile = "Fronius.StateCodes";
+					$profile = MODUL_PREFIX.".StateCodes";
 				}
-				elseif("Bitfield" == $inverterModelRegister[$IMR_Units])
+				elseif("bitfield" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
 					$profile = false;
 				}
 				else
 				{
 					$profile = false;
-					if("" != $inverterModelRegister[$IMR_Units])
+					if("" != $inverterModelRegister[IMR_UNITS])
 					{
-						echo "Profil '".$inverterModelRegister[$IMR_Units]."' unbekannt.\n";
+						echo "Profil '".$inverterModelRegister[IMR_UNITS]."' unbekannt.\n";
 					}
 				}
 
 
-				$instanceId = @IPS_GetInstanceIDByName(/*"REG_".$inverterModelRegister[$IMR_StartRegister]. " - ".*/$inverterModelRegister[$IMR_Name], $parentId);
+				$instanceId = @IPS_GetInstanceIDByName(/*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME], $parentId);
 				if(false === $instanceId)
 				{
-					$instanceId = IPS_CreateInstance(modbusAddresses);
+					$instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
 					IPS_SetParent($instanceId, $parentId);
-					IPS_SetName($instanceId, /*"REG_".$inverterModelRegister[$IMR_StartRegister]. " - ".*/$inverterModelRegister[$IMR_Name]);
+					IPS_SetName($instanceId, /*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME]);
 
 					// Gateway setzen
 					IPS_DisconnectInstance($instanceId);
 					IPS_ConnectInstance($instanceId, $gatewayId);
 				}
-				IPS_SetInfo($instanceId, $inverterModelRegister[$IMR_Description]);
+				IPS_SetInfo($instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
 				IPS_SetProperty($instanceId, "DataType",  $datenTyp);
 				IPS_SetProperty($instanceId, "EmulateStatus", false);
 				IPS_SetProperty($instanceId, "Poller", $pollCycle);
 			//    IPS_SetProperty($instanceId, "Factor", 0);
-				IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[$IMR_StartRegister] + $registerToAdressOffset);
-				IPS_SetProperty($instanceId, "ReadFunctionCode", $inverterModelRegister[$IMR_FunctionCode]);
+				IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + REGISTER_TO_ADDRESS_OFFSET);
+				IPS_SetProperty($instanceId, "ReadFunctionCode", $inverterModelRegister[IMR_FUNCTION_CODE]);
 			//    IPS_SetProperty($instanceId, "WriteAddress", );
 				IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
 
@@ -460,12 +814,6 @@ if (!defined('froniusInstances'))
 		
 		private function checkProfiles()
 		{
-			// profileAssociation Offsets
-			$PAO_name = 0;
-			$PAO_value = 1;
-			$PAO_description = 2;
-			$PAO_color = 3;
-
 			// Erstelle Profil, sofern noch nicht vorhanden
 			$profileName = "SunSpec.StateCodes";
 			if(!IPS_VariableProfileExists($profileName))
@@ -487,7 +835,7 @@ if (!defined('froniusInstances'))
 
 				foreach($profileAssociation_array AS $profileAssociation)
 				{
-					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[$PAO_value], $profileAssociation[$PAO_name], "", $profileAssociation[$PAO_color]);
+					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
 				}
 
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
@@ -495,7 +843,7 @@ if (!defined('froniusInstances'))
 
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.StateCodes";
+			$profileName = MODUL_PREFIX.".StateCodes";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				$profileAssociation_array = array(
@@ -520,7 +868,7 @@ if (!defined('froniusInstances'))
 
 				foreach($profileAssociation_array AS $profileAssociation)
 				{
-					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[$PAO_value], $profileAssociation[$PAO_name], "", $profileAssociation[$PAO_color]);
+					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
 				}
 
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
@@ -528,7 +876,7 @@ if (!defined('froniusInstances'))
 
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Scheinleistung";
+			$profileName = MODUL_PREFIX.".Scheinleistung";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -540,7 +888,7 @@ if (!defined('froniusInstances'))
 
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Scheinleistung.Float";
+			$profileName = MODUL_PREFIX.".Scheinleistung.Float";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -552,7 +900,7 @@ if (!defined('froniusInstances'))
 
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Blindleistung";
+			$profileName = MODUL_PREFIX.".Blindleistung";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -563,7 +911,7 @@ if (!defined('froniusInstances'))
 			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Blindleistung.Float";
+			$profileName = MODUL_PREFIX.".Blindleistung.Float";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -574,7 +922,7 @@ if (!defined('froniusInstances'))
 			}
 			
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Angle";
+			$profileName = MODUL_PREFIX.".Angle";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -585,7 +933,7 @@ if (!defined('froniusInstances'))
 			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Watt.Int";
+			$profileName = MODUL_PREFIX.".Watt.Int";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -596,7 +944,7 @@ if (!defined('froniusInstances'))
 			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Ampere.Int";
+			$profileName = MODUL_PREFIX.".Ampere.Int";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -607,7 +955,7 @@ if (!defined('froniusInstances'))
 			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.Electricity.Int";
+			$profileName = MODUL_PREFIX.".Electricity.Int";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
@@ -618,7 +966,7 @@ if (!defined('froniusInstances'))
 			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "Fronius.AmpereHour.Int";
+			$profileName = MODUL_PREFIX.".AmpereHour.Int";
 			if(!IPS_VariableProfileExists($profileName))
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String

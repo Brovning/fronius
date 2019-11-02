@@ -17,8 +17,6 @@ IP-Symcon (IPS) Modul für Fronius Wechselrichter mit TCP ModBus Unterstützung 
 Dieses Modul erstellt anhand der Konfiguration der Fronius Instanz den nötigen Client Socket und das dazugehörige ModBus Gateway. Sofern diese bereits vorhanden sind, werden keine weiteren Client Sockets oder ModBus Gateways erstellt.
 Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter und optional des Modells Nameplate erstellt.
 
-Einschränkung: Aktuell kann nur eine Instanz des Fronius-Moduls erstellt werden!
-
 
 ### 2. Vorraussetzungen
 

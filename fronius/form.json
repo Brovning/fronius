@@ -13,12 +13,17 @@
             "label": ""
         },
         {
+            "type": "CheckBox",
+            "caption": "Open",
+            "name": "active"
+        },
+        {
             "type": "ValidationTextBox",
             "caption": "IP",
             "name": "hostIp"
         },
         {
-            "type": "ValidationTextBox",
+            "type": "NumberSpinner",
             "caption": "Port",
             "name": "hostPort"
         },
@@ -47,6 +52,23 @@
         {
             "type": "Label",
             "label": "Achtung: Abfrage-Intervall nicht zu klein wählen, um die Systemlast und auch die Archiv-Größe bei Logging nicht unnötig zu erhöhen!"
+        }
+    ],
+    "status": [
+        {
+            "code": 102,
+            "icon": "active",
+            "caption": "Instance ist aktiviert"
+        },
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Instance ist deaktiviert"
+        },
+        {
+            "code": 200,
+            "icon": "error",
+            "caption": "IP oder Port sind nicht erreichtbar"
         }
     ]
 }
