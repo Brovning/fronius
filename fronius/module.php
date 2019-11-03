@@ -242,7 +242,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 					// Client Soket erstellen
 					$interfaceId = IPS_CreateInstance(CLIENT_SOCKETS);
-					IPS_SetName($interfaceId, MODUL_PREFIX."ClientSoket");
+					IPS_SetName($interfaceId, MODUL_PREFIX."ClientSocket");
 					IPS_SetProperty($interfaceId, "Host", $hostIp);
 					IPS_SetProperty($interfaceId, "Port", $hostPort);
 					IPS_SetProperty($interfaceId, "Open", true);
