@@ -107,7 +107,7 @@ if (!defined('PAO_COLOR'))
 
 			// *** Erstelle deaktivierte Timer ***
 			// Evt1
-			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"Evt1\", ".$this->InstanceID.");
+			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"Evt1 - Event Flags\", ".$this->InstanceID.");
 \$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
 
 \$bitArray = array(\"I_EVENT_GROUND_FAULT\", \"I_EVENT_DC_OVER_VOLT\", \"I_EVENT_AC_DISCONNECT\", \"I_EVENT_DC_DISCONNECT\", \"I_EVENT_GRID_DISCONNECT\", \"I_EVENT_CABINET_OPEN\", \"I_EVENT_MANUAL_SHUTDOWN\", \"I_EVENT_OVER_TEMP\", \"I_EVENT_OVER_FREQUENCY\", \"I_EVENT_UNDER_FREQUENCY\", \"I_EVENT_AC_OVER_VOLT\", \"I_EVENT_AC_UNDER_VOLT\", \"I_EVENT_BLOWN_STRING_FUSE\", \"I_EVENT_UNDER_TEMP\", \"I_EVENT_MEMORY_LOSS\", \"I_EVENT_HW_TEST_FAILURE\");
@@ -125,7 +125,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 
 			// EvtVnd1
-			$this->RegisterTimer("Update-EvtVnd1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd1\", ".$this->InstanceID.");
+			$this->RegisterTimer("Update-EvtVnd1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd1 - Vendor Event Flags\", ".$this->InstanceID.");
 \$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
 
 \$bitArray = array(\"INSULATION_FAULT\", \"GRID_ERROR\", \"AC_OVERCURRENT\", \"DC_OVERCURRENT\", \"OVER_TEMP\", \"POWER_LOW\", \"DC_LOW\", \"INTERMEDIATE_FAULT\", \"FREQUENCY_HIGH\", \"FREQUENCY_LOW\", \"AC_VOLTAGE_HIGH\", \"AC_VOLTAGE_LOW\", \"DIRECT_CURRENT\", \"RELAY_FAULT\", \"POWER_STAGE_FAULT\", \"CONTROL_FAULT\", \"GC_GRID_VOLT_ERR\", \"GC_GRID_FREQU_ERR\", \"ENERGY_TRANSFER_FAULT\", \"REF_POWER_SOURCE_AC\", \"ANTI_ISLANDING_FAULT\", \"FIXED_VOLTAGE_FAULT\", \"MEMORY_FAULT\", \"DISPLAY_FAULT\", \"COMMUNICATION_FAULT\", \"TEMP_SENSORS_FAULT\", \"DC_AC_BOARD_FAULT\", \"ENS_FAULT\", \"FAN_FAULT\", \"DEFECTIVE_FUSE\", \"OUTPUT_CHOKE_FAULT\", \"CONVERTER_RELAY_FAULT\");
@@ -143,7 +143,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 
 			// EvtVnd2
-			$this->RegisterTimer("Update-EvtVnd2", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd2\", ".$this->InstanceID.");
+			$this->RegisterTimer("Update-EvtVnd2", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd2 - Vendor Event Flags\", ".$this->InstanceID.");
 \$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
 
 \$bitArray = array(\"NO_SOLARNET_COMM\", \"INV_ADDRESS_FAULT\", \"NO_FEED_IN_24H\", \"PLUG_FAULT\", \"PHASE_ALLOC_FAULT\", \"GRID_CONDUCTOR_OPEN\", \"SOFTWARE_ISSUE\", \"POWER_DERATING\", \"JUMPER_INCORRECT\", \"INCOMPATIBLE_FEATURE\", \"VENTS_BLOCKED\", \"POWER_REDUCTION_ERROR\", \"ARC_DETECTED\", \"AFCI_SELF_TEST_FAILED\", \"CURRENT_SENSOR_ERROR\", \"DC_SWITCH_FAULT\", \"AFCI_DEFECTIVE\", \"AFCI_MANUAL_TEST_OK\", \"PS_PWR_SUPPLY_ISSUE\", \"AFCI_NO_COMM\", \"AFCI_MANUAL_TEST_FAILED\", \"AC_POLARITY_REVERSED\", \"FAULTY_AC_DEVICE\", \"FLASH_FAULT\", \"GENERAL_ERROR\", \"GROUNDING_ISSUE\", \"LIMITATION_FAULT\", \"OPEN_CONTACT\", \"OVERVOLTAGE_PROTECTION\", \"PROGRAM_STATUS\", \"SOLARNET_ISSUE\", \"SUPPLY_VOLTAGE_FAULT\");
@@ -161,7 +161,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 
 			// EvtVnd3
-			$this->RegisterTimer("Update-EvtVnd3", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd3\", ".$this->InstanceID.");
+			$this->RegisterTimer("Update-EvtVnd3", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd3 - Vendor Event Flags\", ".$this->InstanceID.");
 \$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
 
 \$bitArray = array(\"TIME_FAULT\", \"USB_FAULT\", \"DC_HIGH\", \"INIT_ERROR\");
@@ -285,38 +285,38 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
 				   ************************************************************************************************** */
 					array(40070, 1, "R", 3, "ID", "uint16", "", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)"),
-					array(40071, 1, "R", 3, "L", "uint16", "", "Registers, Length of inverter model block"),
-					array(40072, 2, "R", 3, "A", "float32", "A", "AC Total Current value"),
-					array(40074, 2, "R", 3, "AphA", "float32", "A", "AC Phase-A Current value"),
-					array(40076, 2, "R", 3, "AphB", "float32", "A", "AC Phase-B Current value"),
-					array(40078, 2, "R", 3, "AphC", "float32", "A", "AC Phase-C Current value"),
-					array(40080, 2, "R", 3, "PPVphAB", "float32", "V", "AC Voltage Phase-AB value"),
-					array(40082, 2, "R", 3, "PPVphBC", "float32", "V", "AC Voltage Phase-BC value"),
-					array(40084, 2, "R", 3, "PPVphCA", "float32", "V", "AC Voltage Phase-CA value"),
-					array(40086, 2, "R", 3, "PhVphA", "float32", "V", "AC Voltage Phase-A-toneutral value"),
-					array(40088, 2, "R", 3, "PhVphB", "float32", "V", "AC Voltage Phase-B-toneutral value"),
-					array(40090, 2, "R", 3, "PhVphC", "float32", "V", "AC Voltage Phase-C-toneutral value"),
-					array(40092, 2, "R", 3, "W", "float32", "W", "AC Power value"),
-					array(40094, 2, "R", 3, "Hz", "float32", "Hz", "AC Frequency value"),
-					array(40096, 2, "R", 3, "VA", "float32", "VA", "Apparent Power"),
-					array(40098, 2, "R", 3, "VAr", "float32", "VAr", "Reactive Power"),
-					array(40100, 2, "R", 3, "PF", "float32", "%", "Power Factor"),
-					array(40102, 2, "R", 3, "WH", "float32", "Wh", "AC Lifetime Energy production"),
-				//    array(40104, 2, "R", 3, "DCA", "float32", "A", "DC Current value (DC current only if one MPPT available; with multiple MPPT 'not implemented')"),
-				//    array(40106, 2, "R", 3, "DCV", "float32", "V", "DC Voltage value (DC voltage only if one MPPT available; with multiple MPPT 'not implemented')"),
-					array(40108, 2, "R", 3, "DCW", "float32", "W", "DC Power value"),
-					array(40110, 2, "R", 3, "TmpCab", "float32", "° C", "Cabinet Temperature"),
-					array(40112, 2, "R", 3, "TmpSnk", "float32", "° C", "Coolant or Heat Sink Temperature"),
-					array(40114, 2, "R", 3, "TmpTrns", "float32", "° C", "Transformer Temperature"),
-					array(40116, 2, "R", 3, "TmpOt", "float32", "° C", "Other Temperature"),
-					array(40118, 1, "R", 3, "St", "enum16", "Enumerated", "Operating State (SunSpec State Codes)"),
-					array(40119, 1, "R", 3, "StVnd", "enum16", "Enumerated", "Vendor Defined Operating State (Fronius State Codes)"),
-					array(40120, 2, "R", 3, "Evt1", "uint32", "Bitfield", "Event Flags (bits 0-31)"),
-					array(40122, 2, "R", 3, "Evt2", "uint32", "Bitfield", "Event Flags (bits 32-63)"),
-					array(40124, 2, "R", 3, "EvtVnd1", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 0-31)"),
-					array(40126, 2, "R", 3, "EvtVnd2", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 32-63)"),
-					array(40128, 2, "R", 3, "EvtVnd3", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 64-95)"),
-					array(40130, 2, "R", 3, "EvtVnd4", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 96-127)"),
+					array(40071, 1, "R", 3, "L - Registers", "uint16", "", "Registers, Length of inverter model block"),
+					array(40072, 2, "R", 3, "A - AC Total Current", "float32", "A", "AC Total Current value"),
+					array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "float32", "A", "AC Phase-A Current value"),
+					array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "float32", "A", "AC Phase-B Current value"),
+					array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "float32", "A", "AC Phase-C Current value"),
+					array(40080, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "float32", "V", "AC Voltage Phase-AB value"),
+					array(40082, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "float32", "V", "AC Voltage Phase-BC value"),
+					array(40084, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "float32", "V", "AC Voltage Phase-CA value"),
+					array(40086, 2, "R", 3, "PhVphA - AC Voltage Phase-A-toneutral", "float32", "V", "AC Voltage Phase-A-toneutral value"),
+					array(40088, 2, "R", 3, "PhVphB - AC Voltage Phase-B-toneutral", "float32", "V", "AC Voltage Phase-B-toneutral value"),
+					array(40090, 2, "R", 3, "PhVphC - AC Voltage Phase-C-toneutral", "float32", "V", "AC Voltage Phase-C-toneutral value"),
+					array(40092, 2, "R", 3, "W - AC Power", "float32", "W", "AC Power value"),
+					array(40094, 2, "R", 3, "Hz - AC Frequency", "float32", "Hz", "AC Frequency value"),
+					array(40096, 2, "R", 3, "VA - Apparent Power", "float32", "VA", "Apparent Power"),
+					array(40098, 2, "R", 3, "VAr - Reactive Power", "float32", "VAr", "Reactive Power"),
+					array(40100, 2, "R", 3, "PF - Power Factor", "float32", "%", "Power Factor"),
+					array(40102, 2, "R", 3, "WH - AC Lifetime Energy production", "float32", "Wh", "AC Lifetime Energy production"),
+//					array(40104, 2, "R", 3, "DCA", "float32", "A", "DC Current value (DC current only if one MPPT available; with multiple MPPT 'not implemented')"),
+//					array(40106, 2, "R", 3, "DCV", "float32", "V", "DC Voltage value (DC voltage only if one MPPT available; with multiple MPPT 'not implemented')"),
+					array(40108, 2, "R", 3, "DCW - DC Power", "float32", "W", "DC Power value"),
+//					array(40110, 2, "R", 3, "TmpCab", "float32", "° C", "Cabinet Temperature"), // Not supported
+//					array(40112, 2, "R", 3, "TmpSnk", "float32", "° C", "Coolant or Heat Sink Temperature"), // Not supported
+//					array(40114, 2, "R", 3, "TmpTrns", "float32", "° C", "Transformer Temperature"), // Not supported
+//					array(40116, 2, "R", 3, "TmpOt", "float32", "° C", "Other Temperature"), // Not supported
+					array(40118, 1, "R", 3, "St - Operating State", "enum16", "Enumerated_St", "Operating State (SunSpec State Codes)"),
+					array(40119, 1, "R", 3, "StVnd - Vendor Operating State", "enum16", "Enumerated_StVnd", "Vendor Defined Operating State (Fronius State Codes)"),
+					array(40120, 2, "R", 3, "Evt1 - Event Flags", "uint32", "Bitfield", "Event Flags (bits 0-31)"),
+					array(40122, 2, "R", 3, "Evt2 - Event Flags", "uint32", "Bitfield", "Event Flags (bits 32-63)"),
+					array(40124, 2, "R", 3, "EvtVnd1 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 0-31)"),
+					array(40126, 2, "R", 3, "EvtVnd2 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 32-63)"),
+					array(40128, 2, "R", 3, "EvtVnd3 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 64-95)"),
+					array(40130, 2, "R", 3, "EvtVnd4 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 96-127)"),
 				);
 
 				$categoryId = $parentId;
@@ -335,7 +335,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
 
 
-				// Bit 0 - 15 für "Evt1" erstellen
+				// Bit 0 - 15 für "Evt1 - Event Flags" erstellen
 				$bitArray = array(
 					array('varName' => "I_EVENT_GROUND_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Ground fault - StateCodes: 471;472;474;475;494;502"),
 					array('varName' => "I_EVENT_DC_OVER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "DC over voltage - StateCodes: 309;313"),
@@ -355,7 +355,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					array('varName' => "I_EVENT_HW_TEST_FAILURE", 'varProfile' => "~Alert", 'varInfo' => "Hardware test failure - StateCodes: 245;406;407;457;469;478;515;532;533;535;555"),
 				);
 
-				$instanceId = IPS_GetInstanceIDByName("Evt1", $categoryId);
+				$instanceId = IPS_GetInstanceIDByName("Evt1 - Event Flags", $categoryId);
 				$varId = IPS_GetVariableIDByName("Value", $instanceId);
 				IPS_SetHidden($varId, true);
 				
@@ -373,7 +373,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					IPS_SetInfo($varId, $bit['varInfo']);
 				}
 
-				// Bit 0 - 15 für "EvtVnd1" erstellen
+				// Bit 0 - 15 für "EvtVnd1 - Vendor Event Flags" erstellen
 				$bitArray = array(
 					array('varName' => "INSULATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC Insulation fault - StateCodes: 447;459;474;475;502"),
 					array('varName' => "GRID_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Grid error - StateCodes: 101;104;107;108;109;117;127;137;205;206;305"),
@@ -409,7 +409,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					array('varName' => "CONVERTER_RELAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "The buck converter relay does not open at high DC voltage - StateCodes: 470"),
 				);
 
-				$instanceId = IPS_GetInstanceIDByName("EvtVnd1", $categoryId);
+				$instanceId = IPS_GetInstanceIDByName("EvtVnd1 - Vendor Event Flags", $categoryId);
 				$varId = IPS_GetVariableIDByName("Value", $instanceId);
 				IPS_SetHidden($varId, true);
 				
@@ -428,7 +428,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				}
 
 
-				// Bit 0 - 15 für "EvtVnd2" erstellen
+				// Bit 0 - 15 für "EvtVnd2 - Vendor Event Flags" erstellen
 				$bitArray = array(
 					array('varName' => "NO_SOLARNET_COMM", 'varProfile' => "~Alert", 'varInfo' => "No SolarNet communication - StateCodes: 504"),
 					array('varName' => "INV_ADDRESS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Inverter address incorrect - StateCodes: 508"),
@@ -464,7 +464,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					array('varName' => "SUPPLY_VOLTAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Supply voltage fault - StateCodes: 495;496;497;498;499"),
 				);
 
-				$instanceId = IPS_GetInstanceIDByName("EvtVnd2", $categoryId);
+				$instanceId = IPS_GetInstanceIDByName("EvtVnd2 - Vendor Event Flags", $categoryId);
 				$varId = IPS_GetVariableIDByName("Value", $instanceId);
 				IPS_SetHidden($varId, true);
 				
@@ -483,7 +483,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				}
 
 
-				// Bit 0 - 15 für "EvtVnd3" erstellen
+				// Bit 0 - 15 für "EvtVnd3 - Vendor Event Flags" erstellen
 				$bitArray = array(
 					array('varName' => "TIME_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Time error - StateCodes: 751;752;753;754;755;756;757;758;760"),
 					array('varName' => "USB_FAULT", 'varProfile' => "~Alert", 'varInfo' => "USB error - StateCodes: 731;732;733;734;735;736;737;738;739;740;741;743;744;745;746;747;748;749;750"),
@@ -491,7 +491,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					array('varName' => "INIT_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Init error - StateCodes: 482"),
 				);
 
-				$instanceId = IPS_GetInstanceIDByName("EvtVnd3", $categoryId);
+				$instanceId = IPS_GetInstanceIDByName("EvtVnd3 - Vendor Event Flags", $categoryId);
 				$varId = IPS_GetVariableIDByName("Value", $instanceId);
 				IPS_SetHidden($varId, true);
 				
@@ -755,11 +755,11 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				{
 					$profile = MODUL_PREFIX.".Angle";
 				}
-				elseif("enumerated" == strtolower($inverterModelRegister[IMR_UNITS]) && "st" == strtolower($inverterModelRegister[IMR_NAME]))
+				elseif("enumerated_st" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
 					$profile = "SunSpec.StateCodes";
 				}
-				elseif("enumerated" == strtolower($inverterModelRegister[IMR_UNITS]) && "stvnd" == strtolower($inverterModelRegister[IMR_NAME]))
+				elseif("enumerated_stvnd" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
 					$profile = MODUL_PREFIX.".StateCodes";
 				}
