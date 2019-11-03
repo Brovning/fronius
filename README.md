@@ -39,6 +39,7 @@ __Konfigurationsseite__:
 
 Name     | Beschreibung
 -------- | ------------------
+Open | Schalter zum aktivieren und deaktivieren der Instanz
 IP | IP-Adresse des Fronius-Wechselrichters im lokalen Netzwerk
 Port | Port, welcher im Wechselrichter unter dem Menüpunkt Modbus angegeben wurde. Default: 502
 Nameplate Modell | Sollen die erweiterte Leistungsdaten (bspw. Scheinleistung, Blindleistung, cos(),...) des Nameplate Modell angezeigt werden? Default: false
