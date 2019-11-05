@@ -142,6 +142,7 @@ Fronius.Angle | Integer
 Fronius.Watt.Int | Integer
 Fronius.Ampere.Int | Integer
 Fronius.Electricity.Int | Integer
+Fronius.Electricity.Float | Float
 Fronius.AmpereHour.Int | Integer
 
 ### 6. WebFront
