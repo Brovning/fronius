@@ -108,7 +108,8 @@ if (!defined('PAO_COLOR'))
 			// *** Erstelle deaktivierte Timer ***
 			// Evt1
 			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"Evt1 - Event Flags\", ".$this->InstanceID.");
-\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+\$varId = IPS_GetObjectIDByIdent(\"Statusvariable\", \$instanceId);
+\$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"I_EVENT_GROUND_FAULT\", \"I_EVENT_DC_OVER_VOLT\", \"I_EVENT_AC_DISCONNECT\", \"I_EVENT_DC_DISCONNECT\", \"I_EVENT_GRID_DISCONNECT\", \"I_EVENT_CABINET_OPEN\", \"I_EVENT_MANUAL_SHUTDOWN\", \"I_EVENT_OVER_TEMP\", \"I_EVENT_OVER_FREQUENCY\", \"I_EVENT_UNDER_FREQUENCY\", \"I_EVENT_AC_OVER_VOLT\", \"I_EVENT_AC_UNDER_VOLT\", \"I_EVENT_BLOWN_STRING_FUSE\", \"I_EVENT_UNDER_TEMP\", \"I_EVENT_MEMORY_LOSS\", \"I_EVENT_HW_TEST_FAILURE\");
 
@@ -126,7 +127,8 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 			// EvtVnd1
 			$this->RegisterTimer("Update-EvtVnd1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd1 - Vendor Event Flags\", ".$this->InstanceID.");
-\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+\$varId = IPS_GetObjectIDByIdent(\"Statusvariable\", \$instanceId);
+\$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"INSULATION_FAULT\", \"GRID_ERROR\", \"AC_OVERCURRENT\", \"DC_OVERCURRENT\", \"OVER_TEMP\", \"POWER_LOW\", \"DC_LOW\", \"INTERMEDIATE_FAULT\", \"FREQUENCY_HIGH\", \"FREQUENCY_LOW\", \"AC_VOLTAGE_HIGH\", \"AC_VOLTAGE_LOW\", \"DIRECT_CURRENT\", \"RELAY_FAULT\", \"POWER_STAGE_FAULT\", \"CONTROL_FAULT\", \"GC_GRID_VOLT_ERR\", \"GC_GRID_FREQU_ERR\", \"ENERGY_TRANSFER_FAULT\", \"REF_POWER_SOURCE_AC\", \"ANTI_ISLANDING_FAULT\", \"FIXED_VOLTAGE_FAULT\", \"MEMORY_FAULT\", \"DISPLAY_FAULT\", \"COMMUNICATION_FAULT\", \"TEMP_SENSORS_FAULT\", \"DC_AC_BOARD_FAULT\", \"ENS_FAULT\", \"FAN_FAULT\", \"DEFECTIVE_FUSE\", \"OUTPUT_CHOKE_FAULT\", \"CONVERTER_RELAY_FAULT\");
 
@@ -144,7 +146,8 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 			// EvtVnd2
 			$this->RegisterTimer("Update-EvtVnd2", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd2 - Vendor Event Flags\", ".$this->InstanceID.");
-\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+\$varId = IPS_GetObjectIDByIdent(\"Statusvariable\", \$instanceId);
+\$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"NO_SOLARNET_COMM\", \"INV_ADDRESS_FAULT\", \"NO_FEED_IN_24H\", \"PLUG_FAULT\", \"PHASE_ALLOC_FAULT\", \"GRID_CONDUCTOR_OPEN\", \"SOFTWARE_ISSUE\", \"POWER_DERATING\", \"JUMPER_INCORRECT\", \"INCOMPATIBLE_FEATURE\", \"VENTS_BLOCKED\", \"POWER_REDUCTION_ERROR\", \"ARC_DETECTED\", \"AFCI_SELF_TEST_FAILED\", \"CURRENT_SENSOR_ERROR\", \"DC_SWITCH_FAULT\", \"AFCI_DEFECTIVE\", \"AFCI_MANUAL_TEST_OK\", \"PS_PWR_SUPPLY_ISSUE\", \"AFCI_NO_COMM\", \"AFCI_MANUAL_TEST_FAILED\", \"AC_POLARITY_REVERSED\", \"FAULTY_AC_DEVICE\", \"FLASH_FAULT\", \"GENERAL_ERROR\", \"GROUNDING_ISSUE\", \"LIMITATION_FAULT\", \"OPEN_CONTACT\", \"OVERVOLTAGE_PROTECTION\", \"PROGRAM_STATUS\", \"SOLARNET_ISSUE\", \"SUPPLY_VOLTAGE_FAULT\");
 
@@ -162,7 +165,8 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 			// EvtVnd3
 			$this->RegisterTimer("Update-EvtVnd3", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd3 - Vendor Event Flags\", ".$this->InstanceID.");
-\$varValue = GetValue(IPS_GetVariableIDByName(\"Value\", \$instanceId));
+\$varId = IPS_GetObjectIDByIdent(\"Statusvariable\", \$instanceId);
+\$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"TIME_FAULT\", \"USB_FAULT\", \"DC_HIGH\", \"INIT_ERROR\");
 
@@ -356,7 +360,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				);
 
 				$instanceId = IPS_GetInstanceIDByName("Evt1 - Event Flags", $categoryId);
-				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				$varId = IPS_GetObjectIDByIdent("Statusvariable", $instanceId);
 				IPS_SetHidden($varId, true);
 				
 				foreach($bitArray AS $bit)
@@ -410,7 +414,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				);
 
 				$instanceId = IPS_GetInstanceIDByName("EvtVnd1 - Vendor Event Flags", $categoryId);
-				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				$varId = IPS_GetObjectIDByIdent("Statusvariable", $instanceId);
 				IPS_SetHidden($varId, true);
 				
 				foreach($bitArray AS $bit)
@@ -465,7 +469,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				);
 
 				$instanceId = IPS_GetInstanceIDByName("EvtVnd2 - Vendor Event Flags", $categoryId);
-				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				$varId = IPS_GetObjectIDByIdent("Statusvariable", $instanceId);
 				IPS_SetHidden($varId, true);
 				
 				foreach($bitArray AS $bit)
@@ -492,7 +496,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				);
 
 				$instanceId = IPS_GetInstanceIDByName("EvtVnd3 - Vendor Event Flags", $categoryId);
-				$varId = IPS_GetVariableIDByName("Value", $instanceId);
+				$varId = IPS_GetObjectIDByIdent("Statusvariable", $instanceId);
 				IPS_SetHidden($varId, true);
 				
 				foreach($bitArray AS $bit)
@@ -803,10 +807,15 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 				IPS_Sleep(100);
 
-				// Profil der Child-Variable zuweisen
+
+				$variableId = IPS_GetChildrenIDs($instanceId)[0];
+
+				// Ident der Statusvariable setzen
+				IPS_SetIdent($variableId, "Statusvariable");
+
+				// Profil der Statusvariable zuweisen
 				if(false != $profile)
 				{
-					$variableId = IPS_GetChildrenIDs($instanceId)[0];
 					IPS_SetVariableCustomProfile($variableId, $profile);
 				}
 			}
