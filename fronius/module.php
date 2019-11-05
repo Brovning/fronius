@@ -745,7 +745,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				}
 				elseif("wh" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
-					$profile = "~Electricity.HM";
+					$profile = MODUL_PREFIX.".Electricity.Float";
 				}
 				elseif("wh" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
@@ -825,20 +825,20 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 		{
 			// Erstelle Profil, sofern noch nicht vorhanden
 			$profileName = "SunSpec.StateCodes";
+			$profileAssociation_array = array(
+				array("N/A", 0, "Unbekannter Status", "-1"),
+				array("OFF", 1, "Wechselrichter ist aus", "-1"),
+				array("SLEEPING", 2, "Auto-Shutdown", "-1"),
+				array("STARTING", 3, "Wechselrichter startet", "-1"),
+				array("MPPT", 4, "Wechselrichter arbeitet normal", 65280),
+				array("THROTTLED", 5, "Leistungsreduktion aktiv", 16744448),
+				array("SHUTTING_DOWN", 6, "Wechselrichter schaltet ab", "-1"),
+				array("FAULT", 7, "Ein oder mehr Fehler existieren, siehe St *oder Evt * Register", 16711680),
+				array("STANDBY", 8, "Standby", "-1"),
+			);
+
 			if(!IPS_VariableProfileExists($profileName))
 			{
-				$profileAssociation_array = array(
-					array("N/A", 0, "Unbekannter Status", "-1"),
-					array("OFF", 1, "Wechselrichter ist aus", "-1"),
-					array("SLEEPING", 2, "Auto-Shutdown", "-1"),
-					array("STARTING", 3, "Wechselrichter startet", "-1"),
-					array("MPPT", 4, "Wechselrichter arbeitet normal", 65280),
-					array("THROTTLED", 5, "Leistungsreduktion aktiv", 16744448),
-					array("SHUTTING_DOWN", 6, "Wechselrichter schaltet ab", "-1"),
-					array("FAULT", 7, "Ein oder mehr Fehler existieren, siehe St *oder Evt * Register", 16711680),
-					array("STANDBY", 8, "Standby", "-1"),
-				);
-
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
 				IPS_CreateVariableProfile($profileName, 1);
 
@@ -848,30 +848,36 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				}
 
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
+			}
+			else
+			{
+				foreach($profileAssociation_array AS $profileAssociation)
+				{
+					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
+				}
 			}
 
 
 			// Erstelle Profil, sofern noch nicht vorhanden
 			$profileName = MODUL_PREFIX.".StateCodes";
+			$profileAssociation_array = array(
+				array("N/A", 0, "Unbekannter Status", "-1"),
+				array("OFF", 1, "Wechselrichter ist aus", "-1"),
+				array("SLEEPING", 2, "Auto-Shutdown", "-1"),
+				array("STARTING", 3, "Wechselrichter startet", "-1"),
+				array("MPPT", 4, "Wechselrichter arbeitet normal", 65280),
+				array("THROTTLED", 5, "Leistungsreduktion aktiv", 16744448),
+				array("SHUTTING_DOWN", 6, "Wechselrichter schaltet ab", "-1"),
+				array("FAULT", 7, "Ein oder mehr Fehler existieren, siehe St * oder Evt * Register", 16711680),
+				array("STANDBY", 8, "Standby", "-1"),
+				array("NO_BUSINIT", 9, "Keine SolarNet Kommunikation", "-1"),
+				array("NO_COMM_INV", 10, "Keine Kommunikation mit Wechselrichter möglich", "-1"),
+				array("SN_OVERCURRENT", 11, "Überstrom an SolarNet Stecker erkannt", "-1"),
+				array("BOOTLOAD", 12, "Wechselrichter wird gerade upgedatet", "-1"),
+				array("AFCI", 13, "AFCI Event (Arc-Erkennung)", "-1"),
+			);
 			if(!IPS_VariableProfileExists($profileName))
 			{
-				$profileAssociation_array = array(
-					array("N/A", 0, "Unbekannter Status", "-1"),
-					array("OFF", 1, "Wechselrichter ist aus", "-1"),
-					array("SLEEPING", 2, "Auto-Shutdown", "-1"),
-					array("STARTING", 3, "Wechselrichter startet", "-1"),
-					array("MPPT", 4, "Wechselrichter arbeitet normal", 65280),
-					array("THROTTLED", 5, "Leistungsreduktion aktiv", 16744448),
-					array("SHUTTING_DOWN", 6, "Wechselrichter schaltet ab", "-1"),
-					array("FAULT", 7, "Ein oder mehr Fehler existieren, siehe St * oder Evt * Register", 16711680),
-					array("STANDBY", 8, "Standby", "-1"),
-					array("NO_BUSINIT", 9, "Keine SolarNet Kommunikation", "-1"),
-					array("NO_COMM_INV", 10, "Keine Kommunikation mit Wechselrichter möglich", "-1"),
-					array("SN_OVERCURRENT", 11, "Überstrom an SolarNet Stecker erkannt", "-1"),
-					array("BOOTLOAD", 12, "Wechselrichter wird gerade upgedatet", "-1"),
-					array("AFCI", 13, "AFCI Event (Arc-Erkennung)", "-1"),
-				);
-
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
 				IPS_CreateVariableProfile($profileName, 1);
 
@@ -882,6 +888,14 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
 			}
+			else
+			{
+				foreach($profileAssociation_array AS $profileAssociation)
+				{
+					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
+				}
+			}
+
 
 
 			// Erstelle Profil, sofern noch nicht vorhanden
@@ -893,6 +907,10 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				IPS_SetVariableProfileText($profileName, "", " VA");
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
+			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " VA");
 			}
 
 
@@ -906,6 +924,10 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
 			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " VA");
+			}
 
 
 			// Erstelle Profil, sofern noch nicht vorhanden
@@ -918,6 +940,10 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
 			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " Var");
+			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
 			$profileName = MODUL_PREFIX.".Blindleistung.Float";
@@ -928,6 +954,10 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				IPS_SetVariableProfileText($profileName, "", " Var");
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
+			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " Var");
 			}
 			
 			// Erstelle Profil, sofern noch nicht vorhanden
@@ -940,6 +970,10 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
 			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " °");
+			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
 			$profileName = MODUL_PREFIX.".Watt.Int";
@@ -950,6 +984,10 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				IPS_SetVariableProfileText($profileName, "", " W");
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
+			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " W");
 			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
@@ -962,6 +1000,25 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
 			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " A");
+			}
+
+			// Erstelle Profil, sofern noch nicht vorhanden
+			$profileName = MODUL_PREFIX.".Electricity.Float";
+			if(!IPS_VariableProfileExists($profileName))
+			{
+				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
+				IPS_CreateVariableProfile($profileName, 2);
+				IPS_SetVariableProfileText($profileName, "", " Wh");
+				
+				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
+			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " Wh");
+			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
 			$profileName = MODUL_PREFIX.".Electricity.Int";
@@ -969,9 +1026,13 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 			{
 				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
 				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " A");
+				IPS_SetVariableProfileText($profileName, "", " Wh");
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
+			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " Wh");
 			}
 
 			// Erstelle Profil, sofern noch nicht vorhanden
@@ -983,6 +1044,10 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				IPS_SetVariableProfileText($profileName, "", " Ah");
 				
 				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
+			}
+			else
+			{
+				IPS_SetVariableProfileText($profileName, "", " Ah");
 			}
 		}
 	}
