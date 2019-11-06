@@ -236,7 +236,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					IPS_SetProperty($gatewayId, "GatewayMode", 0);
 					IPS_SetProperty($gatewayId, "DeviceID", 1);
 					IPS_SetProperty($gatewayId, "SwapWords", 0);
-					IPS_ApplyChanges($gatewayId);
+					@IPS_ApplyChanges($gatewayId);
 					IPS_Sleep(100);
 				}
 
@@ -250,7 +250,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					IPS_SetProperty($interfaceId, "Host", $hostIp);
 					IPS_SetProperty($interfaceId, "Port", $hostPort);
 					IPS_SetProperty($interfaceId, "Open", true);
-					IPS_ApplyChanges($interfaceId);
+					@IPS_ApplyChanges($interfaceId);
 					IPS_Sleep(100);
 
 					// Client Socket mit Gateway verbinden
