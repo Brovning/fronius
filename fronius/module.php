@@ -216,7 +216,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				{
 					$connectionInstanceId = IPS_GetInstance($modbusInstanceId)['ConnectionID'];
 
-					if($hostIp == IPS_GetProperty($connectionInstanceId, "Host") && $hostPort == IPS_GetProperty($connectionInstanceId, "Port"))
+					if(0 != (int)$connectionInstanceId && $hostIp == IPS_GetProperty($connectionInstanceId, "Host") && $hostPort == IPS_GetProperty($connectionInstanceId, "Port"))
 					{
 						if(DEBUG) echo "ModBus Instance and ClientSocket found: ".$modbusInstanceId.", ".$connectionInstanceId."\n";
 
@@ -226,38 +226,56 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					}
 				}
 
+				// Modbus-Gateway erstellen, sofern noch nicht vorhanden
 				if(0 == $gatewayId)
 				{
 					if(DEBUG) echo "ModBus Instance not found!\n";
 
 					// ModBus Gateway erstellen
 					$gatewayId = IPS_CreateInstance(MODBUS_INSTANCES); 
-					IPS_SetName($gatewayId, MODUL_PREFIX."ModbusGateway");
-					IPS_SetProperty($gatewayId, "GatewayMode", 0);
-					IPS_SetProperty($gatewayId, "DeviceID", 1);
-					IPS_SetProperty($gatewayId, "SwapWords", 0);
-					@IPS_ApplyChanges($gatewayId);
-					IPS_Sleep(100);
+					IPS_SetInfo($gatewayId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
 				}
 
+				// Modbus-Gateway Einstellungen setzen
+				IPS_SetName($gatewayId, MODUL_PREFIX."ModbusGateway");
+				IPS_SetProperty($gatewayId, "GatewayMode", 0);
+				IPS_SetProperty($gatewayId, "DeviceID", 1);
+				IPS_SetProperty($gatewayId, "SwapWords", 0);
+
+				@IPS_ApplyChanges($gatewayId);
+
+				IPS_Sleep(100);
+				
+				// Hat Modbus-Gateway bereits einen ClientSocket?
+				$clientSocketId = (int)IPS_GetInstance($gatewayId)['ConnectionID'];
+				if(0 == $interfaceId && 0 != $clientSocketId)
+				{
+					$interfaceId = $clientSocketId;
+				}
+
+				// ClientSocket erstellen, sofern noch nicht vorhanden
 				if(0 == $interfaceId)
 				{
 					if(DEBUG) echo "Client Socket not found!\n";
 
 					// Client Soket erstellen
 					$interfaceId = IPS_CreateInstance(CLIENT_SOCKETS);
-					IPS_SetName($interfaceId, MODUL_PREFIX."ClientSocket");
-					IPS_SetProperty($interfaceId, "Host", $hostIp);
-					IPS_SetProperty($interfaceId, "Port", $hostPort);
-					IPS_SetProperty($interfaceId, "Open", true);
-					@IPS_ApplyChanges($interfaceId);
-					IPS_Sleep(100);
-
-					// Client Socket mit Gateway verbinden
-					IPS_DisconnectInstance($gatewayId);
-					IPS_ConnectInstance($gatewayId, $interfaceId);
+					IPS_SetInfo($interfaceId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
 				}
 
+				// ClientSocket Einstellungen setzen
+				IPS_SetName($interfaceId, MODUL_PREFIX."ClientSocket");
+				IPS_SetProperty($interfaceId, "Host", $hostIp);
+				IPS_SetProperty($interfaceId, "Port", $hostPort);
+				IPS_SetProperty($interfaceId, "Open", true);
+
+				@IPS_ApplyChanges($interfaceId);
+
+				IPS_Sleep(100);
+
+				// Client Socket mit Gateway verbinden
+				IPS_DisconnectInstance($gatewayId);
+				IPS_ConnectInstance($gatewayId, $interfaceId);
 
 				$parentId = $this->InstanceID;
 
