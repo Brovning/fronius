@@ -1189,7 +1189,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 		
 		private function checkProfiles()
 		{
-			$this->createVarProfile("SunSpec.StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, array(
+			$this->createVarProfile("SunSpec.StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
 					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
 					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
 					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
@@ -1201,7 +1201,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					array('Name' => "STANDBY", 'Wert' => 8, "Standby"),
 				)
 			);
-			$this->createVarProfile(MODUL_PREFIX.".StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, array(
+			$this->createVarProfile(MODUL_PREFIX.".StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
 					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
 					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
 					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
