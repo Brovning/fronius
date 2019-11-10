@@ -1334,7 +1334,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 			}
 			if(1 != IPS_GetProperty($gatewayId, "SwapWords"))
 			{
-				IPS_SetProperty($gatewayId, "SwapWords", 1);
+				IPS_SetProperty($gatewayId, "SwapWords", 0);
 				$applyChanges = true;
 			}
 
