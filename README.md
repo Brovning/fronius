@@ -135,13 +135,13 @@ StartRegister | Size | RW | FunctionCode | Name | Type | Units | Description
 
 Name   | Typ
 ------ | -------
-SunSpec.StateCodes | Integer
-Fronius.StateCodes | Integer
-Fronius.Scheinleistung | Integer
+SunSpec.StateCodes.Int | Integer
+Fronius.StateCodes.Int | Integer
+Fronius.Scheinleistung.Int | Integer
 Fronius.Scheinleistung.Float | Float
-Fronius.Blindleistung | Integer
+Fronius.Blindleistung.Int | Integer
 Fronius.Blindleistung.Float | Float
-Fronius.Angle | Integer
+Fronius.Angle.Int | Integer
 Fronius.Watt.Int | Integer
 Fronius.Ampere.Int | Integer
 Fronius.Electricity.Int | Integer
