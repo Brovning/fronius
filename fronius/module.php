@@ -35,37 +35,13 @@ if (!defined('REGISTER_TO_ADDRESS_OFFSET'))
 if (!defined('IMR_START_REGISTER'))
 {
 	define("IMR_START_REGISTER", 0);
-}
-/*if (!defined('IMR_END_REGISTER'))
-{
 	define("IMR_END_REGISTER", 3);
-}*/
-if (!defined('IMR_SIZE'))
-{
 	define("IMR_SIZE", 1);
-}
-if (!defined('IMR_RW'))
-{
 	define("IMR_RW", 2);
-}
-if (!defined('IMR_FUNCTION_CODE'))
-{
 	define("IMR_FUNCTION_CODE", 3);
-}
-if (!defined('IMR_NAME'))
-{
 	define("IMR_NAME", 4);
-}
-if (!defined('IMR_TYPE'))
-{
 	define("IMR_TYPE", 5);
-}
-if (!defined('IMR_UNITS'))
-{
 	define("IMR_UNITS", 6);
-}
-if (!defined('IMR_DESCRIPTION'))
-{
 	define("IMR_DESCRIPTION", 7);
 }
 
@@ -73,17 +49,8 @@ if (!defined('IMR_DESCRIPTION'))
 if (!defined('PAO_NAME'))
 {
 	define("PAO_NAME", 0);
-}
-if (!defined('PAO_VALUE'))
-{
 	define("PAO_VALUE", 1);
-}
-if (!defined('PAO_DESCRIPTION'))
-{
 	define("PAO_DESCRIPTION", 2);
-}
-if (!defined('PAO_COLOR'))
-{
 	define("PAO_COLOR", 3);
 }
 
@@ -1002,7 +969,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 						// Client Soket aktivieren
 						IPS_SetProperty($interfaceId, "Open", true);
 						IPS_ApplyChanges($interfaceId);
-						IPS_Sleep(100);
+						//IPS_Sleep(100);
 
 						// aktiv
 						$this->SetStatus(102);
@@ -1018,7 +985,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					// Client Soket deaktivieren
 					IPS_SetProperty($interfaceId, "Open", false);
 					IPS_ApplyChanges($interfaceId);
-					IPS_Sleep(100);
+					//IPS_Sleep(100);
 
 					// inaktiv
 					$this->SetStatus(104);
@@ -1198,7 +1165,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 
 				IPS_ApplyChanges($instanceId);
 
-				IPS_Sleep(100);
+				//IPS_Sleep(100);
 
 
 				$variableId = IPS_GetChildrenIDs($instanceId)[0];
