@@ -45,15 +45,14 @@ if (!defined('IMR_START_REGISTER'))
 	define("IMR_DESCRIPTION", 7);
 }
 
-// profileAssociation Offsets
-if (!defined('PAO_NAME'))
-{
-	define("PAO_NAME", 0);
-	define("PAO_VALUE", 1);
-	define("PAO_DESCRIPTION", 2);
-	define("PAO_COLOR", 3);
-}
 
+if (!defined('VARIABLETYPE_BOOLEAN'))
+{
+    define('VARIABLETYPE_BOOLEAN', 0);
+    define('VARIABLETYPE_INTEGER', 1);
+    define('VARIABLETYPE_FLOAT', 2);
+    define('VARIABLETYPE_STRING', 3);
+}
 
 
 	class Fronius extends IPSModule {
@@ -1034,7 +1033,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 				// Voltampere für elektrische Scheinleistung
 				elseif("va" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
-					$profile = MODUL_PREFIX.".Scheinleistung";
+					$profile = MODUL_PREFIX.".Scheinleistung.Int";
 				}
 				// Var für elektrische Blindleistung
 				elseif("var" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
@@ -1044,7 +1043,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 				// Var für elektrische Blindleistung
 				elseif("var" == strtolower($inverterModelRegister[IMR_UNITS]) || "var" == $inverterModelRegister[IMR_UNITS])
 				{
-					$profile = MODUL_PREFIX.".Blindleistung";
+					$profile = MODUL_PREFIX.".Blindleistung.Int";
 				}
 				elseif("%" == $inverterModelRegister[IMR_UNITS] && 7 == $datenTyp)
 				{
@@ -1068,15 +1067,15 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 				}
 				elseif("cos()" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
-					$profile = MODUL_PREFIX.".Angle";
+					$profile = MODUL_PREFIX.".Angle.Int";
 				}
 				elseif("enumerated_st" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
-					$profile = "SunSpec.StateCodes";
+					$profile = "SunSpec.StateCodes.Int";
 				}
 				elseif("enumerated_stvnd" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
-					$profile = MODUL_PREFIX.".StateCodes";
+					$profile = MODUL_PREFIX.".StateCodes.Int";
 				}
 				elseif("bitfield" == strtolower($inverterModelRegister[IMR_UNITS]))
 				{
@@ -1190,232 +1189,48 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 		
 		private function checkProfiles()
 		{
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = "SunSpec.StateCodes";
-			$profileAssociation_array = array(
-				array("N/A", 0, "Unbekannter Status", "-1"),
-				array("OFF", 1, "Wechselrichter ist aus", "-1"),
-				array("SLEEPING", 2, "Auto-Shutdown", "-1"),
-				array("STARTING", 3, "Wechselrichter startet", "-1"),
-				array("MPPT", 4, "Wechselrichter arbeitet normal", 65280),
-				array("THROTTLED", 5, "Leistungsreduktion aktiv", 16744448),
-				array("SHUTTING_DOWN", 6, "Wechselrichter schaltet ab", "-1"),
-				array("FAULT", 7, "Ein oder mehr Fehler existieren, siehe St *oder Evt * Register", 16711680),
-				array("STANDBY", 8, "Standby", "-1"),
+			$this->createVarProfile("SunSpec.StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, array(
+					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
+					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
+					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
+					array('Name' => "STARTING", 'Wert' => 3, "Wechselrichter startet"),
+					array('Name' => "MPPT", 'Wert' => 4, "Wechselrichter arbeitet normal", 'Farbe' => 65280),
+					array('Name' => "THROTTLED", 'Wert' => 5, "Leistungsreduktion aktiv", 'Farbe' => 16744448),
+					array('Name' => "SHUTTING_DOWN", 'Wert' => 6, "Wechselrichter schaltet ab"),
+					array('Name' => "FAULT", 'Wert' => 7, "Ein oder mehr Fehler existieren, siehe St *oder Evt * Register", 'Farbe' => 16711680),
+					array('Name' => "STANDBY", 'Wert' => 8, "Standby"),
+				)
 			);
-
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-
-				foreach($profileAssociation_array AS $profileAssociation)
-				{
-					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
-				}
-
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				foreach($profileAssociation_array AS $profileAssociation)
-				{
-					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
-				}
-			}
-
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".StateCodes";
-			$profileAssociation_array = array(
-				array("N/A", 0, "Unbekannter Status", "-1"),
-				array("OFF", 1, "Wechselrichter ist aus", "-1"),
-				array("SLEEPING", 2, "Auto-Shutdown", "-1"),
-				array("STARTING", 3, "Wechselrichter startet", "-1"),
-				array("MPPT", 4, "Wechselrichter arbeitet normal", 65280),
-				array("THROTTLED", 5, "Leistungsreduktion aktiv", 16744448),
-				array("SHUTTING_DOWN", 6, "Wechselrichter schaltet ab", "-1"),
-				array("FAULT", 7, "Ein oder mehr Fehler existieren, siehe St * oder Evt * Register", 16711680),
-				array("STANDBY", 8, "Standby", "-1"),
-				array("NO_BUSINIT", 9, "Keine SolarNet Kommunikation", "-1"),
-				array("NO_COMM_INV", 10, "Keine Kommunikation mit Wechselrichter möglich", "-1"),
-				array("SN_OVERCURRENT", 11, "Überstrom an SolarNet Stecker erkannt", "-1"),
-				array("BOOTLOAD", 12, "Wechselrichter wird gerade upgedatet", "-1"),
-				array("AFCI", 13, "AFCI Event (Arc-Erkennung)", "-1"),
+			$this->createVarProfile(MODUL_PREFIX.".StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, array(
+					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
+					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
+					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
+					array('Name' => "STARTING", 'Wert' => 3, "Wechselrichter startet"),
+					array('Name' => "MPPT", 'Wert' => 4, "Wechselrichter arbeitet normal", 'Farbe' => 65280),
+					array('Name' => "THROTTLED", 'Wert' => 5, "Leistungsreduktion aktiv", 'Farbe' => 16744448),
+					array('Name' => "SHUTTING_DOWN", 'Wert' => 6, "Wechselrichter schaltet ab"),
+					array('Name' => "FAULT", 'Wert' => 7, "Ein oder mehr Fehler existieren, siehe St * oder Evt * Register", 'Farbe' => 16711680),
+					array('Name' => "STANDBY", 'Wert' => 8, "Standby"),
+					array('Name' => "NO_BUSINIT", 'Wert' => 9, "Keine SolarNet Kommunikation"),
+					array('Name' => "NO_COMM_INV", 'Wert' => 10, "Keine Kommunikation mit Wechselrichter möglich"),
+					array('Name' => "SN_OVERCURRENT", 'Wert' => 11, "Überstrom an SolarNet Stecker erkannt"),
+					array('Name' => "BOOTLOAD", 'Wert' => 12, "Wechselrichter wird gerade upgedatet"),
+					array('Name' => "AFCI", 'Wert' => 13, "AFCI Event (Arc-Erkennung)"),
+				)
 			);
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-
-				foreach($profileAssociation_array AS $profileAssociation)
-				{
-					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
-				}
-
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				foreach($profileAssociation_array AS $profileAssociation)
-				{
-					IPS_SetVariableProfileAssociation($profileName, $profileAssociation[PAO_VALUE], $profileAssociation[PAO_NAME], "", $profileAssociation[PAO_COLOR]);
-				}
-			}
-
-
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Scheinleistung";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " VA");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " VA");
-			}
-
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Scheinleistung.Float";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 2);
-				IPS_SetVariableProfileText($profileName, "", " VA");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " VA");
-			}
-
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Blindleistung";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " Var");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " Var");
-			}
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Blindleistung.Float";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 2);
-				IPS_SetVariableProfileText($profileName, "", " Var");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " Var");
-			}
-			
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Angle";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " °");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " °");
-			}
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Watt.Int";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " W");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " W");
-			}
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Ampere.Int";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " A");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " A");
-			}
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Electricity.Float";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 2);
-				IPS_SetVariableProfileText($profileName, "", " Wh");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " Wh");
-			}
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".Electricity.Int";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " Wh");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " Wh");
-			}
-
-			// Erstelle Profil, sofern noch nicht vorhanden
-			$profileName = MODUL_PREFIX.".AmpereHour.Int";
-			if(!IPS_VariableProfileExists($profileName))
-			{
-				// 	Wert: 0 Boolean, 1 Integer, 2 Float, 3 String
-				IPS_CreateVariableProfile($profileName, 1);
-				IPS_SetVariableProfileText($profileName, "", " Ah");
-				
-				if(DEBUG) echo "Profil ".$profileName." erstellt\n";
-			}
-			else
-			{
-				IPS_SetVariableProfileText($profileName, "", " Ah");
-			}
+			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Int", VARIABLETYPE_INTEGER, ' VA');
+			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Float", VARIABLETYPE_FLOAT, ' VA');
+			$this->createVarProfile(MODUL_PREFIX.".Blindleistung.Int", VARIABLETYPE_INTEGER, ' Var');
+			$this->createVarProfile(MODUL_PREFIX.".Blindleistung.Float", VARIABLETYPE_FLOAT, ' Var');
+			$this->createVarProfile(MODUL_PREFIX.".Angle.Int", VARIABLETYPE_INTEGER, ' °');
+			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
+			$this->createVarProfile(MODUL_PREFIX.".Ampere.Int", VARIABLETYPE_INTEGER, ' A');
+			$this->createVarProfile(MODUL_PREFIX.".Electricity.Float", VARIABLETYPE_FLOAT, ' Wh');
+			$this->createVarProfile(MODUL_PREFIX.".Electricity.Int", VARIABLETYPE_INTEGER, ' Wh');
+			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Int", VARIABLETYPE_INTEGER, ' Ah');
+/*
+			$this->createVarProfile(MODUL_PREFIX.".Volt.Int", VARIABLETYPE_INTEGER, ' V');
+*/
 		}
 
 		private function readOldModbusGateway()
@@ -1589,6 +1404,36 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 			return array($gatewayId, $interfaceId);
 		}
 		
+		private function createVarProfile($ProfilName, $ProfileType, $Suffix = '', $MinValue = 0, $MaxValue = 0, $StepSize = 0, $Digits = 0, $Icon = 0, $Associations = '')
+		{
+			if(!IPS_VariableProfileExists($ProfilName))
+			{
+				IPS_CreateVariableProfile($ProfilName, $ProfileType);
+				IPS_SetVariableProfileText($ProfilName, '', $Suffix);
+				
+				if(in_array($ProfileType, array(VARIABLETYPE_INTEGER, VARIABLETYPE_FLOAT)))
+				{
+					IPS_SetVariableProfileValues($ProfilName, $MinValue, $MaxValue, $StepSize);
+					IPS_SetVariableProfileDigits($ProfilName, $Digits);
+				}
+				
+				IPS_SetVariableProfileIcon($ProfilName, $Icon);
+				
+				if($Associations != '')
+				{
+					foreach ($Associations as $a)
+					{
+						$w = isset($a['Wert']) ? $a['Wert'] : '';
+						$n = isset($a['Name']) ? $a['Name'] : '';
+						$i = isset($a['Icon']) ? $a['Icon'] : '';
+						$f = isset($a['Farbe']) ? $a['Farbe'] : -1;
+						IPS_SetVariableProfileAssociation($ProfilName, $w, $n, $i, $f);
+					}
+				}
+
+				if(DEBUG) echo "Profil ".$ProfilName." erstellt\n";
+			}
+		}
 
 		private function removeInvalidChars($input)
 		{
