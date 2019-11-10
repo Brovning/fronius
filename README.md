@@ -23,6 +23,7 @@ Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter un
 - IP-Symcon ab Version 5.0
 - Der Fronius Wechselrichter muss Modbus TCP unterstützen!
 - Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe per 'TCP' und der Sunspec Model Type 'float' aktiviert werden.
+![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Einstellungen%20-%20Modbus.JPG "Fronius - Einstellungen - Modbus")
 
 
 ### 3. Software-Installation
