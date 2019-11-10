@@ -191,76 +191,8 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 			if("" != $hostIp)
 			{
 				$this->checkProfiles();
-				
-				// Splitter-Instance
-				$gatewayId = 0;
-				// I/O Instance
-				$interfaceId = 0;
-
-				foreach(IPS_GetInstanceListByModuleID(MODBUS_INSTANCES) AS $modbusInstanceId)
-				{
-					$connectionInstanceId = IPS_GetInstance($modbusInstanceId)['ConnectionID'];
-
-					if(0 != (int)$connectionInstanceId && $hostIp == IPS_GetProperty($connectionInstanceId, "Host") && $hostPort == IPS_GetProperty($connectionInstanceId, "Port"))
-					{
-						if(DEBUG) echo "ModBus Instance and ClientSocket found: ".$modbusInstanceId.", ".$connectionInstanceId."\n";
-
-						$gatewayId = $modbusInstanceId;
-						$interfaceId = $connectionInstanceId;
-						break;
-					}
-				}
-
-				// Modbus-Gateway erstellen, sofern noch nicht vorhanden
-				if(0 == $gatewayId)
-				{
-					if(DEBUG) echo "ModBus Instance not found!\n";
-
-					// ModBus Gateway erstellen
-					$gatewayId = IPS_CreateInstance(MODBUS_INSTANCES); 
-					IPS_SetInfo($gatewayId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
-				}
-
-				// Modbus-Gateway Einstellungen setzen
-				IPS_SetName($gatewayId, MODUL_PREFIX."ModbusGateway");
-				IPS_SetProperty($gatewayId, "GatewayMode", 0);
-				IPS_SetProperty($gatewayId, "DeviceID", $hostmodbusDevice);
-				IPS_SetProperty($gatewayId, "SwapWords", 0);
-
-				@IPS_ApplyChanges($gatewayId);
-
-				IPS_Sleep(100);
-				
-				// Hat Modbus-Gateway bereits einen ClientSocket?
-				$clientSocketId = (int)IPS_GetInstance($gatewayId)['ConnectionID'];
-				if(0 == $interfaceId && 0 != $clientSocketId)
-				{
-					$interfaceId = $clientSocketId;
-				}
-
-				// ClientSocket erstellen, sofern noch nicht vorhanden
-				if(0 == $interfaceId)
-				{
-					if(DEBUG) echo "Client Socket not found!\n";
-
-					// Client Soket erstellen
-					$interfaceId = IPS_CreateInstance(CLIENT_SOCKETS);
-					IPS_SetInfo($interfaceId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
-				}
-
-				// ClientSocket Einstellungen setzen
-				IPS_SetName($interfaceId, MODUL_PREFIX."ClientSocket");
-				IPS_SetProperty($interfaceId, "Host", $hostIp);
-				IPS_SetProperty($interfaceId, "Port", $hostPort);
-				IPS_SetProperty($interfaceId, "Open", true);
-
-				@IPS_ApplyChanges($interfaceId);
-
-				IPS_Sleep(100);
-
-				// Client Socket mit Gateway verbinden
-				IPS_DisconnectInstance($gatewayId);
-				IPS_ConnectInstance($gatewayId, $interfaceId);
+				list($gatewayId_Old, $interfaceId_Old) = $this->readOldModbusGateway();
+				list($gatewayId, $interfaceId) = $this->checkModbusGateway($hostIp, $hostPort, $hostmodbusDevice);
 
 				$parentId = $this->InstanceID;
 
@@ -990,6 +922,19 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					// inaktiv
 					$this->SetStatus(104);
 				}
+
+
+				// prüfen, ob sich ModBus-Gateway geändert hat
+				if(0 != $gatewayId_Old && $gatewayId != $gatewayId_Old)
+				{
+					$this->deleteInstanceNotInUse($gatewayId_Old, MODBUS_ADDRESSES);
+				}
+
+				// prüfen, ob sich ClientSocket Interface geändert hat
+				if(0 != $interfaceId_Old && $interfaceId != $interfaceId_Old)
+				{
+					$this->deleteInstanceNotInUse($interfaceId_Old, MODBUS_INSTANCES);
+				}
 			}
 			else
 			{
@@ -1143,10 +1088,17 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					$instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
 					IPS_SetParent($instanceId, $parentId);
 					IPS_SetName($instanceId, /*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME]);
+				}
 
-					// Gateway setzen
-					IPS_DisconnectInstance($instanceId);
+				// Gateway setzen
+				if(IPS_GetInstance($instanceId)['ConnectionID'] != $gatewayId)
+				{
+					if(0 != IPS_GetInstance($instanceId)['ConnectionID'])
+					{
+						IPS_DisconnectInstance($instanceId);
+					}
 					IPS_ConnectInstance($instanceId, $gatewayId);
+					$applyChanges = true;
 				}
 				IPS_SetInfo($instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
@@ -1406,4 +1358,176 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 				IPS_SetVariableProfileText($profileName, "", " Ah");
 			}
 		}
+
+		private function readOldModbusGateway()
+		{
+			$modbusGatewayId_Old = 0;
+			$clientSocketId_Old = 0;
+
+			$childIds = IPS_GetChildrenIDs($this->InstanceID);
+
+			foreach($childIds AS $childId)
+			{
+				$modbusAddressInstanceId = @IPS_GetInstance($childId);
+
+				if(MODBUS_ADDRESSES == $modbusAddressInstanceId['ModuleInfo']['ModuleID'])
+				{
+					$modbusGatewayId_Old = $modbusAddressInstanceId['ConnectionID'];
+					$clientSocketId_Old = @IPS_GetInstance($modbusGatewayId_Old)['ConnectionID'];
+					break;
+				}
+			}
+			
+			return array($modbusGatewayId_Old, $clientSocketId_Old);
+		}
+
+		private function deleteInstanceNotInUse($connectionId_Old, $moduleId)
+		{
+			if(!IPS_ModuleExists($moduleId))
+			{
+				echo "ModuleId ".$moduleId." does not exist!\n";
+			}
+			else
+			{
+				$inUse = false;
+
+				foreach(IPS_GetInstanceListByModuleID($moduleId) AS $instanceId)
+				{
+					$instance = IPS_GetInstance($instanceId);
+
+					if($connectionId_Old == $instance['ConnectionID'])
+					{
+						$inUse = true;
+						break;
+					}
+				}
+
+				// Lösche Connection-Instanz (bspw. ModbusAddress, ClientSocket,...), wenn nicht mehr in Verwendung
+				if(!$inUse)
+				{
+					IPS_DeleteInstance($connectionId_Old);
+				}
+			}
+		}
+
+		private function checkModbusGateway($hostIp, $hostPort, $hostmodbusDevice)
+		{
+			// Splitter-Instance Id des ModbusGateways
+			$gatewayId = 0;
+			// I/O Instance Id des ClientSockets
+			$interfaceId = 0;
+
+			foreach(IPS_GetInstanceListByModuleID(MODBUS_INSTANCES) AS $modbusInstanceId)
+			{
+				$connectionInstanceId = IPS_GetInstance($modbusInstanceId)['ConnectionID'];
+
+				if(0 != (int)$connectionInstanceId && $hostIp == IPS_GetProperty($connectionInstanceId, "Host") && $hostPort == IPS_GetProperty($connectionInstanceId, "Port"))
+				{
+					if(DEBUG) echo "ModBus Instance and ClientSocket found: ".$modbusInstanceId.", ".$connectionInstanceId."\n";
+
+					$gatewayId = $modbusInstanceId;
+					$interfaceId = $connectionInstanceId;
+					break;
+				}
+			}
+
+			// Modbus-Gateway erstellen, sofern noch nicht vorhanden
+			$applyChanges = false;
+			if(0 == $gatewayId)
+			{
+				if(DEBUG) echo "ModBus Instance not found!\n";
+
+				// ModBus Gateway erstellen
+				$gatewayId = IPS_CreateInstance(MODBUS_INSTANCES); 
+				IPS_SetInfo($gatewayId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
+				$applyChanges = true;
+			}
+
+			// Modbus-Gateway Einstellungen setzen
+			if(MODUL_PREFIX."ModbusGateway" != IPS_GetName($gatewayId))
+			{
+				IPS_SetName($gatewayId, MODUL_PREFIX."ModbusGateway");
+			}
+			if(0 != IPS_GetProperty($gatewayId, "GatewayMode"))
+			{
+				IPS_SetProperty($gatewayId, "GatewayMode", 0);
+				$applyChanges = true;
+			}
+			if($hostmodbusDevice != IPS_GetProperty($gatewayId, "DeviceID"))
+			{
+				IPS_SetProperty($gatewayId, "DeviceID", $hostmodbusDevice);
+				$applyChanges = true;
+			}
+			if(1 != IPS_GetProperty($gatewayId, "SwapWords"))
+			{
+				IPS_SetProperty($gatewayId, "SwapWords", 1);
+				$applyChanges = true;
+			}
+
+			if($applyChanges)
+			{
+				@IPS_ApplyChanges($gatewayId);
+				IPS_Sleep(100);
+			}
+
+			
+			// Hat Modbus-Gateway bereits einen ClientSocket?
+			$applyChanges = false;
+			$clientSocketId = (int)IPS_GetInstance($gatewayId)['ConnectionID'];
+			if(0 == $interfaceId && 0 != $clientSocketId)
+			{
+				$interfaceId = $clientSocketId;
+			}
+
+			// ClientSocket erstellen, sofern noch nicht vorhanden
+			if(0 == $interfaceId)
+			{
+				if(DEBUG) echo "Client Socket not found!\n";
+
+				// Client Soket erstellen
+				$interfaceId = IPS_CreateInstance(CLIENT_SOCKETS);
+				IPS_SetInfo($interfaceId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
+
+				$applyChanges = true;
+			}
+
+			// ClientSocket Einstellungen setzen
+			if(MODUL_PREFIX."ClientSocket" != IPS_GetName($interfaceId))
+			{
+				IPS_SetName($interfaceId, MODUL_PREFIX."ClientSocket");
+				$applyChanges = true;
+			}
+			if($hostIp != IPS_GetProperty($interfaceId, "Host"))
+			{
+				IPS_SetProperty($interfaceId, "Host", $hostIp);
+				$applyChanges = true;
+			}
+			if($hostPort != IPS_GetProperty($interfaceId, "Port"))
+			{
+				IPS_SetProperty($interfaceId, "Port", $hostPort);
+				$applyChanges = true;
+			}
+			if(true != IPS_GetProperty($interfaceId, "Open"))
+			{
+				IPS_SetProperty($interfaceId, "Open", true);
+				$applyChanges = true;
+			}
+
+			if($applyChanges)
+			{
+				@IPS_ApplyChanges($interfaceId);
+				IPS_Sleep(100);
+			}
+
+
+			// Client Socket mit Gateway verbinden
+			if(0 != $clientSocketId)
+			{
+				IPS_DisconnectInstance($gatewayId);
+				IPS_ConnectInstance($gatewayId, $interfaceId);
+			}
+			
+			return array($gatewayId, $interfaceId);
+		}
+		
 	}
