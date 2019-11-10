@@ -283,6 +283,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 					$categoryId = IPS_CreateCategory();
 					IPS_SetParent($categoryId, $parentId);
 					IPS_SetName($categoryId, $categoryName);
+					IPS_SetIdent($categoryId, $this->removeInvalidChars($categoryName));
 				}
 				IPS_SetInfo($categoryId, "Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
 						- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
@@ -328,6 +329,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 						$varId = IPS_CreateVariable(0);
 						IPS_SetName($varId, $varName);
 						IPS_SetParent($varId, $instanceId);
+						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
 					}
 					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
 					IPS_SetInfo($varId, $bit['varInfo']);
@@ -386,6 +388,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 						$varId = IPS_CreateVariable(0);
 						IPS_SetName($varId, $varName);
 						IPS_SetParent($varId, $instanceId);
+						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
 					}
 					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
 					IPS_SetInfo($varId, $bit['varInfo']);
@@ -445,6 +448,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 						$varId = IPS_CreateVariable(0);
 						IPS_SetName($varId, $varName);
 						IPS_SetParent($varId, $instanceId);
+						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
 					}
 					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
 					IPS_SetInfo($varId, $bit['varInfo']);
@@ -476,6 +480,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 						$varId = IPS_CreateVariable(0);
 						IPS_SetName($varId, $varName);
 						IPS_SetParent($varId, $instanceId);
+						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
 					}
 					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
 					IPS_SetInfo($varId, $bit['varInfo']);
@@ -533,6 +538,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 						$categoryId = IPS_CreateCategory();
 						IPS_SetParent($categoryId, $parentId);
 						IPS_SetName($categoryId, $categoryName);
+						IPS_SetIdent($categoryId, $this->removeInvalidChars($categoryName));
 					}
 					IPS_SetInfo($categoryId, "Dieses Modell entspricht einem Leistungsschild. Folgende Daten können ausgelesen werden:
 							- DERType (3): Art des Geräts. Das Register liefert den Wert 4 zurück (PV-Gerät)
@@ -1004,7 +1010,11 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 				{
 					$profile = "~Volt";
 				}
-				elseif("w" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+/*				elseif("v" == strtolower($inverterModelRegister[IMR_UNITS]))
+				{
+					$profile = MODUL_PREFIX.".Volt.Int";
+				}
+*/				elseif("w" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
 				{
 					$profile = "~Watt.14490";
 				}
@@ -1083,11 +1093,14 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 
 
 				$instanceId = @IPS_GetInstanceIDByName(/*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME], $parentId);
+				$applyChanges = false;
+				// Instanz erstellen
 				if(false === $instanceId)
 				{
 					$instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
 					IPS_SetParent($instanceId, $parentId);
 					IPS_SetName($instanceId, /*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME]);
+					$applyChanges = true;
 				}
 
 				// Gateway setzen
@@ -1100,31 +1113,77 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					IPS_ConnectInstance($instanceId, $gatewayId);
 					$applyChanges = true;
 				}
-				IPS_SetInfo($instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
+				if($inverterModelRegister[IMR_DESCRIPTION] != IPS_GetObject($instanceId)['ObjectInfo'])
+				{
+					IPS_SetInfo($instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+				}
+				
 				// Ident der Modbus-Instanz setzen
 				IPS_SetIdent($instanceId, $inverterModelRegister[IMR_START_REGISTER]);
 
 				// Modbus-Instanz konfigurieren
-				IPS_SetProperty($instanceId, "DataType",  $datenTyp);
-				IPS_SetProperty($instanceId, "EmulateStatus", false);
-				IPS_SetProperty($instanceId, "Poller", $pollCycle);
-			//    IPS_SetProperty($instanceId, "Factor", 0);
-				IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + REGISTER_TO_ADDRESS_OFFSET);
-				IPS_SetProperty($instanceId, "ReadFunctionCode", $inverterModelRegister[IMR_FUNCTION_CODE]);
-			//    IPS_SetProperty($instanceId, "WriteAddress", );
-				IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
-
-				IPS_ApplyChanges($instanceId);
-
-				//IPS_Sleep(100);
-
-
-				$variableId = IPS_GetChildrenIDs($instanceId)[0];
-				// Profil der Statusvariable zuweisen
-				if(false != $profile)
+				if($datenTyp != IPS_GetProperty($instanceId, "DataType"))
 				{
-					IPS_SetVariableCustomProfile($variableId, $profile);
+					IPS_SetProperty($instanceId, "DataType",  $datenTyp);
+					$applyChanges = true;
+				}
+				if(false != IPS_GetProperty($instanceId, "EmulateStatus"))
+				{
+					IPS_SetProperty($instanceId, "EmulateStatus", false);
+					$applyChanges = true;
+				}
+				if($pollCycle != IPS_GetProperty($instanceId, "Poller"))
+				{
+					IPS_SetProperty($instanceId, "Poller", $pollCycle);
+					$applyChanges = true;
+				}
+	/*
+				if(0 != IPS_GetProperty($instanceId, "Factor"))
+				{
+					IPS_SetProperty($instanceId, "Factor", 0);
+					$applyChanges = true;
+				}
+	*/
+				if($inverterModelRegister[IMR_START_REGISTER] + REGISTER_TO_ADDRESS_OFFSET != IPS_GetProperty($instanceId, "ReadAddress"))
+				{
+					IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + REGISTER_TO_ADDRESS_OFFSET);
+					$applyChanges = true;
+				}
+				if($inverterModelRegister[IMR_FUNCTION_CODE] != IPS_GetProperty($instanceId, "ReadFunctionCode"))
+				{
+					IPS_SetProperty($instanceId, "ReadFunctionCode", $inverterModelRegister[IMR_FUNCTION_CODE]);
+					$applyChanges = true;
+				}
+	/*
+				if( != IPS_GetProperty($instanceId, "WriteAddress"))
+				{
+					IPS_SetProperty($instanceId, "WriteAddress", );
+					$applyChanges = true;
+				}
+	*/
+				if(0 != IPS_GetProperty($instanceId, "WriteFunctionCode"))
+				{
+					IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
+					$applyChanges = true;
+				}
+
+				if($applyChanges)
+				{
+					IPS_ApplyChanges($instanceId);
+					//IPS_Sleep(100);
+				}
+
+				$varId = @IPS_GetVariableIDByName("Value", $instanceId);
+				if(false === $varId)
+				{
+					$varId = IPS_GetVariableIDByName("Wert", $instanceId);
+				}
+
+				// Profil der Statusvariable zuweisen
+				if(false != $profile && $profile != IPS_GetVariable($varId)['VariableCustomProfile'])
+				{
+					IPS_SetVariableCustomProfile($varId, $profile);
 				}
 			}
 		}
@@ -1530,4 +1589,10 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 			return array($gatewayId, $interfaceId);
 		}
 		
+
+		private function removeInvalidChars($input)
+		{
+			return preg_replace( '/[^a-z0-9]/i', '', $input);
+		}
+
 	}
