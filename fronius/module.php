@@ -101,6 +101,7 @@ if (!defined('PAO_COLOR'))
 			$this->RegisterPropertyBoolean('active', 'true');
 			$this->RegisterPropertyString('hostIp', '');
 			$this->RegisterPropertyInteger('hostPort', '502');
+			$this->RegisterPropertyInteger('hostmodbusDevice', '1');
 			$this->RegisterPropertyBoolean('readNameplate', 'false');
 			$this->RegisterPropertyInteger('pollCycle', '60000');
 
@@ -216,6 +217,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 			$active = $this->ReadPropertyBoolean('active');
 			$hostIp = $this->ReadPropertyString('hostIp');
 			$hostPort = $this->ReadPropertyInteger('hostPort');
+			$hostmodbusDevice = $this->ReadPropertyInteger('hostmodbusDevice');
 			$readNameplate = $this->ReadPropertyBoolean('readNameplate');
 			$pollCycle = $this->ReadPropertyInteger('pollCycle');
 
@@ -255,7 +257,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				// Modbus-Gateway Einstellungen setzen
 				IPS_SetName($gatewayId, MODUL_PREFIX."ModbusGateway");
 				IPS_SetProperty($gatewayId, "GatewayMode", 0);
-				IPS_SetProperty($gatewayId, "DeviceID", 1);
+				IPS_SetProperty($gatewayId, "DeviceID", $hostmodbusDevice);
 				IPS_SetProperty($gatewayId, "SwapWords", 0);
 
 				@IPS_ApplyChanges($gatewayId);
