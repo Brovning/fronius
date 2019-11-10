@@ -23,6 +23,9 @@ Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter un
 - IP-Symcon ab Version 5.0
 - Der Fronius Wechselrichter muss Modbus TCP unterstützen!
 - Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe per 'TCP' und der Sunspec Model Type 'float' aktiviert werden.
+![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Einstellungen%20-%20Modbus.JPG "Fronius - Einstellungen - Modbus")
+- Die Modbus Geräte-ID des Wechselrichters entspricht seiner Wechselrichter-Nummer, welche nur über das Bedienpanel des Wechselrichters eingestellt werden kann und nicht per Weboberfläche. Zu finden unter Setup > DATCOM > Wechselrichter-Nr. Die Werkseinstellung ist "01", was der Modbus Geräte-ID "1" entspricht. Hierbei gibt es nur eine einzige Ausnahme: Die Wechselrichter-Nummer "00" wird auf Modbus Geräte-ID "100" umgelegt, da bei Modbus die Geräte-ID "0" für Broadcast Nachrichten reserviert ist.
+![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Setup%20-%20DATCOM%20-%20WechselrichterNr.jpg "Fronius - Setup - DATCOM - Wechselrichter-Nr.")
 
 
 ### 3. Software-Installation
