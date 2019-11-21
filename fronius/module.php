@@ -1332,7 +1332,8 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 				IPS_SetProperty($gatewayId, "DeviceID", $hostmodbusDevice);
 				$applyChanges = true;
 			}
-			if(1 != IPS_GetProperty($gatewayId, "SwapWords"))
+			// FRONIUS = 0
+			if(0 != IPS_GetProperty($gatewayId, "SwapWords"))
 			{
 				IPS_SetProperty($gatewayId, "SwapWords", 0);
 				$applyChanges = true;
