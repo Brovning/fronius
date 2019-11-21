@@ -156,3 +156,23 @@ Aktuell kein WebFront umgesetzt.
 ### 7. PHP-Befehlsreferenze
 
 Aktuell keine PHP-Funktionen verfügbar.
+
+
+### 8. Versionshistorie
+
+#### v0.4 beta
+- Behobene Fehler: #5
+
+#### v0.3
+- "Open" Schalter hinzugefügt
+- Statusmeldungen "Instanz aktiviert", "Instanz deaktiviert" und "IP oder Port sind nicht erreichbar" hinzugefügt
+- Überprüfung von IP und Port hinzugefügt
+- Auswertung der Bitfelder Evt1, EvtVnd1, EvtVnd2, EvtVnd3 hinzugefügt
+- Einschänkung für eine Fronius-Instanz entfernt
+- Tmp Register entfernt (not supported)
+- Beschreibenden Text zu den Variablennamen hinzugefügt
+- Postfix zu allen Variablen-Profilen hinzugefügt
+- Performance-Optimierung
+- alte ClientSockets und Modbus-Gateways werden beim Ändern der IP oder Port gelöscht
+- Modbus Geräte ID zu Konfigurationsformular hinzugefügt
+- Behobene Fehler: #1, #2, #4
