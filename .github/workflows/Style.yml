@@ -1,0 +1,21 @@
+name: Check Style
+
+on: [push, pull_request]
+
+jobs:
+
+  style:
+ 
+    runs-on: ubuntu-latest
+ 
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Only fetch Style PHP submodule
+      run: git submodule update --init -- .style
+
+    - name: Install latest PHP-CS-Fixer
+      run: wget https://cs.symfony.com/download/php-cs-fixer-v2.phar
+
+    - name: Run Checks
+      run: php php-cs-fixer-v2.phar fix --config=.style/.php_cs -v --diff --allow-risky=yes .
