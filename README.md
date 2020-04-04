@@ -160,6 +160,11 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 ### 8. Versionshistorie
 
+#### v0.5 beta
+- Behobene Fehler: #9
+- Variable für hostSwapWords für ModBusGateway hinzugefügt
+- KR_READY check des KernelRunLevel hinzugefügt
+
 #### v0.4 beta
 - Behobene Fehler: #5
 
