@@ -48,94 +48,98 @@ if (!defined('IMR_START_REGISTER'))
 
 			// *** Erstelle deaktivierte Timer ***
 			// Evt1
-			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"Evt1 - Event Flags\", ".$this->InstanceID.");
-\$varId = @IPS_GetVariableIDByName(\"Value\", \$instanceId);
-if(false === \$varId)
-{
-	\$varId = IPS_GetVariableIDByName(\"Wert\", \$instanceId);
-}
+			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40120\", ".$this->InstanceID.");
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"I_EVENT_GROUND_FAULT\", \"I_EVENT_DC_OVER_VOLT\", \"I_EVENT_AC_DISCONNECT\", \"I_EVENT_DC_DISCONNECT\", \"I_EVENT_GRID_DISCONNECT\", \"I_EVENT_CABINET_OPEN\", \"I_EVENT_MANUAL_SHUTDOWN\", \"I_EVENT_OVER_TEMP\", \"I_EVENT_OVER_FREQUENCY\", \"I_EVENT_UNDER_FREQUENCY\", \"I_EVENT_AC_OVER_VOLT\", \"I_EVENT_AC_UNDER_VOLT\", \"I_EVENT_BLOWN_STRING_FUSE\", \"I_EVENT_UNDER_TEMP\", \"I_EVENT_MEMORY_LOSS\", \"I_EVENT_HW_TEST_FAILURE\");
 
 for(\$i = 0; \$i < count(\$bitArray); \$i++)
 {
-	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
     \$bitValue = (\$varValue >> \$i ) & 0x1;
 
 	if(GetValue(\$bitId) != \$bitValue)
 	{
 		SetValue(\$bitId, \$bitValue);
 	}
+}
+
+function removeInvalidChars(\$input)
+{
+	return preg_replace( '/[^a-z0-9]/i', '', \$input);
 }");
 
 
 			// EvtVnd1
-			$this->RegisterTimer("Update-EvtVnd1", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd1 - Vendor Event Flags\", ".$this->InstanceID.");
-\$varId = @IPS_GetVariableIDByName(\"Value\", \$instanceId);
-if(false === \$varId)
-{
-	\$varId = IPS_GetVariableIDByName(\"Wert\", \$instanceId);
-}
+			$this->RegisterTimer("Update-EvtVnd1", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40124\", ".$this->InstanceID.");
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"INSULATION_FAULT\", \"GRID_ERROR\", \"AC_OVERCURRENT\", \"DC_OVERCURRENT\", \"OVER_TEMP\", \"POWER_LOW\", \"DC_LOW\", \"INTERMEDIATE_FAULT\", \"FREQUENCY_HIGH\", \"FREQUENCY_LOW\", \"AC_VOLTAGE_HIGH\", \"AC_VOLTAGE_LOW\", \"DIRECT_CURRENT\", \"RELAY_FAULT\", \"POWER_STAGE_FAULT\", \"CONTROL_FAULT\", \"GC_GRID_VOLT_ERR\", \"GC_GRID_FREQU_ERR\", \"ENERGY_TRANSFER_FAULT\", \"REF_POWER_SOURCE_AC\", \"ANTI_ISLANDING_FAULT\", \"FIXED_VOLTAGE_FAULT\", \"MEMORY_FAULT\", \"DISPLAY_FAULT\", \"COMMUNICATION_FAULT\", \"TEMP_SENSORS_FAULT\", \"DC_AC_BOARD_FAULT\", \"ENS_FAULT\", \"FAN_FAULT\", \"DEFECTIVE_FUSE\", \"OUTPUT_CHOKE_FAULT\", \"CONVERTER_RELAY_FAULT\");
 
 for(\$i = 0; \$i < count(\$bitArray); \$i++)
 {
-	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
     \$bitValue = (\$varValue >> \$i ) & 0x1;
 
 	if(GetValue(\$bitId) != \$bitValue)
 	{
 		SetValue(\$bitId, \$bitValue);
 	}
+}
+
+function removeInvalidChars(\$input)
+{
+	return preg_replace( '/[^a-z0-9]/i', '', \$input);
 }");
 
 
 			// EvtVnd2
-			$this->RegisterTimer("Update-EvtVnd2", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd2 - Vendor Event Flags\", ".$this->InstanceID.");
-\$varId = @IPS_GetVariableIDByName(\"Value\", \$instanceId);
-if(false === \$varId)
-{
-	\$varId = IPS_GetVariableIDByName(\"Wert\", \$instanceId);
-}
+			$this->RegisterTimer("Update-EvtVnd2", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40126\", ".$this->InstanceID.");
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"NO_SOLARNET_COMM\", \"INV_ADDRESS_FAULT\", \"NO_FEED_IN_24H\", \"PLUG_FAULT\", \"PHASE_ALLOC_FAULT\", \"GRID_CONDUCTOR_OPEN\", \"SOFTWARE_ISSUE\", \"POWER_DERATING\", \"JUMPER_INCORRECT\", \"INCOMPATIBLE_FEATURE\", \"VENTS_BLOCKED\", \"POWER_REDUCTION_ERROR\", \"ARC_DETECTED\", \"AFCI_SELF_TEST_FAILED\", \"CURRENT_SENSOR_ERROR\", \"DC_SWITCH_FAULT\", \"AFCI_DEFECTIVE\", \"AFCI_MANUAL_TEST_OK\", \"PS_PWR_SUPPLY_ISSUE\", \"AFCI_NO_COMM\", \"AFCI_MANUAL_TEST_FAILED\", \"AC_POLARITY_REVERSED\", \"FAULTY_AC_DEVICE\", \"FLASH_FAULT\", \"GENERAL_ERROR\", \"GROUNDING_ISSUE\", \"LIMITATION_FAULT\", \"OPEN_CONTACT\", \"OVERVOLTAGE_PROTECTION\", \"PROGRAM_STATUS\", \"SOLARNET_ISSUE\", \"SUPPLY_VOLTAGE_FAULT\");
 
 for(\$i = 0; \$i < count(\$bitArray); \$i++)
 {
-	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
     \$bitValue = (\$varValue >> \$i ) & 0x1;
 
 	if(GetValue(\$bitId) != \$bitValue)
 	{
 		SetValue(\$bitId, \$bitValue);
 	}
+}
+
+function removeInvalidChars(\$input)
+{
+	return preg_replace( '/[^a-z0-9]/i', '', \$input);
 }");
 
 
 			// EvtVnd3
-			$this->RegisterTimer("Update-EvtVnd3", 0, "\$instanceId = IPS_GetInstanceIDByName(\"EvtVnd3 - Vendor Event Flags\", ".$this->InstanceID.");
-\$varId = @IPS_GetVariableIDByName(\"Value\", \$instanceId);
-if(false === \$varId)
-{
-	\$varId = IPS_GetVariableIDByName(\"Wert\", \$instanceId);
-}
+			$this->RegisterTimer("Update-EvtVnd3", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40128\", ".$this->InstanceID.");
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
 \$bitArray = array(\"TIME_FAULT\", \"USB_FAULT\", \"DC_HIGH\", \"INIT_ERROR\");
 
 for(\$i = 0; \$i < count(\$bitArray); \$i++)
 {
-	\$bitId = IPS_GetVariableIDByName(\$bitArray[\$i], \$instanceId);
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
     \$bitValue = (\$varValue >> \$i ) & 0x1;
 
 	if(GetValue(\$bitId) != \$bitValue)
 	{
 		SetValue(\$bitId, \$bitValue);
 	}
+}
+
+function removeInvalidChars(\$input)
+{
+	return preg_replace( '/[^a-z0-9]/i', '', \$input);
 }");
 
 			// *** Erstelle Variablen-Profile ***
@@ -265,204 +269,149 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 				$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
 
 
-				// Bit 0 - 15 für "Evt1 - Event Flags" erstellen
-				$bitArray = array(
-					array('varName' => "I_EVENT_GROUND_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Ground fault - StateCodes: 471;472;474;475;494;502"),
-					array('varName' => "I_EVENT_DC_OVER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "DC over voltage - StateCodes: 309;313"),
-					array('varName' => "I_EVENT_AC_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "AC disconnect open - StateCodes: 107;117;127;137"),
-					array('varName' => "I_EVENT_DC_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "DC disconnect open - StateCodes: "),
-					array('varName' => "I_EVENT_GRID_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "Grid shutdown - StateCodes: "),
-					array('varName' => "I_EVENT_CABINET_OPEN", 'varProfile' => "~Alert", 'varInfo' => "Cabinet open - StateCodes: "),
-					array('varName' => "I_EVENT_MANUAL_SHUTDOWN", 'varProfile' => "~Alert", 'varInfo' => "Manual shutdown - StateCodes: "),
-					array('varName' => "I_EVENT_OVER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Over temperature - StateCodes: 303;304;531"),
-					array('varName' => "I_EVENT_OVER_FREQUENCY", 'varProfile' => "~Alert", 'varInfo' => "Frequency above limit - StateCodes: 104;105;115;125;135;203;204"),
-					array('varName' => "I_EVENT_UNDER_FREQUENCY", 'varProfile' => "~Alert", 'varInfo' => "Frequency under limit - StateCodes: 104;106;116;126;136;203;204"),
-					array('varName' => "I_EVENT_AC_OVER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "AC voltage above limit - StateCodes: 101;102;112;122;132;201;202"),
-					array('varName' => "I_EVENT_AC_UNDER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "AC voltage under limit - StateCodes: 101;103;113;123;133;201;202"),
-					array('varName' => "I_EVENT_BLOWN_STRING_FUSE", 'varProfile' => "~Alert", 'varInfo' => "Blown string fuse - StateCodes: 550;551"),
-					array('varName' => "I_EVENT_UNDER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Under temperature - StateCodes: "),
-					array('varName' => "I_EVENT_MEMORY_LOSS", 'varProfile' => "~Alert", 'varInfo' => "Generic Memory or Communication error (internal) - StateCodes: 401;402;403;404;405;414;416;417;419;421;425;431;451;452;453;454;460;461;464;465;466;467;476;477;490;491;504;505;506;507;508;510;511;514;516;517;519;541;553;558;711;712;713;714;715;716;721;722;723;724;725;726;727;728;729;730;799"),
-					array('varName' => "I_EVENT_HW_TEST_FAILURE", 'varProfile' => "~Alert", 'varInfo' => "Hardware test failure - StateCodes: 245;406;407;457;469;478;515;532;533;535;555"),
-				);
+					// Inverter - Bit 0 - 15 für "Evt1 - Event Flags" erstellen
+					$instanceId = IPS_GetObjectIDByIdent("40120", $categoryId);
+					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+					IPS_SetHidden($varId, true);
 
-				$instanceId = IPS_GetInstanceIDByName("Evt1 - Event Flags", $categoryId);
-				$varId = @IPS_GetVariableIDByName("Value", $instanceId);
-				if(false === $varId)
-				{
-					$varId = IPS_GetVariableIDByName("Wert", $instanceId);
-				}
-				IPS_SetHidden($varId, true);
-				
-				foreach($bitArray AS $bit)
-				{
-					$varName = $bit['varName'];
-					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
-					if(false === $varId)
+					$bitArray = array(
+						array('varName' => "I_EVENT_GROUND_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Ground fault - StateCodes: 471;472;474;475;494;502"),
+						array('varName' => "I_EVENT_DC_OVER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "DC over voltage - StateCodes: 309;313"),
+						array('varName' => "I_EVENT_AC_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "AC disconnect open - StateCodes: 107;117;127;137"),
+						array('varName' => "I_EVENT_DC_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "DC disconnect open - StateCodes: "),
+						array('varName' => "I_EVENT_GRID_DISCONNECT", 'varProfile' => "~Alert", 'varInfo' => "Grid shutdown - StateCodes: "),
+						array('varName' => "I_EVENT_CABINET_OPEN", 'varProfile' => "~Alert", 'varInfo' => "Cabinet open - StateCodes: "),
+						array('varName' => "I_EVENT_MANUAL_SHUTDOWN", 'varProfile' => "~Alert", 'varInfo' => "Manual shutdown - StateCodes: "),
+						array('varName' => "I_EVENT_OVER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Over temperature - StateCodes: 303;304;531"),
+						array('varName' => "I_EVENT_OVER_FREQUENCY", 'varProfile' => "~Alert", 'varInfo' => "Frequency above limit - StateCodes: 104;105;115;125;135;203;204"),
+						array('varName' => "I_EVENT_UNDER_FREQUENCY", 'varProfile' => "~Alert", 'varInfo' => "Frequency under limit - StateCodes: 104;106;116;126;136;203;204"),
+						array('varName' => "I_EVENT_AC_OVER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "AC voltage above limit - StateCodes: 101;102;112;122;132;201;202"),
+						array('varName' => "I_EVENT_AC_UNDER_VOLT", 'varProfile' => "~Alert", 'varInfo' => "AC voltage under limit - StateCodes: 101;103;113;123;133;201;202"),
+						array('varName' => "I_EVENT_BLOWN_STRING_FUSE", 'varProfile' => "~Alert", 'varInfo' => "Blown string fuse - StateCodes: 550;551"),
+						array('varName' => "I_EVENT_UNDER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Under temperature - StateCodes: "),
+						array('varName' => "I_EVENT_MEMORY_LOSS", 'varProfile' => "~Alert", 'varInfo' => "Generic Memory or Communication error (internal) - StateCodes: 401;402;403;404;405;414;416;417;419;421;425;431;451;452;453;454;460;461;464;465;466;467;476;477;490;491;504;505;506;507;508;510;511;514;516;517;519;541;553;558;711;712;713;714;715;716;721;722;723;724;725;726;727;728;729;730;799"),
+						array('varName' => "I_EVENT_HW_TEST_FAILURE", 'varProfile' => "~Alert", 'varInfo' => "Hardware test failure - StateCodes: 245;406;407;457;469;478;515;532;533;535;555"),
+					);
+
+					foreach ($bitArray as $bit)
 					{
-						$varId = IPS_CreateVariable(0);
-						IPS_SetName($varId, $varName);
-						IPS_SetParent($varId, $instanceId);
-						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
+						$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
 					}
-					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
-					IPS_SetInfo($varId, $bit['varInfo']);
-				}
 
-				// Bit 0 - 15 für "EvtVnd1 - Vendor Event Flags" erstellen
-				$bitArray = array(
-					array('varName' => "INSULATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC Insulation fault - StateCodes: 447;459;474;475;502"),
-					array('varName' => "GRID_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Grid error - StateCodes: 101;104;107;108;109;117;127;137;205;206;305"),
-					array('varName' => "AC_OVERCURRENT", 'varProfile' => "~Alert", 'varInfo' => "Overcurrent AC - StateCodes: 301;321"),
-					array('varName' => "DC_OVERCURRENT", 'varProfile' => "~Alert", 'varInfo' => "Overcurrent DC - StateCodes: 302"),
-					array('varName' => "OVER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Over-temperature - StateCodes: 303;304;322"),
-					array('varName' => "POWER_LOW", 'varProfile' => "~Alert", 'varInfo' => "Power low - StateCodes: 306"),
-					array('varName' => "DC_LOW", 'varProfile' => "~Alert", 'varInfo' => "DC low - StateCodes: 307;310;522;523"),
-					array('varName' => "INTERMEDIATE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Intermediate circuit error - StateCodes: 308;426"),
-					array('varName' => "FREQUENCY_HIGH", 'varProfile' => "~Alert", 'varInfo' => "AC frequency too high - StateCodes: 105;115;125;135;203"),
-					array('varName' => "FREQUENCY_LOW", 'varProfile' => "~Alert", 'varInfo' => "AC frequency too low - StateCodes: 106;116;126;136;204"),
-					array('varName' => "AC_VOLTAGE_HIGH", 'varProfile' => "~Alert", 'varInfo' => "AC voltage too high - StateCodes: 102;112;122;132;201"),
-					array('varName' => "AC_VOLTAGE_LOW", 'varProfile' => "~Alert", 'varInfo' => "AC voltage too low - StateCodes: 103;113;123;133;202"),
-					array('varName' => "DIRECT_CURRENT", 'varProfile' => "~Alert", 'varInfo' => "Direct current feed in - StateCodes: 408"),
-					array('varName' => "RELAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Relay problem - StateCodes: 207;208;457"),
-					array('varName' => "POWER_STAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Internal power stage error - StateCodes: 417;419;421;427;428;429;431;432;433;436;437;438;439;442;445;450;462;512;513;514;516;553"),
-					array('varName' => "CONTROL_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Control problems - StateCodes: 409;413"),
-					array('varName' => "GC_GRID_VOLT_ERR", 'varProfile' => "~Alert", 'varInfo' => "Guard Controller - AC voltage error - StateCodes: 453"),
-					array('varName' => "GC_GRID_FREQU_ERR", 'varProfile' => "~Alert", 'varInfo' => "Guard Controller - AC Frequency Error - StateCodes: 454"),
-					array('varName' => "ENERGY_TRANSFER_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Energy transfer not possible - StateCodes: 443"),
-					array('varName' => "REF_POWER_SOURCE_AC", 'varProfile' => "~Alert", 'varInfo' => "Reference power source AC outside tolerances - StateCodes: 455"),
-					array('varName' => "ANTI_ISLANDING_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Error during anti islanding test - StateCodes: 456"),
-					array('varName' => "FIXED_VOLTAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Fixed voltage lower than current MPP voltage - StateCodes: 412"),
-					array('varName' => "MEMORY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Memory fault - StateCodes: 403;414;451;505;506;507;510;511;711;712;713;714;715;716;721;722;723;724;725;726;727;728;729;730"),
-					array('varName' => "DISPLAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Display - StateCodes: 464;465;466;467"),
-					array('varName' => "COMMUNICATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Internal communication error - StateCodes: 401;402;416;425;452;490;491;519;799"),
-					array('varName' => "TEMP_SENSORS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Temperature sensors defective - StateCodes: 406;407;487;532;533"),
-					array('varName' => "DC_AC_BOARD_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC or AC board fault - StateCodes: 460;461;518"),
-					array('varName' => "ENS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "ENS error - StateCodes: 248;404;405;415"),
-					array('varName' => "FAN_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Fan error - StateCodes: 530;531;534;535;536;537;540;541;555;557"),
-					array('varName' => "DEFECTIVE_FUSE", 'varProfile' => "~Alert", 'varInfo' => "Defective fuse - StateCodes: 471;472;551"),
-					array('varName' => "OUTPUT_CHOKE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Output choke connected to wrong poles - StateCodes: 469"),
-					array('varName' => "CONVERTER_RELAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "The buck converter relay does not open at high DC voltage - StateCodes: 470"),
-				);
+					// Inverter - Bit 0 - 15 für "EvtVnd1 - Vendor Event Flags" erstellen
+					$instanceId = IPS_GetObjectIDByIdent("40124", $categoryId);
+					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+					IPS_SetHidden($varId, true);
 
-				$instanceId = IPS_GetInstanceIDByName("EvtVnd1 - Vendor Event Flags", $categoryId);
-				$varId = @IPS_GetVariableIDByName("Value", $instanceId);
-				if(false === $varId)
-				{
-					$varId = IPS_GetVariableIDByName("Wert", $instanceId);
-				}
-				IPS_SetHidden($varId, true);
-				
-				foreach($bitArray AS $bit)
-				{
-					$varName = $bit['varName'];
-					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
-					if(false === $varId)
+					$bitArray = array(
+						array('varName' => "INSULATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC Insulation fault - StateCodes: 447;459;474;475;502"),
+						array('varName' => "GRID_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Grid error - StateCodes: 101;104;107;108;109;117;127;137;205;206;305"),
+						array('varName' => "AC_OVERCURRENT", 'varProfile' => "~Alert", 'varInfo' => "Overcurrent AC - StateCodes: 301;321"),
+						array('varName' => "DC_OVERCURRENT", 'varProfile' => "~Alert", 'varInfo' => "Overcurrent DC - StateCodes: 302"),
+						array('varName' => "OVER_TEMP", 'varProfile' => "~Alert", 'varInfo' => "Over-temperature - StateCodes: 303;304;322"),
+						array('varName' => "POWER_LOW", 'varProfile' => "~Alert", 'varInfo' => "Power low - StateCodes: 306"),
+						array('varName' => "DC_LOW", 'varProfile' => "~Alert", 'varInfo' => "DC low - StateCodes: 307;310;522;523"),
+						array('varName' => "INTERMEDIATE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Intermediate circuit error - StateCodes: 308;426"),
+						array('varName' => "FREQUENCY_HIGH", 'varProfile' => "~Alert", 'varInfo' => "AC frequency too high - StateCodes: 105;115;125;135;203"),
+						array('varName' => "FREQUENCY_LOW", 'varProfile' => "~Alert", 'varInfo' => "AC frequency too low - StateCodes: 106;116;126;136;204"),
+						array('varName' => "AC_VOLTAGE_HIGH", 'varProfile' => "~Alert", 'varInfo' => "AC voltage too high - StateCodes: 102;112;122;132;201"),
+						array('varName' => "AC_VOLTAGE_LOW", 'varProfile' => "~Alert", 'varInfo' => "AC voltage too low - StateCodes: 103;113;123;133;202"),
+						array('varName' => "DIRECT_CURRENT", 'varProfile' => "~Alert", 'varInfo' => "Direct current feed in - StateCodes: 408"),
+						array('varName' => "RELAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Relay problem - StateCodes: 207;208;457"),
+						array('varName' => "POWER_STAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Internal power stage error - StateCodes: 417;419;421;427;428;429;431;432;433;436;437;438;439;442;445;450;462;512;513;514;516;553"),
+						array('varName' => "CONTROL_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Control problems - StateCodes: 409;413"),
+						array('varName' => "GC_GRID_VOLT_ERR", 'varProfile' => "~Alert", 'varInfo' => "Guard Controller - AC voltage error - StateCodes: 453"),
+						array('varName' => "GC_GRID_FREQU_ERR", 'varProfile' => "~Alert", 'varInfo' => "Guard Controller - AC Frequency Error - StateCodes: 454"),
+						array('varName' => "ENERGY_TRANSFER_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Energy transfer not possible - StateCodes: 443"),
+						array('varName' => "REF_POWER_SOURCE_AC", 'varProfile' => "~Alert", 'varInfo' => "Reference power source AC outside tolerances - StateCodes: 455"),
+						array('varName' => "ANTI_ISLANDING_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Error during anti islanding test - StateCodes: 456"),
+						array('varName' => "FIXED_VOLTAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Fixed voltage lower than current MPP voltage - StateCodes: 412"),
+						array('varName' => "MEMORY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Memory fault - StateCodes: 403;414;451;505;506;507;510;511;711;712;713;714;715;716;721;722;723;724;725;726;727;728;729;730"),
+						array('varName' => "DISPLAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Display - StateCodes: 464;465;466;467"),
+						array('varName' => "COMMUNICATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Internal communication error - StateCodes: 401;402;416;425;452;490;491;519;799"),
+						array('varName' => "TEMP_SENSORS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Temperature sensors defective - StateCodes: 406;407;487;532;533"),
+						array('varName' => "DC_AC_BOARD_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC or AC board fault - StateCodes: 460;461;518"),
+						array('varName' => "ENS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "ENS error - StateCodes: 248;404;405;415"),
+						array('varName' => "FAN_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Fan error - StateCodes: 530;531;534;535;536;537;540;541;555;557"),
+						array('varName' => "DEFECTIVE_FUSE", 'varProfile' => "~Alert", 'varInfo' => "Defective fuse - StateCodes: 471;472;551"),
+						array('varName' => "OUTPUT_CHOKE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Output choke connected to wrong poles - StateCodes: 469"),
+						array('varName' => "CONVERTER_RELAY_FAULT", 'varProfile' => "~Alert", 'varInfo' => "The buck converter relay does not open at high DC voltage - StateCodes: 470"),
+					);
+
+					foreach ($bitArray as $bit)
 					{
-						$varId = IPS_CreateVariable(0);
-						IPS_SetName($varId, $varName);
-						IPS_SetParent($varId, $instanceId);
-						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
+						$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
 					}
-					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
-					IPS_SetInfo($varId, $bit['varInfo']);
-				}
 
 
-				// Bit 0 - 15 für "EvtVnd2 - Vendor Event Flags" erstellen
-				$bitArray = array(
-					array('varName' => "NO_SOLARNET_COMM", 'varProfile' => "~Alert", 'varInfo' => "No SolarNet communication - StateCodes: 504"),
-					array('varName' => "INV_ADDRESS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Inverter address incorrect - StateCodes: 508"),
-					array('varName' => "NO_FEED_IN_24H", 'varProfile' => "~Alert", 'varInfo' => "24h no feed in - StateCodes: 509"),
-					array('varName' => "PLUG_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Faulty plug connections - StateCodes: 410;515"),
-					array('varName' => "PHASE_ALLOC_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Incorrect phase allocation - StateCodes: 473"),
-					array('varName' => "GRID_CONDUCTOR_OPEN", 'varProfile' => "~Alert", 'varInfo' => "Grid conductor open or supply phase has failed - StateCodes: 210"),
-					array('varName' => "SOFTWARE_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Incompatible or old software - StateCodes: 558"),
-					array('varName' => "POWER_DERATING", 'varProfile' => "~Alert", 'varInfo' => "Power Derating Due To Overtemperature - StateCodes: 517"),
-					array('varName' => "JUMPER_INCORRECT", 'varProfile' => "~Alert", 'varInfo' => "Jumper set incorrectly - StateCodes: 550"),
-					array('varName' => "INCOMPATIBLE_FEATURE", 'varProfile' => "~Alert", 'varInfo' => "Incompatible feature - StateCodes: 559"),
-					array('varName' => "VENTS_BLOCKED", 'varProfile' => "~Alert", 'varInfo' => "Defective ventilator/air vents blocked - StateCodes: 501"),
-					array('varName' => "POWER_REDUCTION_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Power reduction on error - StateCodes: 560;561"),
-					array('varName' => "ARC_DETECTED", 'varProfile' => "~Alert", 'varInfo' => "Arc Detected - StateCodes: 240"),
-					array('varName' => "AFCI_SELF_TEST_FAILED", 'varProfile' => "~Alert", 'varInfo' => "AFCI Self Test Failed - StateCodes: 245"),
-					array('varName' => "CURRENT_SENSOR_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Current Sensor Error - StateCodes: 247"),
-					array('varName' => "DC_SWITCH_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC switch fault - StateCodes: 492;493"),
-					array('varName' => "AFCI_DEFECTIVE", 'varProfile' => "~Alert", 'varInfo' => "AFCI Defective - StateCodes: 249"),
-					array('varName' => "AFCI_MANUAL_TEST_OK", 'varProfile' => "~Alert", 'varInfo' => "AFCI Manual Test Successful - StateCodes: 250"),
-					array('varName' => "PS_PWR_SUPPLY_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Power Stack Supply Missing - StateCodes: 476"),
-					array('varName' => "AFCI_NO_COMM", 'varProfile' => "~Alert", 'varInfo' => "AFCI Communication Stopped - StateCodes: 477"),
-					array('varName' => "AFCI_MANUAL_TEST_FAILED", 'varProfile' => "~Alert", 'varInfo' => "AFCI Manual Test Failed - StateCodes: 478"),
-					array('varName' => "AC_POLARITY_REVERSED", 'varProfile' => "~Alert", 'varInfo' => "AC polarity reversed - StateCodes: 463"),
-					array('varName' => "FAULTY_AC_DEVICE", 'varProfile' => "~Alert", 'varInfo' => "AC measurement device fault - StateCodes: 488"),
-					array('varName' => "FLASH_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Flash fault - StateCodes: 781;782;783;784;785;786;787;788;789;790;791;792;793;794"),
-					array('varName' => "GENERAL_ERROR", 'varProfile' => "~Alert", 'varInfo' => "General error - StateCodes: 772;773;775;776"),
-					array('varName' => "GROUNDING_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Grounding fault - StateCodes: 494"),
-					array('varName' => "LIMITATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Power limitation fault - StateCodes: 761;762;763;764;765;766;767;768"),
-					array('varName' => "OPEN_CONTACT", 'varProfile' => "~Alert", 'varInfo' => "External NO contact open - StateCodes: 486"),
-					array('varName' => "OVERVOLTAGE_PROTECTION", 'varProfile' => "~Alert", 'varInfo' => "External overvoltage protection has tripped - StateCodes: 597;598;599"),
-					array('varName' => "PROGRAM_STATUS", 'varProfile' => "~Alert", 'varInfo' => "Internal processor program status - StateCodes: 707;708;709;710;1000-1299"),
-					array('varName' => "SOLARNET_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "SolarNet issue - StateCodes: 701;702;703;704;705;706"),
-					array('varName' => "SUPPLY_VOLTAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Supply voltage fault - StateCodes: 495;496;497;498;499"),
-				);
+					// Inverter - Bit 0 - 15 für "EvtVnd2 - Vendor Event Flags" erstellen
+					$instanceId = IPS_GetObjectIDByIdent("40126", $categoryId);
+					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+					IPS_SetHidden($varId, true);
 
-				$instanceId = IPS_GetInstanceIDByName("EvtVnd2 - Vendor Event Flags", $categoryId);
-				$varId = @IPS_GetVariableIDByName("Value", $instanceId);
-				if(false === $varId)
-				{
-					$varId = IPS_GetVariableIDByName("Wert", $instanceId);
-				}
-				IPS_SetHidden($varId, true);
-				
-				foreach($bitArray AS $bit)
-				{
-					$varName = $bit['varName'];
-					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
-					if(false === $varId)
+					$bitArray = array(
+						array('varName' => "NO_SOLARNET_COMM", 'varProfile' => "~Alert", 'varInfo' => "No SolarNet communication - StateCodes: 504"),
+						array('varName' => "INV_ADDRESS_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Inverter address incorrect - StateCodes: 508"),
+						array('varName' => "NO_FEED_IN_24H", 'varProfile' => "~Alert", 'varInfo' => "24h no feed in - StateCodes: 509"),
+						array('varName' => "PLUG_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Faulty plug connections - StateCodes: 410;515"),
+						array('varName' => "PHASE_ALLOC_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Incorrect phase allocation - StateCodes: 473"),
+						array('varName' => "GRID_CONDUCTOR_OPEN", 'varProfile' => "~Alert", 'varInfo' => "Grid conductor open or supply phase has failed - StateCodes: 210"),
+						array('varName' => "SOFTWARE_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Incompatible or old software - StateCodes: 558"),
+						array('varName' => "POWER_DERATING", 'varProfile' => "~Alert", 'varInfo' => "Power Derating Due To Overtemperature - StateCodes: 517"),
+						array('varName' => "JUMPER_INCORRECT", 'varProfile' => "~Alert", 'varInfo' => "Jumper set incorrectly - StateCodes: 550"),
+						array('varName' => "INCOMPATIBLE_FEATURE", 'varProfile' => "~Alert", 'varInfo' => "Incompatible feature - StateCodes: 559"),
+						array('varName' => "VENTS_BLOCKED", 'varProfile' => "~Alert", 'varInfo' => "Defective ventilator/air vents blocked - StateCodes: 501"),
+						array('varName' => "POWER_REDUCTION_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Power reduction on error - StateCodes: 560;561"),
+						array('varName' => "ARC_DETECTED", 'varProfile' => "~Alert", 'varInfo' => "Arc Detected - StateCodes: 240"),
+						array('varName' => "AFCI_SELF_TEST_FAILED", 'varProfile' => "~Alert", 'varInfo' => "AFCI Self Test Failed - StateCodes: 245"),
+						array('varName' => "CURRENT_SENSOR_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Current Sensor Error - StateCodes: 247"),
+						array('varName' => "DC_SWITCH_FAULT", 'varProfile' => "~Alert", 'varInfo' => "DC switch fault - StateCodes: 492;493"),
+						array('varName' => "AFCI_DEFECTIVE", 'varProfile' => "~Alert", 'varInfo' => "AFCI Defective - StateCodes: 249"),
+						array('varName' => "AFCI_MANUAL_TEST_OK", 'varProfile' => "~Alert", 'varInfo' => "AFCI Manual Test Successful - StateCodes: 250"),
+						array('varName' => "PS_PWR_SUPPLY_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Power Stack Supply Missing - StateCodes: 476"),
+						array('varName' => "AFCI_NO_COMM", 'varProfile' => "~Alert", 'varInfo' => "AFCI Communication Stopped - StateCodes: 477"),
+						array('varName' => "AFCI_MANUAL_TEST_FAILED", 'varProfile' => "~Alert", 'varInfo' => "AFCI Manual Test Failed - StateCodes: 478"),
+						array('varName' => "AC_POLARITY_REVERSED", 'varProfile' => "~Alert", 'varInfo' => "AC polarity reversed - StateCodes: 463"),
+						array('varName' => "FAULTY_AC_DEVICE", 'varProfile' => "~Alert", 'varInfo' => "AC measurement device fault - StateCodes: 488"),
+						array('varName' => "FLASH_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Flash fault - StateCodes: 781;782;783;784;785;786;787;788;789;790;791;792;793;794"),
+						array('varName' => "GENERAL_ERROR", 'varProfile' => "~Alert", 'varInfo' => "General error - StateCodes: 772;773;775;776"),
+						array('varName' => "GROUNDING_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "Grounding fault - StateCodes: 494"),
+						array('varName' => "LIMITATION_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Power limitation fault - StateCodes: 761;762;763;764;765;766;767;768"),
+						array('varName' => "OPEN_CONTACT", 'varProfile' => "~Alert", 'varInfo' => "External NO contact open - StateCodes: 486"),
+						array('varName' => "OVERVOLTAGE_PROTECTION", 'varProfile' => "~Alert", 'varInfo' => "External overvoltage protection has tripped - StateCodes: 597;598;599"),
+						array('varName' => "PROGRAM_STATUS", 'varProfile' => "~Alert", 'varInfo' => "Internal processor program status - StateCodes: 707;708;709;710;1000-1299"),
+						array('varName' => "SOLARNET_ISSUE", 'varProfile' => "~Alert", 'varInfo' => "SolarNet issue - StateCodes: 701;702;703;704;705;706"),
+						array('varName' => "SUPPLY_VOLTAGE_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Supply voltage fault - StateCodes: 495;496;497;498;499"),
+					);
+
+					foreach ($bitArray as $bit)
 					{
-						$varId = IPS_CreateVariable(0);
-						IPS_SetName($varId, $varName);
-						IPS_SetParent($varId, $instanceId);
-						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
+						$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
 					}
-					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
-					IPS_SetInfo($varId, $bit['varInfo']);
-				}
 
 
-				// Bit 0 - 15 für "EvtVnd3 - Vendor Event Flags" erstellen
-				$bitArray = array(
-					array('varName' => "TIME_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Time error - StateCodes: 751;752;753;754;755;756;757;758;760"),
-					array('varName' => "USB_FAULT", 'varProfile' => "~Alert", 'varInfo' => "USB error - StateCodes: 731;732;733;734;735;736;737;738;739;740;741;743;744;745;746;747;748;749;750"),
-					array('varName' => "DC_HIGH", 'varProfile' => "~Alert", 'varInfo' => "DC high - StateCodes: 309;313"),
-					array('varName' => "INIT_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Init error - StateCodes: 482"),
-				);
+					// Inverter - Bit 0 - 15 für "EvtVnd3 - Vendor Event Flags" erstellen
+					$instanceId = IPS_GetObjectIDByIdent("40128", $categoryId);
+					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+					IPS_SetHidden($varId, true);
 
-				$instanceId = IPS_GetInstanceIDByName("EvtVnd3 - Vendor Event Flags", $categoryId);
-				$varId = @IPS_GetVariableIDByName("Value", $instanceId);
-				if(false === $varId)
-				{
-					$varId = IPS_GetVariableIDByName("Wert", $instanceId);
-				}
-				IPS_SetHidden($varId, true);
-				
-				foreach($bitArray AS $bit)
-				{
-					$varName = $bit['varName'];
-					$varId = @IPS_GetVariableIDByName($varName, $instanceId);
-					if(false === $varId)
+					$bitArray = array(
+						array('varName' => "TIME_FAULT", 'varProfile' => "~Alert", 'varInfo' => "Time error - StateCodes: 751;752;753;754;755;756;757;758;760"),
+						array('varName' => "USB_FAULT", 'varProfile' => "~Alert", 'varInfo' => "USB error - StateCodes: 731;732;733;734;735;736;737;738;739;740;741;743;744;745;746;747;748;749;750"),
+						array('varName' => "DC_HIGH", 'varProfile' => "~Alert", 'varInfo' => "DC high - StateCodes: 309;313"),
+						array('varName' => "INIT_ERROR", 'varProfile' => "~Alert", 'varInfo' => "Init error - StateCodes: 482"),
+					);
+
+					foreach ($bitArray as $bit)
 					{
-						$varId = IPS_CreateVariable(0);
-						IPS_SetName($varId, $varName);
-						IPS_SetParent($varId, $instanceId);
-						IPS_SetIdent($varId, $this->removeInvalidChars($varName));
+						$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
 					}
-					IPS_SetVariableCustomProfile($varId, $bit['varProfile']);
-					IPS_SetInfo($varId, $bit['varInfo']);
-				}
+
 
 
 
 				$categoryName = "Nameplate";
-				$categoryId = @IPS_GetCategoryIDByName($categoryName, $parentId);
+					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 				if($readNameplate)
 				{
 					$inverterModelRegister_array = array(
@@ -922,22 +871,26 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 			}
 		}
 
-		private function createModbusInstances($inverterModelRegister_array, $parentId, $gatewayId, $pollCycle)
+		private function createModbusInstances($inverterModelRegister_array, $parentId, $gatewayId, $pollCycle, $uniqueIdent = "")
 		{
+			// Workaround für "InstanceInterface not available" Fehlermeldung beim Server-Start...
 			if (KR_READY == IPS_GetKernelRunlevel())
 			{
                 // Erstelle Modbus Instancen
 				foreach ($inverterModelRegister_array as $inverterModelRegister)
 				{
-                    if (DEBUG) {
-                        echo "REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".$inverterModelRegister[IMR_NAME]."\n";
-                    }
-                    // Datentyp ermitteln
-                    // 0=Bit, 1=Byte, 2=Word, 3=DWord, 4=ShortInt, 5=SmallInt, 6=Integer, 7=Real
-                    if ("uint16" == strtolower($inverterModelRegister[IMR_TYPE])
-                    || "enum16" == strtolower($inverterModelRegister[IMR_TYPE])
-                    || "uint8+uint8" == strtolower($inverterModelRegister[IMR_TYPE])) {
-                        $datenTyp = 2;
+					if (DEBUG)
+					{
+						echo "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]."\n";
+					}
+					// Datentyp ermitteln
+					// 0=Bit, 1=Byte, 2=Word, 3=DWord, 4=ShortInt, 5=SmallInt, 6=Integer, 7=Real
+					if ("uint16" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "enum16" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "uint8+uint8" == strtolower($inverterModelRegister[IMR_TYPE])
+					)
+					{
+						$datenTyp = 2;
                     } elseif ("uint32" == strtolower($inverterModelRegister[IMR_TYPE])) {
                         $datenTyp = 3;
                     } elseif ("int16" == strtolower($inverterModelRegister[IMR_TYPE])
@@ -1019,88 +972,100 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
                     }
 
 
-                    $instanceId = @IPS_GetInstanceIDByName(/*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME], $parentId);
-                    $applyChanges = false;
-                    // Instanz erstellen
-                    if (false === $instanceId) {
-                        $instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
-                        IPS_SetParent($instanceId, $parentId);
-                        IPS_SetName($instanceId, /*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME]);
-                        $applyChanges = true;
-                    }
+					$instanceId = @IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER].$uniqueIdent, $parentId);
+					$initialCreation = false;
+					$applyChanges = false;
+					// Modbus-Instanz erstellen, sofern noch nicht vorhanden
+					if (false === $instanceId)
+					{
+						$instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
 
-                    // Gateway setzen
-                    if (IPS_GetInstance($instanceId)['ConnectionID'] != $gatewayId) {
-                        if (0 != IPS_GetInstance($instanceId)['ConnectionID']) {
-                            IPS_DisconnectInstance($instanceId);
-                        }
-                        IPS_ConnectInstance($instanceId, $gatewayId);
-                        $applyChanges = true;
-                    }
+						IPS_SetParent($instanceId, $parentId);
+						IPS_SetIdent($instanceId, $inverterModelRegister[IMR_START_REGISTER].$uniqueIdent);
+						IPS_SetName($instanceId, /*"REG_".$inverterModelRegister[IMR_START_REGISTER]. " - ".*/$inverterModelRegister[IMR_NAME]);
+						IPS_SetInfo($instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
-                    if ($inverterModelRegister[IMR_DESCRIPTION] != IPS_GetObject($instanceId)['ObjectInfo']) {
-                        IPS_SetInfo($instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
-                    }
-                
-                    // Ident der Modbus-Instanz setzen
-                    IPS_SetIdent($instanceId, $inverterModelRegister[IMR_START_REGISTER]);
+						$applyChanges = true;
+						$initialCreation = true;
+					}
 
-                    // Modbus-Instanz konfigurieren
-                    if ($datenTyp != IPS_GetProperty($instanceId, "DataType")) {
-                        IPS_SetProperty($instanceId, "DataType", $datenTyp);
-                        $applyChanges = true;
-                    }
-                    if (false != IPS_GetProperty($instanceId, "EmulateStatus")) {
-                        IPS_SetProperty($instanceId, "EmulateStatus", false);
-                        $applyChanges = true;
-                    }
-                    if ($pollCycle != IPS_GetProperty($instanceId, "Poller")) {
-                        IPS_SetProperty($instanceId, "Poller", $pollCycle);
-                        $applyChanges = true;
-                    }
-                    /*
-                                if(0 != IPS_GetProperty($instanceId, "Factor"))
-                                {
-                                    IPS_SetProperty($instanceId, "Factor", 0);
-                                    $applyChanges = true;
-                                }
-                    */
-                    if ($inverterModelRegister[IMR_START_REGISTER] + REGISTER_TO_ADDRESS_OFFSET != IPS_GetProperty($instanceId, "ReadAddress")) {
-                        IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + REGISTER_TO_ADDRESS_OFFSET);
-                        $applyChanges = true;
-                    }
-                    if ($inverterModelRegister[IMR_FUNCTION_CODE] != IPS_GetProperty($instanceId, "ReadFunctionCode")) {
-                        IPS_SetProperty($instanceId, "ReadFunctionCode", $inverterModelRegister[IMR_FUNCTION_CODE]);
-                        $applyChanges = true;
-                    }
-                    /*
-                                if( != IPS_GetProperty($instanceId, "WriteAddress"))
-                                {
-                                    IPS_SetProperty($instanceId, "WriteAddress", );
-                                    $applyChanges = true;
-                                }
-                    */
-                    if (0 != IPS_GetProperty($instanceId, "WriteFunctionCode")) {
-                        IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
-                        $applyChanges = true;
-                    }
+					// Gateway setzen
+					if (IPS_GetInstance($instanceId)['ConnectionID'] != $gatewayId)
+					{
+						if (0 != IPS_GetInstance($instanceId)['ConnectionID'])
+						{
+							IPS_DisconnectInstance($instanceId);
+						}
+						IPS_ConnectInstance($instanceId, $gatewayId);
+						$applyChanges = true;
+					}
 
-                    if ($applyChanges) {
-                        IPS_ApplyChanges($instanceId);
-                        //IPS_Sleep(100);
-                    }
 
-                    $varId = @IPS_GetVariableIDByName("Value", $instanceId);
-                    if (false === $varId) {
-                        $varId = IPS_GetVariableIDByName("Wert", $instanceId);
-                    }
+					// Modbus-Instanz konfigurieren
+					if ($datenTyp != IPS_GetProperty($instanceId, "DataType"))
+					{
+						IPS_SetProperty($instanceId, "DataType", $datenTyp);
+						$applyChanges = true;
+					}
+					if (false != IPS_GetProperty($instanceId, "EmulateStatus"))
+					{
+						IPS_SetProperty($instanceId, "EmulateStatus", false);
+						$applyChanges = true;
+					}
+					if ($pollCycle != IPS_GetProperty($instanceId, "Poller"))
+					{
+						IPS_SetProperty($instanceId, "Poller", $pollCycle);
+						$applyChanges = true;
+					}
+					/*
+									if(0 != IPS_GetProperty($instanceId, "Factor"))
+									{
+										IPS_SetProperty($instanceId, "Factor", 0);
+										$applyChanges = true;
+									}
+					 */
+					if ($inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET != IPS_GetProperty($instanceId, "ReadAddress"))
+					{
+						IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET);
+						$applyChanges = true;
+					}
+					if ($inverterModelRegister[IMR_FUNCTION_CODE] != IPS_GetProperty($instanceId, "ReadFunctionCode"))
+					{
+						IPS_SetProperty($instanceId, "ReadFunctionCode", $inverterModelRegister[IMR_FUNCTION_CODE]);
+						$applyChanges = true;
+					}
+					/*
+									if( != IPS_GetProperty($instanceId, "WriteAddress"))
+									{
+										IPS_SetProperty($instanceId, "WriteAddress", );
+										$applyChanges = true;
+									}
+					 */
+					if (0 != IPS_GetProperty($instanceId, "WriteFunctionCode"))
+					{
+						IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
+						$applyChanges = true;
+					}
 
-                    // Profil der Statusvariable zuweisen
-                    if (false != $profile && $profile != IPS_GetVariable($varId)['VariableCustomProfile']) {
-                        IPS_SetVariableCustomProfile($varId, $profile);
-                    }
-                }
-            }
+					if ($applyChanges)
+					{
+						IPS_ApplyChanges($instanceId);
+						//IPS_Sleep(100);
+					}
+
+					// Statusvariable der Modbus-Instanz ermitteln
+					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+
+					// Profil der Statusvariable initial einmal zuweisen
+					if ($initialCreation && false != $profile)
+					{
+						// Justification Rule 11: es ist die Funktion RegisterVariable...() in diesem Fall nicht nutzbar, da die Variable durch die Modbus-Instanz bereits erstellt wurde
+						// --> Custo Profil wird initial einmal beim Instanz-erstellen gesetzt
+
+						IPS_SetVariableCustomProfile($varId, $profile);
+					}
+				}
+			}
 		}
 		
 		private function checkProfiles()
@@ -1146,240 +1111,10 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Int", VARIABLETYPE_INTEGER, ' Ah');
 /*
 			$this->createVarProfile(MODUL_PREFIX.".Volt.Int", VARIABLETYPE_INTEGER, ' V');
-*/
+			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
 		}
 
-		private function readOldModbusGateway()
-		{
-			$modbusGatewayId_Old = 0;
-			$clientSocketId_Old = 0;
-
-			$childIds = IPS_GetChildrenIDs($this->InstanceID);
-
-			foreach($childIds AS $childId)
-			{
-				$modbusAddressInstanceId = @IPS_GetInstance($childId);
-
-				if(MODBUS_ADDRESSES == $modbusAddressInstanceId['ModuleInfo']['ModuleID'])
-				{
-					$modbusGatewayId_Old = $modbusAddressInstanceId['ConnectionID'];
-					$clientSocketId_Old = @IPS_GetInstance($modbusGatewayId_Old)['ConnectionID'];
-					break;
-				}
-			}
-			
-			return array($modbusGatewayId_Old, $clientSocketId_Old);
-		}
-
-		private function deleteInstanceNotInUse($connectionId_Old, $moduleId)
-		{
-			if(!IPS_ModuleExists($moduleId))
-			{
-				echo "ModuleId ".$moduleId." does not exist!\n";
-			}
-			else
-			{
-				$inUse = false;
-
-				foreach(IPS_GetInstanceListByModuleID($moduleId) AS $instanceId)
-				{
-					$instance = IPS_GetInstance($instanceId);
-
-					if($connectionId_Old == $instance['ConnectionID'])
-					{
-						$inUse = true;
-						break;
-					}
-				}
-
-				// Lösche Connection-Instanz (bspw. ModbusAddress, ClientSocket,...), wenn nicht mehr in Verwendung
-				if(!$inUse)
-				{
-					IPS_DeleteInstance($connectionId_Old);
-				}
-			}
-		}
-
-		private function checkModbusGateway($hostIp, $hostPort, $hostmodbusDevice, $hostSwapWords)
-		{
-			// Splitter-Instance Id des ModbusGateways
-			$gatewayId = 0;
-			// I/O Instance Id des ClientSockets
-			$interfaceId = 0;
-
-			foreach(IPS_GetInstanceListByModuleID(MODBUS_INSTANCES) AS $modbusInstanceId)
-			{
-				$connectionInstanceId = IPS_GetInstance($modbusInstanceId)['ConnectionID'];
-
-				// check, if hostIp and hostPort of currenct ClientSocket is matching new settings
-				if(0 != (int)$connectionInstanceId && $hostIp == IPS_GetProperty($connectionInstanceId, "Host") && $hostPort == IPS_GetProperty($connectionInstanceId, "Port"))
-				{
-					$interfaceId = $connectionInstanceId;
-
-					// check, if "Geraete-ID" of currenct ModbusGateway is matching new settings
-					if ($hostmodbusDevice == IPS_GetProperty($modbusInstanceId, "DeviceID"))
-					{
-						$gatewayId = $modbusInstanceId;
-					}
-
-					if(DEBUG) echo "ModBus Instance and ClientSocket found: ".$modbusInstanceId.", ".$connectionInstanceId."\n";
-
-					break;
-				}
-			}
-
-			// Modbus-Gateway erstellen, sofern noch nicht vorhanden
-			$applyChanges = false;
-			if(0 == $gatewayId)
-			{
-				if(DEBUG) echo "ModBus Instance not found!\n";
-
-				// ModBus Gateway erstellen
-				$gatewayId = IPS_CreateInstance(MODBUS_INSTANCES); 
-				IPS_SetInfo($gatewayId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
-				$applyChanges = true;
-
-				// Achtung: ClientSocket wird immer mit erstellt
-			}
-
-			// Modbus-Gateway Einstellungen setzen
-			if(MODUL_PREFIX."ModbusGateway" != IPS_GetName($gatewayId))
-			{
-				IPS_SetName($gatewayId, MODUL_PREFIX."ModbusGateway".$hostmodbusDevice);
-			}
-			if(0 != IPS_GetProperty($gatewayId, "GatewayMode"))
-			{
-				IPS_SetProperty($gatewayId, "GatewayMode", 0);
-				$applyChanges = true;
-			}
-			if($hostmodbusDevice != IPS_GetProperty($gatewayId, "DeviceID"))
-			{
-				IPS_SetProperty($gatewayId, "DeviceID", $hostmodbusDevice);
-				$applyChanges = true;
-			}
-			if($hostSwapWords != IPS_GetProperty($gatewayId, "SwapWords"))
-			{
-				IPS_SetProperty($gatewayId, "SwapWords", $hostSwapWords);
-				$applyChanges = true;
-			}
-
-			if($applyChanges)
-			{
-				@IPS_ApplyChanges($gatewayId);
-				IPS_Sleep(100);
-			}
-
-			
-			// Hat Modbus-Gateway bereits einen ClientSocket?
-			$applyChanges = false;
-			$clientSocketId = (int)IPS_GetInstance($gatewayId)['ConnectionID'];
-			// wenn ja und noch kein Interface vorhanden, dann den neuen ClientSocket verwenden
-			if(0 == $interfaceId && 0 != $clientSocketId)
-			{
-				// neuen ClientSocket als Interface merken
-				$interfaceId = $clientSocketId;
-			}
-			// wenn ja und bereits ein Interface vorhanden, dann den neuen ClientSocket löschen
-			else if(0 != $interfaceId && 0 != $clientSocketId)
-			{
-				// neuen ClientSocket löschen
-				IPS_DeleteInstance($clientSocketId);
-				
-				// bereits vorhandenen ClientSocket weiterverwenden
-				$clientSocketId = $interfaceId;
-			}
-
-			// ClientSocket erstellen, sofern noch nicht vorhanden
-			if(0 == $interfaceId)
-			{
-				if(DEBUG) echo "Client Socket not found!\n";
-
-				// Client Soket erstellen
-				$interfaceId = IPS_CreateInstance(CLIENT_SOCKETS);
-				IPS_SetInfo($interfaceId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
-
-				$applyChanges = true;
-			}
-
-			// ClientSocket Einstellungen setzen
-			if(MODUL_PREFIX."ClientSocket" != IPS_GetName($interfaceId))
-			{
-				IPS_SetName($interfaceId, MODUL_PREFIX."ClientSocket");
-				$applyChanges = true;
-			}
-			if($hostIp != IPS_GetProperty($interfaceId, "Host"))
-			{
-				IPS_SetProperty($interfaceId, "Host", $hostIp);
-				$applyChanges = true;
-			}
-			if($hostPort != IPS_GetProperty($interfaceId, "Port"))
-			{
-				IPS_SetProperty($interfaceId, "Port", $hostPort);
-				$applyChanges = true;
-			}
-			if(true != IPS_GetProperty($interfaceId, "Open"))
-			{
-				IPS_SetProperty($interfaceId, "Open", true);
-				$applyChanges = true;
-			}
-
-			if($applyChanges)
-			{
-				@IPS_ApplyChanges($interfaceId);
-				IPS_Sleep(100);
-			}
 
 
-			// Client Socket mit Gateway verbinden
-			if(0 != $clientSocketId)
-			{
-				// sofern bereits ein ClientSocket mit dem Gateway verbunden ist, dieses vom Gateway trennen
-				if((int)IPS_GetInstance($gatewayId)['ConnectionID'])
-				{
-					IPS_DisconnectInstance($gatewayId);
-				}
-
-				// neuen ClientSocket mit Gateway verbinden
-				IPS_ConnectInstance($gatewayId, $interfaceId);
-			}
-			
-			return array($gatewayId, $interfaceId);
-		}
-		
-		private function createVarProfile($ProfilName, $ProfileType, $Suffix = '', $MinValue = 0, $MaxValue = 0, $StepSize = 0, $Digits = 0, $Icon = 0, $Associations = '')
-		{
-			if(!IPS_VariableProfileExists($ProfilName))
-			{
-				IPS_CreateVariableProfile($ProfilName, $ProfileType);
-				IPS_SetVariableProfileText($ProfilName, '', $Suffix);
-				
-				if(in_array($ProfileType, array(VARIABLETYPE_INTEGER, VARIABLETYPE_FLOAT)))
-				{
-					IPS_SetVariableProfileValues($ProfilName, $MinValue, $MaxValue, $StepSize);
-					IPS_SetVariableProfileDigits($ProfilName, $Digits);
-				}
-				
-				IPS_SetVariableProfileIcon($ProfilName, $Icon);
-				
-				if($Associations != '')
-				{
-					foreach ($Associations as $a)
-					{
-						$w = isset($a['Wert']) ? $a['Wert'] : '';
-						$n = isset($a['Name']) ? $a['Name'] : '';
-						$i = isset($a['Icon']) ? $a['Icon'] : '';
-						$f = isset($a['Farbe']) ? $a['Farbe'] : -1;
-						IPS_SetVariableProfileAssociation($ProfilName, $w, $n, $i, $f);
-					}
-				}
-
-				if(DEBUG) echo "Profil ".$ProfilName." erstellt\n";
-			}
-		}
-
-		private function removeInvalidChars($input)
-		{
-			return preg_replace( '/[^a-z0-9]/i', '', $input);
-		}
 
 	}
