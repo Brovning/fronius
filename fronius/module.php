@@ -142,6 +142,30 @@ function removeInvalidChars(\$input)
 	return preg_replace( '/[^a-z0-9]/i', '', \$input);
 }");
 
+			// *** SmartMeter - Erstelle deaktivierte Timer ***
+			// Evt
+			$this->RegisterTimer("SM_Update-Evt", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40194\".\"SmartMeter\", ".$this->InstanceID.");
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
+\$varValue = GetValue(\$varId);
+
+\$bitArray = array(\"LOW_VOLTAGE\", \"LOW_POWER\", \"LOW_EFFICIENCY\", \"CURRENT\", \"VOLTAGE\", \"POWER\", \"PR\", \"DISCONNECTED\", \"FUSE_FAULT\", \"COMBINER_FUSE_FAULT\", \"COMBINER_CABINET_OPEN\", \"TEMP\", \"GROUNDFAULT\", \"REVERSED_POLARITY\", \"INCOMPATIBLE\", \"COMM_ERROR\", \"INTERNAL_ERROR\", \"THEFT\", \"ARC_DETECTED\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
+    \$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}
+
+function removeInvalidChars(\$input)
+{
+	return preg_replace( '/[^a-z0-9]/i', '', \$input);
+}");
+
 			// *** Erstelle Variablen-Profile ***
 			$this->checkProfiles();
 		}
@@ -167,6 +191,8 @@ function removeInvalidChars(\$input)
 			$readOnePhaseInverter = $this->ReadPropertyBoolean('readOnePhaseInverter');
 			$pollCycle = $this->ReadPropertyInteger('pollCycle') * 1000;
 
+			// SmartMeter nutzen immer die GeraeteID=240
+			$readSmartmeter = (240 == $hostmodbusDevice);
 
 			$archiveId = $this->getArchiveId();
 			if (false === $archiveId)
@@ -263,9 +289,92 @@ function removeInvalidChars(\$input)
 					array(40088, 2, "R", 3, "PhVphB - AC Voltage Phase-B-toneutral", "AC Voltage Phase-B-toneutral value", "float32", "V"),
 					array(40090, 2, "R", 3, "PhVphC - AC Voltage Phase-C-toneutral", "AC Voltage Phase-C-toneutral value", "float32", "V"),
 				);
-				$categoryId = $parentId;
-/*				$categoryName = "Inverter";
-				$categoryId = @IPS_GetCategoryIDByName($categoryName, $parentId);
+
+					/* ********** Meter Model ************************************************************************
+				Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
+					- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
+					- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
+				Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+						************************************************************************************************** */
+				$meterModelRegister_array = array(
+					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Meter Modbus Map (float); 211: single phase, 212: split phase, 213: three phase", "uint16", ""),
+					array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block: 124", "uint16", ""),
+					array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
+					array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "AC Phase-A Current value", "float32", "A"),
+					array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "AC Phase-B Current value", "float32", "A"),
+					array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "AC Phase-C Current value", "float32", "A"),
+					array(40080, 2, "R", 3, "PhV - AC Voltage Average", "AC Voltage Average Phase-to-neutral value", "float32", "V"),
+					array(40082, 2, "R", 3, "PhVphA - AC Voltage Phase-A-to-neutral", "AC Voltage Phase-A-to-neutral value", "float32", "V"),
+					array(40084, 2, "R", 3, "PhVphB - AC Voltage Phase-B-to-neutral", "AC Voltage Phase-B-to-neutral value", "float32", "V"),
+					array(40086, 2, "R", 3, "PhVphC - AC Voltage Phase-C-to-neutral", "AC Voltage Phase-C-to-neutral value", "float32", "V"),
+					array(40088, 2, "R", 3, "PPV - AC Voltage Average Phase-to-phase", "AC Voltage Average Phase-to-phase value", "float32", "V"),
+					array(40090, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "AC Voltage Phase-AB value", "float32", "V"),
+					array(40092, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "AC Voltage Phase-BC value", "float32", "V"),
+					array(40094, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "AC Voltage Phase-CA value", "float32", "V"),
+					array(40096, 2, "R", 3, "Hz - AC Frequency", "AC Frequency value", "float32", "Hz"),
+					array(40098, 2, "R", 3, "W - AC Power", "AC Power value", "float32", "W"),
+					array(40100, 2, "R", 3, "WphA - AC Power Phase A", "AC Power Phase A value", "float32", "W"),
+					array(40102, 2, "R", 3, "WphB - AC Power Phase B", "AC Power Phase B value", "float32", "W"),
+					array(40104, 2, "R", 3, "WphC - AC Power Phase C", "AC Power Phase C value", "float32", "W"),
+					array(40106, 2, "R", 3, "VA - AC Apparent Power", "AC Apparent Power value", "float32", "VA"),
+					array(40108, 2, "R", 3, "VAphA - AC Apparent Power Phase A", "AC Apparent Power Phase A value", "float32", "VA"),
+					array(40110, 2, "R", 3, "VAphB - AC Apparent Power Phase B", "AC Apparent Power Phase B value", "float32", "VA"),
+					array(40112, 2, "R", 3, "VAphC - AC Apparent Power Phase C", "AC Apparent Power Phase C value", "float32", "VA"),
+					array(40114, 2, "R", 3, "VAR - AC Reactive Power", "AC Reactive Power value", "float32", "VAr"),
+					array(40116, 2, "R", 3, "VARphA - AC Reactive Power Phase A", "AC Reactive Power Phase A value", "float32", "VAr"),
+					array(40118, 2, "R", 3, "VARphB - AC Reactive Power Phase B", "AC Reactive Power Phase B value", "float32", "VAr"),
+					array(40120, 2, "R", 3, "VARphC - AC Reactive Power Phase C", "AC Reactive Power Phase C value", "float32", "VAr"),
+					array(40122, 2, "R", 3, "PF - Power Factor", "Power Factor value", "float32", "cos()"),
+					array(40124, 2, "R", 3, "PFphA - Power Factor Phase A", "Power Factor Phase A value", "float32", "cos()"),
+					array(40126, 2, "R", 3, "PFphB - Power Factor Phase B", "Power Factor Phase B value", "float32", "cos()"),
+					array(40128, 2, "R", 3, "PFphC - Power Factor Phase C", "Power Factor Phase C value", "float32", "cos()"),
+					array(40130, 2, "R", 3, "TotWhExp - Total Wh Exported", "Total Watt-hours Exported", "float32", "Wh"),
+					array(40132, 2, "R", 3, "TotWhExpPhA - Total Wh Exported phase A", "Total Watt-hours Exported phase A", "float32", "Wh"),
+					array(40134, 2, "R", 3, "TotWhExpPhB - Total Wh Exported phase B", "Total Watt-hours Exported phase B", "float32", "Wh"),
+					array(40136, 2, "R", 3, "TotWhExpPhC - Total Wh Exported phase C", "Total Watt-hours Exported phase C", "float32", "Wh"),
+					array(40138, 2, "R", 3, "TotWhImp - Total Wh Imported", "Total Watt-hours Imported", "float32", "Wh"),
+					array(40140, 2, "R", 3, "TotWhImpPhA - Total Wh Imported phase A", "Total Watt-hours Imported phase A", "float32", "Wh"),
+					array(40142, 2, "R", 3, "TotWhImpPhB - Total Wh Imported phase B", "Total Watt-hours Imported phase B", "float32", "Wh"),
+					array(40144, 2, "R", 3, "TotWhImpPhC - Total Wh Imported phase C", "Total Watt-hours Imported phase C", "float32", "Wh"),
+					array(40146, 2, "R", 3, "TotVAhExp - Total VAh Exported", "Total VA-hours Exported", "float32", "VAh"),
+					array(40148, 2, "R", 3, "TotVAhExpPhA - Total VAh Exported phase A", "Total VA-hours Exported phase A", "float32", "VAh"),
+					array(40150, 2, "R", 3, "TotVAhExpPhB - Total VAh Exported phase B", "Total VA-hours Exported phase B", "float32", "VAh"),
+					array(40152, 2, "R", 3, "TotVAhExpPhC - Total VAh Exported phase C", "Total VA-hours Exported phase C", "float32", "VAh"),
+					array(40154, 2, "R", 3, "TotVAhImp - Total VAh Imported", "Total VA-hours Imported", "float32", "VAh"),
+					array(40156, 2, "R", 3, "TotVAhImpPhA - Total VAh Imported phase A", "Total VA-hours Imported phase A", "float32", "VAh"),
+					array(40158, 2, "R", 3, "TotVAhImpPhB - Total VAh Imported phase B", "Total VA-hours Imported phase B", "float32", "VAh"),
+					array(40160, 2, "R", 3, "TotVAhImpPhC - Total VAh Imported phase C", "Total VA-hours Imported phase C", "float32", "VAh"),
+/*					array(40162, 2, "R", 3, "TotVArhImpQ1 - Total VARh Imported Q1", "Total VAR-hours Imported Q1", "float32", "VArh"),
+					array(40164, 2, "R", 3, "TotVArhImpQ1phA - Total VARh Imported Q1 phase A", "Total VAR-hours Imported Q1 phase A", "float32", "VArh"),
+					array(40166, 2, "R", 3, "TotVArhImpQ1phB - Total VARh Imported Q1 phase B", "Total VAR-hours Imported Q1 phase B", "float32", "VArh"),
+					array(40168, 2, "R", 3, "TotVArhImpQ1phC - Total VARh Imported Q1 phase C", "Total VAR-hours Imported Q1 phase C", "float32", "VArh"),
+					array(40170, 2, "R", 3, "TotVArhImpQ2 - Total VArh Imported Q2", "Total VAr-hours Imported Q2", "float32", "VArh"),
+					array(40172, 2, "R", 3, "TotVArhImpQ2phA - Total VARh Imported Q2 phase A", "Total VAR-hours Imported Q2 phase A", "float32", "VArh"),
+					array(40174, 2, "R", 3, "TotVArhImpQ2phB - Total VARh Imported Q2 phase B", "Total VAR-hours Imported Q2 phase B", "float32", "VArh"),
+					array(40176, 2, "R", 3, "TotVArhImpQ2phC - Total VARh Imported Q2 phase C", "Total VAR-hours Imported Q2 phase C", "float32", "VArh"),
+					array(40178, 2, "R", 3, "TotVArhExpQ3 - Total VArh Imported Q3", "Total VAr-hours Exported Q3", "float32", "VArh"),
+					array(40180, 2, "R", 3, "TotVArhExpQ3phA - Total VARh Imported Q3 phase A", "Total VAR-hours Exported Q3 phase A", "float32", "VArh"),
+					array(40182, 2, "R", 3, "TotVArhExpQ3phB - Total VARh Imported Q3 phase B", "Total VAR-hours Exported Q3 phase B", "float32", "VArh"),
+					array(40184, 2, "R", 3, "TotVArhExpQ3phC - Total VARh Imported Q3 phase C", "Total VAR-hours Exported Q3 phase C", "float32", "VArh"),
+					array(40186, 2, "R", 3, "TotVArhExpQ4 - Total VArh Imported Q4", "Total VAr-hours Exported Q4", "float32", "VArh"),
+					array(40188, 2, "R", 3, "TotVArhExpQ4phA - Total VARh Imported Q4 phase A", "Total VAR-hours Exported Q4 phase A", "float32", "VArh"),
+					array(40190, 2, "R", 3, "TotVArhExpQ4phB - Total VARh Imported Q4 phase B", "Total VAR-hours Exported Q4 phase B", "float32", "VArh"),
+					array(40192, 2, "R", 3, "TotVArhExpQ4phC - Total VARh Imported Q4 phase C", "Total VAR-hours Exported Q4 phase C", "float32", "VArh"),
+*/					array(40194, 2, "R", 3, "Evt - Events", "Events (bits 1-19)", "uint32", "bitfield32"),
+				);
+
+
+				/*** Wechselrichter / Inverter ***/
+				if (false == $readSmartmeter)
+				{
+					$categoryId = $parentId;
+
+					// SmartMeter - Timer deaktivieren
+					$this->SetTimerInterval("SM_Update-Evt", 0);
+
+					$this->deleteModbusInstancesRecursive($meterModelRegister_array, $categoryId, "SmartMeter");
+					$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+
 					// 3-Phase Inverter
 					if (false == $readOnePhaseInverter)
 					{
@@ -819,13 +928,22 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 
 				if($active)
 				{
-					// Timer aktivieren
-					$this->SetTimerInterval("Update-Evt1", 5000);
-					$this->SetTimerInterval("Update-EvtVnd1", 5000);
-					$this->SetTimerInterval("Update-EvtVnd2", 5000);
-					$this->SetTimerInterval("Update-EvtVnd3", 5000);
+					/*** Wechselrichter / Inverter ***/
+					if (!$readSmartmeter)
+					{
+						// Inverter - Timer aktivieren
+						$this->SetTimerInterval("Update-Evt1", 5000);
+						$this->SetTimerInterval("Update-EvtVnd1", 5000);
+						$this->SetTimerInterval("Update-EvtVnd2", 5000);
+						$this->SetTimerInterval("Update-EvtVnd3", 5000);
+					}
+					else
+					{
+						// SmartMeter - Timer aktivieren
+						$this->SetTimerInterval("SM_Update-Evt", 5000);
+					}
 
-					// Erreichbarkeit von IP und Port prüfen
+					// Erreichbarkeit von IP und Port pruefen
 					$portOpen = false;
 					$waitTimeoutInSeconds = 1; 
 					if($fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
@@ -855,18 +973,27 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					IPS_ApplyChanges($interfaceId);
 					//IPS_Sleep(100);
 
+					// Inverter - Timer deaktivieren
+					$this->SetTimerInterval("Update-Evt1", 0);
+					$this->SetTimerInterval("Update-EvtVnd1", 0);
+					$this->SetTimerInterval("Update-EvtVnd2", 0);
+					$this->SetTimerInterval("Update-EvtVnd3", 0);
+
+					// SmartMeter - Timer deaktivieren
+					$this->SetTimerInterval("SM_Update-Evt", 0);
+
 					// inaktiv
 					$this->SetStatus(104);
 				}
 
 
-				// prüfen, ob sich ModBus-Gateway geändert hat
+				// pruefen, ob sich ModBus-Gateway geaendert hat
 				if(0 != $gatewayId_Old && $gatewayId != $gatewayId_Old)
 				{
 					$this->deleteInstanceNotInUse($gatewayId_Old, MODBUS_ADDRESSES);
 				}
 
-				// prüfen, ob sich ClientSocket Interface geändert hat
+				// pruefen, ob sich ClientSocket Interface geaendert hat
 				if(0 != $interfaceId_Old && $interfaceId != $interfaceId_Old)
 				{
 					$this->deleteInstanceNotInUse($interfaceId_Old, MODBUS_INSTANCES);
@@ -884,7 +1011,7 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 			// Workaround für "InstanceInterface not available" Fehlermeldung beim Server-Start...
 			if (KR_READY == IPS_GetKernelRunlevel())
 			{
-                // Erstelle Modbus Instancen
+				// Erstelle Modbus Instancen
 				foreach ($inverterModelRegister_array as $inverterModelRegister)
 				{
 					if (DEBUG)

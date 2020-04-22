@@ -2,7 +2,7 @@
     "elements": [
         {
             "type": "Label",
-            "label": "Der Fronius Wechselrichter muss Modbus TCP unterstützen!"
+            "label": "Der Fronius Wechselrichter oder SmartMeter (Energiezähler) muss Modbus TCP unterstützen!"
         },
         {
             "type": "Label",
@@ -27,6 +27,14 @@
             "caption": "Port",
             "name": "hostPort",
             "digits": 0
+        },
+        {
+            "type": "Label",
+            "label": ""
+        },
+        {
+            "type": "Label",
+            "label": "Geräte ID des Wechselrichters (bspw.: ID=1) oder des SmartMeters (immer: ID=240)"
         },
         {
             "type": "NumberSpinner",
