@@ -55,10 +55,14 @@ Abfrage-Intervall | Intervall (in ms) in welchem die Modbus-Adressen abgefragt w
 
 Die Statusvariablen/Kategorien werden automatisch angelegt. Das Löschen einzelner kann zu Fehlfunktionen führen.
 
+
 #### Statusvariablen
+
 ##### Inverter
 Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
 - das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
+- das Inverter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; I101, I102 oder I103)
+HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
 
 ###### Inverter Model
 
@@ -283,15 +287,11 @@ StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
 
 ##### SmartMeter:
 Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
-	- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
-	- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
+- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
+- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
 Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
 
 ###### Meter Model
-Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
-	- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
-	- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
-Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
 
 StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
 ------------- | ---- | -- | ------------ | ---- | ----------- | ---- | -----
@@ -374,7 +374,7 @@ Fronius.Watt.Int | Integer
 Aktuell kein WebFront umgesetzt.
 
 
-### 7. PHP-Befehlsreferenze
+### 7. PHP-Befehlsreferenz
 
 Aktuell keine PHP-Funktionen verfügbar.
 
