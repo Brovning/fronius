@@ -1,22 +1,10 @@
 <?php
 
+require_once __DIR__ . '/../libs/myFunctions.php';  // globale Funktionen
+
 if (!defined('DEBUG'))
 {
 	define("DEBUG", false);
-}
-
-// ModBus RTU TCP
-if (!defined('MODBUS_INSTANCES'))
-{
-	define("MODBUS_INSTANCES", "{A5F663AB-C400-4FE5-B207-4D67CC030564}");
-}
-if (!defined('CLIENT_SOCKETS'))
-{
-	define("CLIENT_SOCKETS", "{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
-}
-if (!defined('MODBUS_ADDRESSES'))
-{
-	define("MODBUS_ADDRESSES", "{CB197E50-273D-4535-8C91-BB35273E3CA5}");
 }
 
 // Modul Prefix
@@ -25,37 +13,23 @@ if (!defined('MODUL_PREFIX'))
 	define("MODUL_PREFIX", "Fronius");
 }
 
-// Offset von Register (erster Wert 1) zu Adresse (erster Wert 0) ist -1
-if (!defined('REGISTER_TO_ADDRESS_OFFSET'))
-{
-	define("REGISTER_TO_ADDRESS_OFFSET", -1);
-}
-
 // ArrayOffsets
 if (!defined('IMR_START_REGISTER'))
 {
 	define("IMR_START_REGISTER", 0);
-	define("IMR_END_REGISTER", 3);
+//	define("IMR_END_REGISTER", 3);
 	define("IMR_SIZE", 1);
 	define("IMR_RW", 2);
 	define("IMR_FUNCTION_CODE", 3);
 	define("IMR_NAME", 4);
-	define("IMR_TYPE", 5);
-	define("IMR_UNITS", 6);
-	define("IMR_DESCRIPTION", 7);
+	define("IMR_DESCRIPTION", 5);
+	define("IMR_TYPE", 6);
+	define("IMR_UNITS", 7);
 }
 
-
-if (!defined('VARIABLETYPE_BOOLEAN'))
-{
-    define('VARIABLETYPE_BOOLEAN', 0);
-    define('VARIABLETYPE_INTEGER', 1);
-    define('VARIABLETYPE_FLOAT', 2);
-    define('VARIABLETYPE_STRING', 3);
-}
-
-
-	class Fronius extends IPSModule {
+	class Fronius extends IPSModule
+	{
+		use myFunctions;
 
 		public function Create()
 		{
@@ -199,47 +173,46 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 
 				/* ****** Fronius Register **************************************************************************
 					HINWEIS! Diese Register gelten nur für Wechselrichter. Für Fronius String Controls und Energiezähler sind diese Register nicht relevant
-				   ************************************************************************************************** */
-				$inverterModelRegister_array = array(
-					array(212, 212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
-					array(213, 213, 1, "RW", "0x03 0x06 0x10", "F_Store_Data", "Rating data of all inverters connected to the Fronius Datamanager are persistently stored by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
-					array(214, 214, 1, "R", "0x03", "F_Active_State_Code", "Current active state code of inverter - Description can be found in inverter manual: Status-Code des Wechselrichters: Das Register F_Active_State_Code (214) zeigt den Status-Code des Wechselrichter an der gerade aufgetreten ist. Dieser wird eventuell auch am Display des Wechselrichter angezeigt. Dieser Code wird auch als Event Flag im Inverter Modell dargestellt. Der angezeigte Code bleibt so lange aktiv bis der entsprechende Status nicht mehr am Wechselrichter anliegt. Alternativ kann der Status auch per Register F_Reset_All_Event_ Flags gelöscht werden.", "uint16", "", "", "not supported for Fronius Hybrid inverters (because of this inverter status maybe reported differently during nighttime compared to other inverter types)"),
-					array(215, 215, 1, "RW", "0x03 0x06 0x10", "F_Reset_All_Event_Flags", "Write 0xFFFF to reset all event flags and active state code.", "uint16", "", "", "0xFFFF"),
-					array(216, 216, 1, "RW", "0x03 0x06 0x10", "F_ModelType", "Type of SunSpec models used for inverter and meter data. Write 1 or 2 and then immediately 6 to acknowledge setting.", "uint16", "", "", "1: Floating point 
-					2: Integer & SF"),
-					array(217, 217, 1, "RW", "0x03 0x06 0x10", "F_Storage_Restrictions_View_Mode", "Type of Restrictions reported in BasicStorageControl Model (IC124). Local restrictions are those that are set by Modbus Interface. Global restrictions are those that are set system wide.", "uint16", "", "", "0: local (default); 1: global"),
-					array(500, 501, 2, "R", "0x03", "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W", "", ""),
-					array(502, 505, 4, "R", "0x03", "F_Site_Energy_Day", "Total energy for current day of all connected inverters.", "uint64", "Wh", "", ""),
-					array(506, 509, 4, "R", "0x03", "F_Site_Energy_Year", "Total energy for last year of all connected inverters.", "uint64", "Wh", "", ""),
-					array(510, 513, 4, "R", "0x03", "F_Site_Energy_Total", "Total energy of all connected inverters.", "uint64", "Wh", "", ""),
+					************************************************************************************************** */
+/*				$inverterModelRegister_array = array(
+					array(212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
+					array(213, 1, "RW", "0x03 0x06 0x10", "F_Store_Data", "Rating data of all inverters connected to the Fronius Datamanager are persistently stored by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
+					array(214, 1, "R", "0x03", "F_Active_State_Code", "Current active state code of inverter - Description can be found in inverter manual: Status-Code des Wechselrichters: Das Register F_Active_State_Code (214) zeigt den Status-Code des Wechselrichter an der gerade aufgetreten ist. Dieser wird eventuell auch am Display des Wechselrichter angezeigt. Dieser Code wird auch als Event Flag im Inverter Modell dargestellt. Der angezeigte Code bleibt so lange aktiv bis der entsprechende Status nicht mehr am Wechselrichter anliegt. Alternativ kann der Status auch per Register F_Reset_All_Event_ Flags gelöscht werden.", "uint16", "", "", "not supported for Fronius Hybrid inverters (because of this inverter status maybe reported differently during nighttime compared to other inverter types)"),
+					array(215, 1, "RW", "0x03 0x06 0x10", "F_Reset_All_Event_Flags", "Write 0xFFFF to reset all event flags and active state code.", "uint16", "", "", "0xFFFF"),
+					array(216, 1, "RW", "0x03 0x06 0x10", "F_ModelType", "Type of SunSpec models used for inverter and meter data. Write 1 or 2 and then immediately 6 to acknowledge setting.", "uint16", "", "", "1: Floating point, 2: Integer & SF"),
+					array(217, 1, "RW", "0x03 0x06 0x10", "F_Storage_Restrictions_View_Mode", "Type of Restrictions reported in BasicStorageControl Model (IC124). Local restrictions are those that are set by Modbus Interface. Global restrictions are those that are set system wide.", "uint16", "", "", "0: local (default); 1: global"),
+					array(500, 2, "R", "0x03", "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W", "", ""),
+					array(502, 4, "R", "0x03", "F_Site_Energy_Day", "Total energy for current day of all connected inverters.", "uint64", "Wh", "", ""),
+					array(506, 4, "R", "0x03", "F_Site_Energy_Year", "Total energy for last year of all connected inverters.", "uint64", "Wh", "", ""),
+					array(510, 4, "R", "0x03", "F_Site_Energy_Total", "Total energy of all connected inverters.", "uint64", "Wh", "", ""),
 				);
-
+*/
 
 				/* ********** Common Model **************************************************************************
 					Die Beschreibung des Common Block inklusive der SID Register (Register 40001-40002)
 					zur Identifizierung als SunSpec Gerät gilt für jeden Gerätetyp (Wechselrichter, String Control,
 					Energiezähler). Jedes Gerät besitzt einen eigenen Common Block, in dem Informationen
 					über das Gerät (Modell, Seriennummer, SW Version, etc.) aufgeführt sind.
-				   ************************************************************************************************** */
+					************************************************************************************************** */
 				$inverterModelRegister_array = array(
-//				    array(40001, 2, "R", 3, "SID", "uint32", "", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map"),
-//				    array(40003, 1, "R", 3, "ID", "uint16", "", "Well-known value. Uniquely identifies this as a SunSpec Common Model block"), // = 1
-				//    array(40004, 1, "R", 3, "L", "uint16", "", "Registers Length of Common Model block"), // = 65
-/*					array(40005, 16, "R", 3, "Mn", "String32", "", "Manufacturer z.B. Fronius"),
-					array(40021, 16, "R", 3, "Md", "String32", "", "Device model z.B. IG+150V"),
-					array(40037, 8, "R", 3, "Opt", "String16", "", "SW version of datamanager z.B. 3.3.6-13"),
-					array(40045, 8, "R", 3, "Vr", "String16", "", "SW version of inverter"),
-					array(40053, 16, "R", 3, "SN", "String32", "", "Serialnumber of inverter, string control or energy meter"),
-*/				//  array(40069, 1, "R", 3, "DA", "uint16", "", "Modbus Device Address 1 - 247"), // = 1
+					//				    array(40001, 2, "R", 3, "SID", "uint32", "", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map"),
+					//				    array(40003, 1, "R", 3, "ID", "uint16", "", "Well-known value. Uniquely identifies this as a SunSpec Common Model block"), // = 1
+					//    array(40004, 1, "R", 3, "L", "uint16", "", "Registers Length of Common Model block"), // = 65
+					/*					array(40005, 16, "R", 3, "Mn", "String32", "", "Manufacturer z.B. Fronius"),
+				array(40021, 16, "R", 3, "Md", "String32", "", "Device model z.B. IG+150V"),
+				array(40037, 8, "R", 3, "Opt", "String16", "", "SW version of datamanager z.B. 3.3.6-13"),
+				array(40045, 8, "R", 3, "Vr", "String16", "", "SW version of inverter"),
+				array(40053, 16, "R", 3, "SN", "String32", "", "Serialnumber of inverter, string control or energy meter"),
+						*/				//  array(40069, 1, "R", 3, "DA", "uint16", "", "Modbus Device Address 1 - 247"), // = 1
 				);
 
 
 				$inverterModelRegister_array = array(
-				/* ********** Inverter Model ************************************************************************
-					Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
-						- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
-					HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
-				   ************************************************************************************************** */
+					/* ********** Inverter Model ************************************************************************
+				Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
+					- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
+				HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+						************************************************************************************************** */
 					array(40070, 1, "R", 3, "ID", "uint16", "", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)"),
 					array(40071, 1, "R", 3, "L - Registers", "uint16", "", "Registers, Length of inverter model block"),
 					array(40072, 2, "R", 3, "A - AC Total Current", "float32", "A", "AC Total Current value"),
