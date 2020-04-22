@@ -56,11 +56,11 @@ Abfrage-Intervall | Intervall (in ms) in welchem die Modbus-Adressen abgefragt w
 Die Statusvariablen/Kategorien werden automatisch angelegt. Das Löschen einzelner kann zu Fehlfunktionen führen.
 
 #### Statusvariablen
-##### Inverter Model:
+##### Inverter
 Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
 - das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
 
-HINWEIS: Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+###### Inverter Model
 
 StartRegister | Size | RW | FunctionCode | Name | Type | Units | Description
 ------------- | ---- | -- | ------------ | ---- | ---- | ----- | -----------
@@ -96,7 +96,8 @@ StartRegister | Size | RW | FunctionCode | Name | Type | Units | Description
 40128 | 2 | R | 3 | EvtVnd3 |  uint32 |  Bitfield |  Vendor Defined Event Flags (bits 64-95)
 40130 | 2 | R | 3 | EvtVnd4 |  uint32 |  Bitfield |  Vendor Defined Event Flags (bits 96-127)
 
-##### optional: Nameplate Model (IC120):
+
+###### optional: Nameplate Model (IC120)
 Dieses Modell entspricht einem Leistungsschild. Folgende Daten können ausgelesen werden:
 - DERType (3): Art des Geräts. Das Register liefert den Wert 4 zurück (PV-Gerät)
 - WRtg (4): Nennleistung des Wechselrichters
@@ -131,6 +132,217 @@ StartRegister | Size | RW | FunctionCode | Name | Type | Units | Description
 40156 | 1 | R | 3 | MaxChaRte_SF |  sunssf |   |  Scale factor 0*
 40157 | 1 | R | 3 | MaxDisChaRte |  uint16 |  W |  Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.
 40158 | 1 | R | 3 | MaxDisChaRte_SF |  sunssf |   |  Scale factor 0*
+
+###### optional: Basic Settings Model (IC121)
+
+StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
+------------- | ---- | -- | ------------ | ---- | ----------- | ---- | -----
+40162 | 1 | RW | 0x03 0x06 0x10 | WMax | Setting for maximum power output. Default to I_WRtg. | uint16 | W | VAMax_SF | 
+40163 | 1 | RW | 0x03 0x06 0x10 | VRef | Voltage at the PCC. | uint16 | V | VAMax_SF | 
+40164 | 1 | RW | 0x03 0x06 0x10 | VRefOfs | Offset  from PCC to inverter. | int16 | V | VRefOfs_SF | 
+40167 | 1 | RW | 0x03 | VAMax | Setpoint for maximum apparent power. Default to I_VARtg. | uint16 | VA | VAMax_SF | 
+40168 | 1 | R | 0x03 | VARMaxQ1 | Setting for maximum reactive power in quadrant 1. Default to VArRtgQ1. | int16 | var | VARMax_SF | 
+40171 | 1 | R | 0x03 | VARMaxQ4 | Setting for maximum reactive power in quadrant 4 Default to VArRtgQ4. | int16 | var | VARMax_SF | 
+40173 | 1 | R | 0x03 | PFMinQ1 | Setpoint for minimum power factor value in quadrant 1. Default to PFRtgQ1. | int16 | cos() | PFMin_SF | 
+40176 | 1 | R | 0x03 | PFMinQ4 | Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4. | int16 | cos() | PFMin_SF | 
+
+
+###### optional: Extended Measurements & Status Model (IC122)
+
+Allgemeines:
+Dieses Modell liefert einige zusätzliche Mess- und Statuswerte | die das normale Inverter Model nicht abdeckt:
+- PVConn (3)
+Dieses Bitfeld zeigt den Status des Wechselrichter an
+- Bit 0: Verbunden
+- Bit 1: Ansprechbar
+- Bit 2: Arbeitet (Wechselrichter speist ein)
+- ECPConn (5)
+Dieses Register zeigt den Verbindungsstatus zum Netz an
+- ECPConn = 1: Wechselrichter speist gerade ein
+- ECPConn = 0: Wechselrichter speist nicht ein
+- ActWH (6 - 9)
+Wirkenergiezähler
+- StActCtl (36 - 37)
+Bitfeld für zurzeit aktive Wechselrichter-Modi
+- Bit 0: Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe)
+- Bit 1: konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct)
+- Bit 2: Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)
+- TmSrc (38 - 41)
+Quelle für die Zeitsynchronisation. Das Register liefert den String „RTC“ zurück.
+- Tms (42 - 43)
+Aktuelle Uhrzeit und Datum der RTC
+Angegeben werden die Sekunden vom 1. Jänner 2000 00:00 (UTC) bis zur aktuellen Zeit
+
+StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
+------------- | ---- | -- | ------------ | ---- | ----------- | ---- | -----
+40194 | 1 | R | 0x03 | PVConn | PV inverter present/available status. Enumerated value. | uint16 | bitfield16 |  | Bit 0: Connected | Bit 1: Available | Bit 2: Operating | Bit 3: Test
+40195 | 1 | R | 0x03 | StorConn | Storage inverter present/available status. Enumerated value. | uint16 | bitfield16 |  | bit 0: CONNECTED | bit 1: AVAILABLE | bit 2: OPERATING | bit 3: TEST
+40196 | 1 | R | 0x03 | ECPConn | ECP connection status: disconnected=0  connected=1. | uint16 | bitfield16 |  | 0: Disconnected | 1: Connected
+40197 | 4 | R | 0x03 | ActWh | AC lifetime active (real) energy output. | acc64 | Wh |  | 
+40227 | 2 | R | 0x03 | StActCtl | Bit Mask indicating which inverter controls are currently active. | uint32 | bitfield32 |  | Bit 0: FixedW | Bit 1: FixedVAR | Bit 2: FixedPF
+40233 | 2 | R | 0x03 | Tms | Seconds since 01-01-2000 00:00 UTC | uint32 | Secs |  | 
+
+
+###### optional: Immediate Controls Model (IC123)
+
+Allgemeines:
+Mit den Immediate Controls können folgende Einstellungen am Wechselrichter vorgenommen werden:
+- Unterbrechung des Einspeisebetriebs des Wechselrichters (Standby)
+- Konstante Reduktion der Ausgangsleistung
+- Vorgabe eines konstanten Power Factors
+- Vorgabe einer konstanten relativen Blindleistung
+
+StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
+------------- | ---- | -- | ------------ | ---- | ----------- | ---- | -----
+40240 | 1 | RW | 0x03 0x06 0x10 | Conn_WinTms | Time window for connect/disconnect. | uint16 | Secs |  | 
+40241 | 1 | RW | 0x03 0x06 0x10 | Conn_RvrtTms | Timeout period for connect/disconnect. | uint16 | Secs |  | 
+40242 | 1 | RW | 0x03 0x06 0x10 | Conn | Enumerated valued.  Connection control. | uint16 | bitfield16 |  | 0: Disconnected | 1: Connected
+40243 | 1 | RW | 0x03 0x06 0x10 | WMaxLimPct | Set power output to specified level. (% WMax) | uint16 | % | WMaxLimPct_SF | 
+40244 | 1 | RW | 0x03 0x06 0x10 | WMaxLimPct_WinTms | Time window for power limit change. | uint16 | Secs |  | 0 – 300
+40245 | 1 | RW | 0x03 0x06 0x10 | WMaxLimPct_RvrtTms | Timeout period for power limit. | uint16 | Secs |  | 0 – 28800
+40246 | 1 | RW | 0x03 | WMaxLimPct_RmpTms | Ramp time for moving from current setpoint to new setpoint. | uint16 | Secs |  | 0 - 65534 (0xFFFF has the same effect as 0x0000)
+40247 | 1 | RW | 0x03 0x06 0x10 | WMaxLim_Ena | Enumerated valued.  Throttle enable/disable control. | enum16 |  |  | 0: Disabled | 1: Enabled
+40248 | 1 | RW | 0x03 0x06 0x10 | OutPFSet | Set power factor to specific value - cosine of angle. | int16 | cos() | OutPFSet_SF | 
+40249 | 1 | RW | 0x03 0x06 0x10 | OutPFSet_WinTms | Time window for power factor change. | uint16 | Secs |  | 0 – 300
+40250 | 1 | RW | 0x03 0x06 0x10 | OutPFSet_RvrtTms | Timeout period for power factor. | uint16 | Secs |  | 0 – 28800
+40251 | 1 | RW | 0x03 0x06 0x10 | OutPFSet_RmpTms | Ramp time for moving from current setpoint to new setpoint. | uint16 | Secs |  | 0 - 65534 (0xFFFF has the same effect as 0x0000)
+40252 | 1 | RW | 0x03 0x06 0x10 | OutPFSet_Ena | Enumerated valued.  Fixed power factor enable/disable control. | enum16 |  |  | 0: Disabled | 1: Enabled
+40254 | 1 | RW | 0x03 0x06 0x10 | VArMaxPct | Reactive power in percent of I_VArMax. (% VArMax) | int16 | % | VArPct_SF | 
+40256 | 1 | RW | 0x03 0x06 0x10 | VArPct_WinTms | Time window for VAR limit change. | uint16 | Secs |  | 0 – 300
+40257 | 1 | RW | 0x03 0x06 0x10 | VArPct_RvrtTms | Timeout period for VAR limit. | uint16 | Secs |  | 0 – 28800
+40258 | 1 | RW | 0x03 0x06 0x10 | VArPct_RmpTms | Ramp time for moving from current setpoint to new setpoint. | uint16 | Secs |  | 0 - 65534 (0xFFFF has the same effect as 0x0000)
+40259 | 1 | R | 0x03 | VArPct_Mod | Enumerated value. VAR limit mode. | enum16 |  |  | 2: VAR limit as a % of VArMax
+40260 | 1 | RW | 0x03 0x06 0x10 | VArPct_Ena | Enumerated valued.  Fixed VAR enable/disable control. | enum16 |  |  | 0: Disabled | 1: Enabled
+
+
+###### optional: Multiple MPPT Inverter Extension Model (I160)
+
+Allgemeines:
+Das Multiple MPPT Inverter Extension Model beinhaltet die Werte von bis zu zwei DC Eingängen
+des Wechselrichters.
+Verfügt der Wechselrichter über zwei DC Eingänge | so werden Strom | Spannung | Leistung,
+Energie und Statusmeldungen der einzelnen Eingänge hier aufgelistet. Im Inverter
+Model (101 -103 oder 111 - 113) wird in diesem Fall nur die gesamte DC Leistung beider
+Eingänge ausgegeben. DC Strom und DC Spannung werden als "not implemented" angezeigt.
+Sollte der Wechselrichter nur über einen DC Eingang verfügen | werden alle Werte des
+zweiten Strings auf "not implemented" gesetzt (ab Register 2_DCA). Die Bezeichnung des
+zweiten Eingangs (Register 2_IDStr) lautet in diesem Fall "Not supported". Die Werte des
+ersten (und einzigen) Eingangs werden normal angezeigt.
+
+StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
+------------- | ---- | -- | ------------ | ---- | ----------- | ---- | -----
+40266 | 1 | R | 0x03 | DCA_SF | Current Scale Factor | sunssf |  |  | 
+40267 | 1 | R | 0x03 | DCV_SF | Voltage Scale Factor | sunssf |  |  | 
+40268 | 1 | R | 0x03 | DCW_SF | Power Scale Factor | sunssf |  |  | 
+40269 | 1 | R | 0x03 | DCWH_SF | Energy Scale Factor | sunssf |  |  | 
+40270 | 2 | R | 0x03 | Evt | Global Events | uint32 | bitfield32 |  | 
+40272 | 1 | R | 0x03 | N | Number of Modules | uint16 |  |  | 2
+40283 | 1 | R | 0x03 | 1_DCA | DC Current | uint16 | A | DCA_SF | 
+40284 | 1 | R | 0x03 | 1_DCV | DC Voltage | uint16 | V | DCV_SF | 
+40285 | 1 | R | 0x03 | 1_DCW | DC Power | uint16 | W | DCW_SF | 
+40286 | 2 | R | 0x03 | 1_DCWH | Lifetime Energy | acc32 | Wh | DCWH_SF | 
+40288 | 2 | R | 0x03 | 1_Tms | Timestamp | uint32 | Secs |  | 
+40290 | 1 | R | 0x03 | 1_Tmp | Temperature | int16 | C |  | 
+40291 | 1 | R | 0x03 | 1_DCSt | Operating State | enum16 |  |  | 
+40292 | 2 | R | 0x03 | 1_DCEvt | Module Events | uint32 | bitfield32 |  | 
+40303 | 1 | R | 0x03 | 2_DCA | DC Current | uint16 | A | DCA_SF | Not supported if only one DC input.
+40304 | 1 | R | 0x03 | 2_DCV | DC Voltage | uint16 | V | DCV_SF | Not supported if only one DC input.
+40305 | 1 | R | 0x03 | 2_DCW | DC Power | uint16 | W | DCW_SF | Not supported if only one DC input.
+40306 | 2 | R | 0x03 | 2_DCWH | Lifetime Energy | acc32 | Wh | DCWH_SF | Not supported if only one DC input.
+40308 | 2 | R | 0x03 | 2_Tms | Timestamp | uint32 | Secs |  | Not supported if only one DC input.
+40310 | 1 | R | 0x03 | 2_Tmp | Temperature | int16 | C |  | Not supported if only one DC input.
+40311 | 1 | R | 0x03 | 2_DCSt | Operating State | enum16 |  |  | Not supported if only one DC input.
+40312 | 2 | R | 0x03 | 2_DCEvt | Module Events | uint32 | bitfield32 |  | Not supported if only one DC input.
+
+
+###### optional: Basic Storage Control Model (IC124)
+
+Allgemeines:
+Dieses Model ist nur für Fronius Hybrid Wechselrichter verfügbar.
+Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselrichter
+vorgenommen werden:
+- Vorgabe eines Leistungsfensters | in dem sich die Lade-/Entladeleistung vom Energiespeicher bewegen soll.
+- Vorgabe eines minimalen Ladestandes | den der Energiespeicher nicht unterschreiten soll
+- Ladung des Energiespeichers vom Netz erlauben/verbieten
+
+StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
+------------- | ---- | -- | ------------ | ---- | ----------- | ---- | -----
+40316 | 1 | R | 0x03 | WchaMax | Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that  InWRte and OutWRte can be negative to define ranges for charging and discharging only. | uint16 | W | WChaMax_SF | 
+40317 | 1 | R | 0x03 | WchaGra | Setpoint for maximum charging rate. Default is MaxChaRte. (% WChaMax/sec) | uint16 | % | WChaDisChaGra_SF | 100
+40318 | 1 | R | 0x03 | WdisChaGra | Setpoint for maximum discharge rate. Default is MaxDisChaRte. (% WChaMax/sec) | uint16 | % | WChaDisChaGra_SF | 100
+40319 | 1 | RW | 0x03 0x06 0x10 | StorCtl_Mod | Activate hold/discharge/charge storage control mode. Bitfield value. Additional Fronius description: Active hold/discharge/charge storage control mode. Set the charge field to enable charging and the discharge field to enable discharging. Bitfield value. | uint16 | bitfield16 |  | bit 0: CHARGE | bit 1: DiSCHARGE
+40321 | 1 | RW | 0x03 0x06 0x10 | MinRsvPct | Setpoint for minimum reserve for storage as a percentage of the nominal maximum storage. (% WChaMax) | uint16 | % | MinRsvPct_SF | 
+40322 | 1 | R | 0x03 | ChaState | Currently available energy as a percent of the capacity rating. (% AhrRtg) | uint16 | % | ChaState_SF | 
+40323 | 1 | R | 0x03 | StorAval | State of charge (ChaState) minus storage reserve (MinRsvPct) times capacity rating (AhrRtg). | uint16 | AH | StorAval_SF | 
+40324 | 1 | R | 0x03 | InBatV | Internal battery voltage. | uint16 | V | InBatV_SF | 
+40325 | 1 | R | 0x03 | ChaSt | Charge status of storage device. Enumerated value. | enum16 |  |  | 1: OFF | 2: EMPTY | 3: DISCHAGING | 4: CHARGING | 5: FULL | 6: HOLDING | 7: TESTING
+40326 | 1 | RW | 0x03 0x06 0x10 | OutWRte | Percent of max discharge rate. Additional Fronius description: Defines maximum Discharge rate. If not used than the default is 100 and wChaMax defines max. Discharge rate. See wChaMax for details. (% WChaMax) | int16 | % | InOutWRte_SF | 
+40327 | 1 | RW | 0x03 0x06 0x10 | InWRte | Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax) | int16 | % | InOutWRte_SF | 
+40331 | 1 | RW | 0x03 0x06 0x10 | ChaGriSet | Setpoint to enable/disable charging from grid | enum16 |  |  | 0: PV (Charging from grid disabled) | 1: GRID (Charging from grid enabled)
+
+
+##### SmartMeter:
+Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
+	- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
+	- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
+Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+
+###### Meter Model
+Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
+	- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
+	- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
+Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+
+StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
+------------- | ---- | -- | ------------ | ---- | ----------- | ---- | -----
+40070 | 1 | R | 3 | ID | Uniquely identifies this as a SunSpec Meter Modbus Map (float); 211: single phase, 212: split phase, 213: three phase | uint16 | 
+40071 | 1 | R | 3 | L - Registers | Registers | Length of inverter model block: 124 | uint16 | 
+40072 | 2 | R | 3 | A - AC Total Current | AC Total Current value | float32 | A
+40074 | 2 | R | 3 | AphA - AC Phase-A Current | AC Phase-A Current value | float32 | A
+40076 | 2 | R | 3 | AphB - AC Phase-B Current | AC Phase-B Current value | float32 | A
+40078 | 2 | R | 3 | AphC - AC Phase-C Current | AC Phase-C Current value | float32 | A
+40080 | 2 | R | 3 | PhV - AC Voltage Average | AC Voltage Average Phase-to-neutral value | float32 | V
+40082 | 2 | R | 3 | PhVphA - AC Voltage Phase-A-to-neutral | AC Voltage Phase-A-to-neutral value | float32 | V
+40084 | 2 | R | 3 | PhVphB - AC Voltage Phase-B-to-neutral | AC Voltage Phase-B-to-neutral value | float32 | V
+40086 | 2 | R | 3 | PhVphC - AC Voltage Phase-C-to-neutral | AC Voltage Phase-C-to-neutral value | float32 | V
+40088 | 2 | R | 3 | PPV - AC Voltage Average Phase-to-phase | AC Voltage Average Phase-to-phase value | float32 | V
+40090 | 2 | R | 3 | PPVphAB - AC Voltage Phase-AB | AC Voltage Phase-AB value | float32 | V
+40092 | 2 | R | 3 | PPVphBC - AC Voltage Phase-BC | AC Voltage Phase-BC value | float32 | V
+40094 | 2 | R | 3 | PPVphCA - AC Voltage Phase-CA | AC Voltage Phase-CA value | float32 | V
+40096 | 2 | R | 3 | Hz - AC Frequency | AC Frequency value | float32 | Hz
+40098 | 2 | R | 3 | W - AC Power | AC Power value | float32 | W
+40100 | 2 | R | 3 | WphA - AC Power Phase A | AC Power Phase A value | float32 | W
+40102 | 2 | R | 3 | WphB - AC Power Phase B | AC Power Phase B value | float32 | W
+40104 | 2 | R | 3 | WphC - AC Power Phase C | AC Power Phase C value | float32 | W
+40106 | 2 | R | 3 | VA - AC Apparent Power | AC Apparent Power value | float32 | VA
+40108 | 2 | R | 3 | VAphA - AC Apparent Power Phase A | AC Apparent Power Phase A value | float32 | VA
+40110 | 2 | R | 3 | VAphB - AC Apparent Power Phase B | AC Apparent Power Phase B value | float32 | VA
+40112 | 2 | R | 3 | VAphC - AC Apparent Power Phase C | AC Apparent Power Phase C value | float32 | VA
+40114 | 2 | R | 3 | VAR - AC Reactive Power | AC Reactive Power value | float32 | VAr
+40116 | 2 | R | 3 | VARphA - AC Reactive Power Phase A | AC Reactive Power Phase A value | float32 | VAr
+40118 | 2 | R | 3 | VARphB - AC Reactive Power Phase B | AC Reactive Power Phase B value | float32 | VAr
+40120 | 2 | R | 3 | VARphC - AC Reactive Power Phase C | AC Reactive Power Phase C value | float32 | VAr
+40122 | 2 | R | 3 | PF - Power Factor | Power Factor value | float32 | cos()
+40124 | 2 | R | 3 | PFphA - Power Factor Phase A | Power Factor Phase A value | float32 | cos()
+40126 | 2 | R | 3 | PFphB - Power Factor Phase B | Power Factor Phase B value | float32 | cos()
+40128 | 2 | R | 3 | PFphC - Power Factor Phase C | Power Factor Phase C value | float32 | cos()
+40130 | 2 | R | 3 | TotWhExp - Total Wh Exported | Total Watt-hours Exported | float32 | Wh
+40132 | 2 | R | 3 | TotWhExpPhA - Total Wh Exported phase A | Total Watt-hours Exported phase A | float32 | Wh
+40134 | 2 | R | 3 | TotWhExpPhB - Total Wh Exported phase B | Total Watt-hours Exported phase B | float32 | Wh
+40136 | 2 | R | 3 | TotWhExpPhC - Total Wh Exported phase C | Total Watt-hours Exported phase C | float32 | Wh
+40138 | 2 | R | 3 | TotWhImp - Total Wh Imported | Total Watt-hours Imported | float32 | Wh
+40140 | 2 | R | 3 | TotWhImpPhA - Total Wh Imported phase A | Total Watt-hours Imported phase A | float32 | Wh
+40142 | 2 | R | 3 | TotWhImpPhB - Total Wh Imported phase B | Total Watt-hours Imported phase B | float32 | Wh
+40144 | 2 | R | 3 | TotWhImpPhC - Total Wh Imported phase C | Total Watt-hours Imported phase C | float32 | Wh
+40146 | 2 | R | 3 | TotVAhExp - Total VAh Exported | Total VA-hours Exported | float32 | VAh
+40148 | 2 | R | 3 | TotVAhExpPhA - Total VAh Exported phase A | Total VA-hours Exported phase A | float32 | VAh
+40150 | 2 | R | 3 | TotVAhExpPhB - Total VAh Exported phase B | Total VA-hours Exported phase B | float32 | VAh
+40152 | 2 | R | 3 | TotVAhExpPhC - Total VAh Exported phase C | Total VA-hours Exported phase C | float32 | VAh
+40154 | 2 | R | 3 | TotVAhImp - Total VAh Imported | Total VA-hours Imported | float32 | VAh
+40156 | 2 | R | 3 | TotVAhImpPhA - Total VAh Imported phase A | Total VA-hours Imported phase A | float32 | VAh
+40158 | 2 | R | 3 | TotVAhImpPhB - Total VAh Imported phase B | Total VA-hours Imported phase B | float32 | VAh
+40160 | 2 | R | 3 | TotVAhImpPhC - Total VAh Imported phase C | Total VA-hours Imported phase C | float32 | VAh
+40194 | 2 | R | 3 | Evt - Events | Events (bits 1-19) | uint32 | bitfield32
 
 
 #### Profile
