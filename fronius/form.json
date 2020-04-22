@@ -52,8 +52,33 @@
         },
         {
             "type": "CheckBox",
-            "caption": "Nameplate Modell",
-            "name": "readNameplate"
+            "caption": "IC120 Nameplate Modell",
+            "name": "readIC120"
+        },
+        {
+            "type": "CheckBox",
+            "caption": "IC121 Basic Settings Modell",
+            "name": "readIC121"
+        },
+        {
+            "type": "CheckBox",
+            "caption": "IC122 Extended Measurements & Status Modell",
+            "name": "readIC122"
+        },
+        {
+            "type": "CheckBox",
+            "caption": "IC123 Immediate Controls Modell",
+            "name": "readIC123"
+        },
+        {
+            "type": "CheckBox",
+            "caption": "IC124 Basic Storage Control Model (nur Hybrid-Wechselrichter!)",
+            "name": "readIC124"
+        },
+        {
+            "type": "CheckBox",
+            "caption": "I160 Multiple MPPT Inverter Extension Modell",
+            "name": "readI160"
         },
         {
             "type": "Label",
