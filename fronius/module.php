@@ -43,10 +43,10 @@ if (!defined('IMR_START_REGISTER'))
 			$this->RegisterPropertyInteger('hostPort', '502');
 			$this->RegisterPropertyInteger('hostmodbusDevice', '1');
 			$this->RegisterPropertyBoolean('readNameplate', 'false');
-			$this->RegisterPropertyInteger('pollCycle', '60000');
+			$this->RegisterPropertyBoolean('readOnePhaseInverter', 'false');
+			$this->RegisterPropertyInteger('pollCycle', '60');
 
-
-			// *** Erstelle deaktivierte Timer ***
+			// *** Inverter - Erstelle deaktivierte Timer ***
 			// Evt1
 			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40120\", ".$this->InstanceID.");
 \$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
@@ -164,7 +164,16 @@ function removeInvalidChars(\$input)
 			$hostmodbusDevice = $this->ReadPropertyInteger('hostmodbusDevice');
 			$hostSwapWords = 0; // Fronius = false
 			$readNameplate = $this->ReadPropertyBoolean('readNameplate');
-			$pollCycle = $this->ReadPropertyInteger('pollCycle');
+			$readOnePhaseInverter = $this->ReadPropertyBoolean('readOnePhaseInverter');
+			$pollCycle = $this->ReadPropertyInteger('pollCycle') * 1000;
+
+
+			$archiveId = $this->getArchiveId();
+			if (false === $archiveId)
+			{
+				// no archive found
+				$this->SetStatus(201);
+			}
 
 			if("" != $hostIp)
 			{
@@ -173,7 +182,6 @@ function removeInvalidChars(\$input)
 				list($gatewayId, $interfaceId) = $this->checkModbusGateway($hostIp, $hostPort, $hostmodbusDevice, $hostSwapWords);
 
 				$parentId = $this->InstanceID;
-
 
 				/* ****** Fronius Register **************************************************************************
 					HINWEIS! Diese Register gelten nur für Wechselrichter. Für Fronius String Controls und Energiezähler sind diese Register nicht relevant
@@ -217,57 +225,57 @@ function removeInvalidChars(\$input)
 					- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
 				HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
 						************************************************************************************************** */
-					array(40070, 1, "R", 3, "ID", "uint16", "", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)"),
-					array(40071, 1, "R", 3, "L - Registers", "uint16", "", "Registers, Length of inverter model block"),
-					array(40072, 2, "R", 3, "A - AC Total Current", "float32", "A", "AC Total Current value"),
-					array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "float32", "A", "AC Phase-A Current value"),
-					array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "float32", "A", "AC Phase-B Current value"),
-					array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "float32", "A", "AC Phase-C Current value"),
-					array(40080, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "float32", "V", "AC Voltage Phase-AB value"),
-					array(40082, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "float32", "V", "AC Voltage Phase-BC value"),
-					array(40084, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "float32", "V", "AC Voltage Phase-CA value"),
-					array(40086, 2, "R", 3, "PhVphA - AC Voltage Phase-A-toneutral", "float32", "V", "AC Voltage Phase-A-toneutral value"),
-					array(40088, 2, "R", 3, "PhVphB - AC Voltage Phase-B-toneutral", "float32", "V", "AC Voltage Phase-B-toneutral value"),
-					array(40090, 2, "R", 3, "PhVphC - AC Voltage Phase-C-toneutral", "float32", "V", "AC Voltage Phase-C-toneutral value"),
-					array(40092, 2, "R", 3, "W - AC Power", "float32", "W", "AC Power value"),
-					array(40094, 2, "R", 3, "Hz - AC Frequency", "float32", "Hz", "AC Frequency value"),
-					array(40096, 2, "R", 3, "VA - Apparent Power", "float32", "VA", "Apparent Power"),
-					array(40098, 2, "R", 3, "VAr - Reactive Power", "float32", "VAr", "Reactive Power"),
-					array(40100, 2, "R", 3, "PF - Power Factor", "float32", "%", "Power Factor"),
-					array(40102, 2, "R", 3, "WH - AC Lifetime Energy production", "float32", "Wh", "AC Lifetime Energy production"),
-//					array(40104, 2, "R", 3, "DCA", "float32", "A", "DC Current value (DC current only if one MPPT available; with multiple MPPT 'not implemented')"),
-//					array(40106, 2, "R", 3, "DCV", "float32", "V", "DC Voltage value (DC voltage only if one MPPT available; with multiple MPPT 'not implemented')"),
-					array(40108, 2, "R", 3, "DCW - DC Power", "float32", "W", "DC Power value"),
-//					array(40110, 2, "R", 3, "TmpCab", "float32", "° C", "Cabinet Temperature"), // Not supported
-//					array(40112, 2, "R", 3, "TmpSnk", "float32", "° C", "Coolant or Heat Sink Temperature"), // Not supported
-//					array(40114, 2, "R", 3, "TmpTrns", "float32", "° C", "Transformer Temperature"), // Not supported
-//					array(40116, 2, "R", 3, "TmpOt", "float32", "° C", "Other Temperature"), // Not supported
-					array(40118, 1, "R", 3, "St - Operating State", "enum16", "Enumerated_St", "Operating State (SunSpec State Codes)"),
-					array(40119, 1, "R", 3, "StVnd - Vendor Operating State", "enum16", "Enumerated_StVnd", "Vendor Defined Operating State (Fronius State Codes)"),
-					array(40120, 2, "R", 3, "Evt1 - Event Flags", "uint32", "Bitfield", "Event Flags (bits 0-31)"),
-					array(40122, 2, "R", 3, "Evt2 - Event Flags", "uint32", "Bitfield", "Event Flags (bits 32-63)"),
-					array(40124, 2, "R", 3, "EvtVnd1 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 0-31)"),
-					array(40126, 2, "R", 3, "EvtVnd2 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 32-63)"),
-					array(40128, 2, "R", 3, "EvtVnd3 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 64-95)"),
-					array(40130, 2, "R", 3, "EvtVnd4 - Vendor Event Flags", "uint32", "Bitfield", "Vendor Defined Event Flags (bits 96-127)"),
+					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)", "uint16", ""),
+					array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block", "uint16", ""),
+					array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
+					array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "AC Phase-A Current value", "float32", "A"),
+					array(40086, 2, "R", 3, "PhVphA - AC Voltage Phase-A-toneutral", "AC Voltage Phase-A-toneutral value", "float32", "V"),
+					array(40092, 2, "R", 3, "W - AC Power", "AC Power value", "float32", "W"),
+					array(40094, 2, "R", 3, "Hz - AC Frequency", "AC Frequency value", "float32", "Hz"),
+					array(40096, 2, "R", 3, "VA - Apparent Power", "Apparent Power", "float32", "VA"),
+					array(40098, 2, "R", 3, "VAr - Reactive Power", "Reactive Power", "float32", "VAr"),
+					array(40100, 2, "R", 3, "PF - Power Factor", "Power Factor", "float32", "%"),
+					array(40102, 2, "R", 3, "WH - AC Lifetime Energy production", "AC Lifetime Energy production", "float32", "Wh"),
+					//	array(40104, 2, "R", 3, "DCA", "DC Current value (DC current only if one MPPT available; with multiple MPPT 'not implemented')", "float32", "A"),
+					//	array(40106, 2, "R", 3, "DCV", "DC Voltage value (DC voltage only if one MPPT available; with multiple MPPT 'not implemented')", "float32", "V"),
+					array(40108, 2, "R", 3, "DCW - DC Power", "DC Power value", "float32", "W"),
+					//	array(40110, 2, "R", 3, "TmpCab", "Cabinet Temperature", "float32", "° C"), // Not supported
+					//	array(40112, 2, "R", 3, "TmpSnk", "Coolant or Heat Sink Temperature", "float32", "° C"), // Not supported
+					//	array(40114, 2, "R", 3, "TmpTrns", "Transformer Temperature", "float32", "° C"), // Not supported
+					//	array(40116, 2, "R", 3, "TmpOt", "Other Temperature", "float32", "° C"), // Not supported
+					array(40118, 1, "R", 3, "St - Operating State", "Operating State (SunSpec State Codes)", "enum16", "Enumerated_St"),
+					array(40119, 1, "R", 3, "StVnd - Vendor Operating State", "Vendor Defined Operating State (Fronius State Codes)", "enum16", "Enumerated_StVnd"),
+					array(40120, 2, "R", 3, "Evt1 - Event Flags", "Event Flags (bits 0-31)", "uint32", "Bitfield"),
+					array(40122, 2, "R", 3, "Evt2 - Event Flags", "Event Flags (bits 32-63)", "uint32", "Bitfield"),
+					array(40124, 2, "R", 3, "EvtVnd1 - Vendor Event Flags", "Vendor Defined Event Flags (bits 0-31)", "uint32", "Bitfield"),
+					array(40126, 2, "R", 3, "EvtVnd2 - Vendor Event Flags", "Vendor Defined Event Flags (bits 32-63)", "uint32", "Bitfield"),
+					array(40128, 2, "R", 3, "EvtVnd3 - Vendor Event Flags", "Vendor Defined Event Flags (bits 64-95)", "uint32", "Bitfield"),
+					array(40130, 2, "R", 3, "EvtVnd4 - Vendor Event Flags", "Vendor Defined Event Flags (bits 96-127)", "uint32", "Bitfield"),
 				);
 
+				$inverterModel3pRegister_array = array(
+					/* ********** Inverter Model (3-phase) *********************************************************************** */
+					array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "AC Phase-B Current value", "float32", "A"),
+					array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "AC Phase-C Current value", "float32", "A"),
+					array(40080, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "AC Voltage Phase-AB value", "float32", "V"),
+					array(40082, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "AC Voltage Phase-BC value", "float32", "V"),
+					array(40084, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "AC Voltage Phase-CA value", "float32", "V"),
+					array(40088, 2, "R", 3, "PhVphB - AC Voltage Phase-B-toneutral", "AC Voltage Phase-B-toneutral value", "float32", "V"),
+					array(40090, 2, "R", 3, "PhVphC - AC Voltage Phase-C-toneutral", "AC Voltage Phase-C-toneutral value", "float32", "V"),
+				);
 				$categoryId = $parentId;
 /*				$categoryName = "Inverter";
 				$categoryId = @IPS_GetCategoryIDByName($categoryName, $parentId);
-				if(false === $categoryId)
-				{
-					$categoryId = IPS_CreateCategory();
-					IPS_SetParent($categoryId, $parentId);
-					IPS_SetName($categoryId, $categoryName);
-					IPS_SetIdent($categoryId, $this->removeInvalidChars($categoryName));
-				}
-				IPS_SetInfo($categoryId, "Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
-						- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
-					HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!");
-*/
-				$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
-
+					// 3-Phase Inverter
+					if (false == $readOnePhaseInverter)
+					{
+						$this->createModbusInstances($inverterModel3pRegister_array, $categoryId, $gatewayId, $pollCycle);
+					}
+					// 1-Phase Inverter
+					else
+					{
+						$this->deleteModbusInstancesRecursive($inverterModel3pRegister_array, $categoryId);
+					}	
 
 					// Inverter - Bit 0 - 15 für "Evt1 - Event Flags" erstellen
 					$instanceId = IPS_GetObjectIDByIdent("40120", $categoryId);
@@ -413,9 +421,9 @@ function removeInvalidChars(\$input)
 				$categoryName = "Nameplate";
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 				if($readNameplate)
-				{
-					$inverterModelRegister_array = array(
-					/* ********** Nameplate Model (IC120) ***************************************************************
+					{
+						$inverterModelRegister_array = array(
+							/* ********** Nameplate Model (IC120) ***************************************************************
 						Dieses Modell entspricht einem Leistungsschild. Folgende Daten können ausgelesen werden:
 							- DERType (3): Art des Geräts. Das Register liefert den Wert 4 zurück (PV-Gerät)
 							- WRtg (4): Nennleistung des Wechselrichters
@@ -424,69 +432,69 @@ function removeInvalidChars(\$input)
 							- ARtg (13): Nennstrom des Wechselrichters
 							- PFRtgQ1 (15) – PFRtgQ4 (18): Minimale Werte für den Power Factor für die vier Quadranten
 						Startadresse: - bei Einstellung „float“: 40131
-					   ************************************************************************************************** */
-					//    array(40132, 1, "R", 3, "ID", "uint16", "", "A well-known value 120. Uniquely identifies this as a SunSpec Nameplate Model"), // = 120
-					//    array(40133, 1, "R", 3, "L", "uint16", "Registers", "Length of Nameplate Model"), // = 26
-					//    array(40134, 1, "R", 3, "DERTyp", "enum16", "", "Type of DER device. Default value is 4 to indicate PV device."), // = 4
-						array(40135, 1, "R", 3, "WRtg", "uint16", "W", "WRtg_SF Continuous power output capability of the inverter."),
-						array(40136, 1, "R", 3, "WRtg_SF", "sunssf", "", "	Scale factor 1"),
-						array(40137, 1, "R", 3, "VARtg", "uint16", "VA", "VARtg_SF Continuous Volt-Ampere capability of the inverter."),
-						array(40138, 1, "R", 3, "VARtg_SF", "sunssf", "", "	Scale factor 1"),
-						array(40139, 1, "R", 3, "VArRtgQ1", "int16", "var", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 1."),
-						array(40140, 1, "R", 3, "VArRtgQ2", "int16", "var", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 2."),
-						array(40141, 1, "R", 3, "VArRtgQ3", "int16", "var", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 3."),
-						array(40142, 1, "R", 3, "VArRtgQ4", "int16", "var", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 4."),
-						array(40143, 1, "R", 3, "VArRtg_SF", "sunssf", "", "Scale factor 1"),
-						array(40144, 1, "R", 3, "ARtg", "uint16", "A", "ARtg_SF Maximum RMS AC current level capability of the inverter."),
-						array(40145, 1, "R", 3, "ARtg_SF", "sunssf", "", "Scale factor -2"),
-						array(40146, 1, "R", 3, "PFRtgQ1", "int16", "cos()", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 1."),
-						array(40147, 1, "R", 3, "PFRtgQ2", "int16", "cos()", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 2."),
-						array(40148, 1, "R", 3, "PFRtgQ3", "int16", "cos()", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 3."),
-						array(40149, 1, "R", 3, "PFRtgQ4", "int16", "cos()", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 4."),
-						array(40150, 1, "R", 3, "PFRtg_SF", "sunssf", "", "Scale factor -3"),
-						array(40151, 1, "R", 3, "WHRtg", "uint16", "Wh", "WHRtg_SF Nominal energy rating of storage device. (wird nur von Fronius Hybrid Wechselrichtern unterstützt)"),
-						array(40152, 1, "R", 3, "WHRtg_SF", "sunssf", "", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)"),
-						array(40153, 1, "R", 3, "AhrRtg", "uint16", "AH", "AhrRtg_SF The useable capacity of the battery. Maximum charge minus minimum charge from a technology capability perspective (Amp-hour capacity rating)."),
-						array(40154, 1, "R", 3, "AhrRtg_SF", "sunssf", "", "Scale factor for amphour rating."),
-						array(40155, 1, "R", 3, "MaxChaRte", "uint16", "W", "MaxChaRte_SF Maximum rate of energy transfer into the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)"),
-						array(40156, 1, "R", 3, "MaxChaRte_SF", "sunssf", "", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)"),
-						array(40157, 1, "R", 3, "MaxDisChaRte", "uint16", "W", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)"),
-						array(40158, 1, "R", 3, "MaxDisChaRte_SF", "sunssf", "", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)"),
-	//					array(40159, 1, "R", 3, "Pad", "", "", "	Pad register"),
-					);
+							 ************************************************************************************************** */
+							//	array(40132, 1, "R", 3, "ID", "A well-known value 120. Uniquely identifies this as a SunSpec Nameplate Model", "uint16", ""), // = 120
+							//	array(40133, 1, "R", 3, "L", "uint16", "Registers", "Length of Nameplate Model"), // = 26
+							//	array(40134, 1, "R", 3, "DERTyp", "enum16", "", "Type of DER device. Default value is 4 to indicate PV device."), // = 4
+							array(40135, 1, "R", 3, "WRtg", "WRtg_SF Continuous power output capability of the inverter.", "uint16", "W"),
+//							array(40136, 1, "R", 3, "WRtg_SF", "	Scale factor 1", "sunssf", ""),
+							array(40137, 1, "R", 3, "VARtg", "VARtg_SF Continuous Volt-Ampere capability of the inverter.", "uint16", "VA"),
+//							array(40138, 1, "R", 3, "VARtg_SF", "	Scale factor 1", "sunssf", ""),
+							array(40139, 1, "R", 3, "VArRtgQ1", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 1.", "int16", "var"),
+							array(40140, 1, "R", 3, "VArRtgQ2", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 2.", "int16", "var"),
+							array(40141, 1, "R", 3, "VArRtgQ3", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 3.", "int16", "var"),
+							array(40142, 1, "R", 3, "VArRtgQ4", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 4.", "int16", "var"),
+//							array(40143, 1, "R", 3, "VArRtg_SF", "Scale factor 1", "sunssf", ""),
+							array(40144, 1, "R", 3, "ARtg", "ARtg_SF Maximum RMS AC current level capability of the inverter.", "uint16", "A"),
+//							array(40145, 1, "R", 3, "ARtg_SF", "Scale factor -2", "sunssf", ""),
+							array(40146, 1, "R", 3, "PFRtgQ1", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 1.", "int16", "cos()"),
+							array(40147, 1, "R", 3, "PFRtgQ2", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 2.", "int16", "cos()"),
+							array(40148, 1, "R", 3, "PFRtgQ3", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 3.", "int16", "cos()"),
+							array(40149, 1, "R", 3, "PFRtgQ4", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 4.", "int16", "cos()"),
+//							array(40150, 1, "R", 3, "PFRtg_SF", "Scale factor -3", "sunssf", ""),
+							array(40151, 1, "R", 3, "WHRtg", "WHRtg_SF Nominal energy rating of storage device. (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "Wh"),
+//							array(40152, 1, "R", 3, "WHRtg_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+							array(40153, 1, "R", 3, "AhrRtg", "AhrRtg_SF The useable capacity of the battery. Maximum charge minus minimum charge from a technology capability perspective (Amp-hour capacity rating).", "uint16", "AH"),
+//							array(40154, 1, "R", 3, "AhrRtg_SF", "Scale factor for amphour rating.", "sunssf", ""),
+							array(40155, 1, "R", 3, "MaxChaRte", "MaxChaRte_SF Maximum rate of energy transfer into the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "W"),
+//							array(40156, 1, "R", 3, "MaxChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+							array(40157, 1, "R", 3, "MaxDisChaRte", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "W"),
+//							array(40158, 1, "R", 3, "MaxDisChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+							//	array(40159, 1, "R", 3, "Pad", "	Pad register", "", ""),
+						);
 
-					if(false === $categoryId)
-					{
-						$categoryId = IPS_CreateCategory();
-						IPS_SetParent($categoryId, $parentId);
-						IPS_SetName($categoryId, $categoryName);
-						IPS_SetIdent($categoryId, $this->removeInvalidChars($categoryName));
-					}
-					IPS_SetInfo($categoryId, "Dieses Modell entspricht einem Leistungsschild. Folgende Daten können ausgelesen werden:
-							- DERType (3): Art des Geräts. Das Register liefert den Wert 4 zurück (PV-Gerät)
-							- WRtg (4): Nennleistung des Wechselrichters
-							- VARtg (6): Nenn-Scheinleistung des Wechselrichters
-							- VArRtgQ1 (8) - VArRtgQ4 (11): Nenn-Blindleistungswerte für die vier Quadranten
-							- ARtg (13): Nennstrom des Wechselrichters
-							- PFRtgQ1 (15) – PFRtgQ4 (18): Minimale Werte für den Power Factor für die vier Quadranten");
-
-					$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
-				}
-				else
-				{
-					if(false !== $categoryId)
-					{
-						foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+						if (false === $categoryId)
 						{
-							foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
-							{
-								IPS_DeleteVariable($childChildId);
-							}
-							IPS_DeleteInstance($childId);
+							$categoryId = IPS_CreateCategory();
+							IPS_SetIdent($categoryId, $this->removeInvalidChars($categoryName));
+							IPS_SetName($categoryId, $categoryName);
+							IPS_SetParent($categoryId, $parentId);
+							IPS_SetInfo($categoryId, "Dieses Modell entspricht einem Leistungsschild. Folgende Daten können ausgelesen werden:
+- DERType (3): Art des Geräts. Das Register liefert den Wert 4 zurück (PV-Gerät)
+- WRtg (4): Nennleistung des Wechselrichters
+- VARtg (6): Nenn-Scheinleistung des Wechselrichters
+- VArRtgQ1 (8) - VArRtgQ4 (11): Nenn-Blindleistungswerte für die vier Quadranten
+- ARtg (13): Nennstrom des Wechselrichters
+- PFRtgQ1 (15) – PFRtgQ4 (18): Minimale Werte für den Power Factor für die vier Quadranten");
 						}
-						IPS_DeleteCategory($categoryId);
+
+						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
 					}
-				}
+					else
+					{
+						if(false !== $categoryId)
+						{
+							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+							{
+								foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
+								{
+									IPS_DeleteVariable($childChildId);
+								}
+								IPS_DeleteInstance($childId);
+							}
+							IPS_DeleteCategory($categoryId);
+						}
+					}
 
 
 /*

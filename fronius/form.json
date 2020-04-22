@@ -10,7 +10,7 @@
         },
         {
             "type": "Label",
-            "label": ""
+            "label": " "
         },
         {
             "type": "CheckBox",
@@ -25,20 +25,22 @@
         {
             "type": "NumberSpinner",
             "caption": "Port",
-            "name": "hostPort"
+            "name": "hostPort",
+            "digits": 0
         },
         {
             "type": "NumberSpinner",
-            "caption": "Geräte ID (=Wechselrichter Nr.)",
-            "name": "hostmodbusDevice"
+            "caption": "Geräte ID",
+            "name": "hostmodbusDevice",
+            "digits": 0
         },
         {
             "type": "Label",
-            "label": ""
+            "label": " "
         },
         {
             "type": "Label",
-            "label": "Sollen die erweiterte Leistungsdaten (bspw. Scheinleistung, Blindleistung, cos(),...) des Nameplate Modell angezeigt werden?"
+            "label": "Sollen die erweiterten Leistungsdaten für Wechselrichter (bspw. Scheinleistung, Blindleistung, cos(),...) angezeigt werden?"
         },
         {
             "type": "CheckBox",
@@ -47,11 +49,24 @@
         },
         {
             "type": "Label",
-            "label": ""
+            "label": " "
         },
-	{
+        {
+            "type": "Label",
+            "label": "Wird anstatt einens 3-phasigen Wechselrichters (Symo) ein 1-phasiger Wechselrichter (Primo) verwendet?"
+        },
+        {
+            "type": "CheckBox",
+            "caption": "1-phasiger Wechselrichter (bspw. Primo-Serie)",
+            "name": "readOnePhaseInverter"
+        },
+        {
+            "type": "Label",
+            "label": " "
+        },
+        {
             "type": "ValidationTextBox",
-            "caption": "Abfrage-Intervall (in ms)",
+            "caption": "Abfrage-Intervall (in Sekunden)",
             "name": "pollCycle"
         },
         {
@@ -89,6 +104,11 @@
             "code": 200,
             "icon": "error",
             "caption": "IP oder Port sind nicht erreichtbar"
+        },
+        {
+            "code": 201,
+            "icon": "error",
+            "caption": "Archiv nicht gefunden"
         }
     ]
 }
