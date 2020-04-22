@@ -1026,85 +1026,180 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					)
 					{
 						$datenTyp = 2;
-                    } elseif ("uint32" == strtolower($inverterModelRegister[IMR_TYPE])) {
-                        $datenTyp = 3;
-                    } elseif ("int16" == strtolower($inverterModelRegister[IMR_TYPE])
-                    || "sunssf" == strtolower($inverterModelRegister[IMR_TYPE])) {
-                        $datenTyp = 4;
-                    } elseif ("int32" == strtolower($inverterModelRegister[IMR_TYPE])) {
-                        $datenTyp = 6;
-                    } elseif ("float32" == strtolower($inverterModelRegister[IMR_TYPE])) {
-                        $datenTyp = 7;
-                    } elseif ("string32" == strtolower($inverterModelRegister[IMR_TYPE])
-                    || "string16" == strtolower($inverterModelRegister[IMR_TYPE])
-                    || "string" == strtolower($inverterModelRegister[IMR_TYPE])) {
-                        echo "Datentyp '".$inverterModelRegister[IMR_TYPE]."' wird von Modbus in IPS nicht unterstützt! --> skip\n";
-                        continue;
-                    } else {
-                        echo "Fehler: Unbekannter Datentyp '".$inverterModelRegister[IMR_TYPE]."'! --> skip\n";
-                        continue;
-                    }
+					}
+					elseif ("uint32" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "acc32" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "acc64" == strtolower($inverterModelRegister[IMR_TYPE])
+					)
+					{
+						$datenTyp = 3;
+					}
+					elseif ("int16" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "sunssf" == strtolower($inverterModelRegister[IMR_TYPE])
+					)
+					{
+						$datenTyp = 4;
+					}
+					elseif ("int32" == strtolower($inverterModelRegister[IMR_TYPE]))
+					{
+						$datenTyp = 6;
+					}
+					elseif ("float32" == strtolower($inverterModelRegister[IMR_TYPE]))
+					{
+						$datenTyp = 7;
+					}
+					elseif ("string32" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "string16" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "string8" == strtolower($inverterModelRegister[IMR_TYPE])
+						|| "string" == strtolower($inverterModelRegister[IMR_TYPE])
+					)
+					{
+						echo "Datentyp '".$inverterModelRegister[IMR_TYPE]."' wird von Modbus in IPS nicht unterstützt! --> skip\n";
+						continue;
+					}
+					else
+					{
+						echo "Fehler: Unbekannter Datentyp '".$inverterModelRegister[IMR_TYPE]."'! --> skip\n";
+						continue;
+					}
 
-                    // Profil ermitteln
-                    if ("a" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp) {
-                        $profile = "~Ampere";
-                    } elseif ("a" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = MODUL_PREFIX.".Ampere.Int";
-                    } elseif ("ah" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = MODUL_PREFIX.".AmpereHour.Int";
-                    } elseif ("v" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp) {
+					// Profil ermitteln
+					if ("a" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
+						$profile = "~Ampere";
+					}
+					elseif ("a" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Ampere.Int";
+					}
+					elseif (("ah" == strtolower($inverterModelRegister[IMR_UNITS])
+							|| "vah" == strtolower($inverterModelRegister[IMR_UNITS]))
+						&& 7 == $datenTyp
+					)
+					{
+								$profile = MODUL_PREFIX.".AmpereHour.Float";
+					}
+					elseif ("ah" == strtolower($inverterModelRegister[IMR_UNITS])
+						|| "vah" == strtolower($inverterModelRegister[IMR_UNITS])
+					)
+					{
+								$profile = MODUL_PREFIX.".AmpereHour.Int";
+					}
+					elseif ("v" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
                         $profile = "~Volt";
                     }
-                    /*				elseif("v" == strtolower($inverterModelRegister[IMR_UNITS]))
-                                    {
-                                        $profile = MODUL_PREFIX.".Volt.Int";
-                                    }
-                    */                elseif ("w" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp) {
-                        $profile = "~Watt.14490";
-                    } elseif ("w" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = MODUL_PREFIX.".Watt.Int";
-                    } elseif ("hz" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = "~Hertz";
-                    }
-                    // Voltampere für elektrische Scheinleistung
-                    elseif ("va" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp) {
-                        $profile = MODUL_PREFIX.".Scheinleistung.Float";
-                    }
-                    // Voltampere für elektrische Scheinleistung
-                    elseif ("va" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = MODUL_PREFIX.".Scheinleistung.Int";
-                    }
-                    // Var für elektrische Blindleistung
-                    elseif ("var" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp) {
-                        $profile = MODUL_PREFIX.".Blindleistung.Float";
-                    }
-                    // Var für elektrische Blindleistung
-                    elseif ("var" == strtolower($inverterModelRegister[IMR_UNITS]) || "var" == $inverterModelRegister[IMR_UNITS]) {
-                        $profile = MODUL_PREFIX.".Blindleistung.Int";
-                    } elseif ("%" == $inverterModelRegister[IMR_UNITS] && 7 == $datenTyp) {
-                        $profile = "~Valve.F";
-                    } elseif ("%" == $inverterModelRegister[IMR_UNITS]) {
-                        $profile = "~Valve";
-                    } elseif ("wh" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp) {
-                        $profile = MODUL_PREFIX.".Electricity.Float";
-                    } elseif ("wh" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = MODUL_PREFIX.".Electricity.Int";
-                    } elseif ("° C" == $inverterModelRegister[IMR_UNITS]) {
-                        $profile = "~Temperature";
-                    } elseif ("cos()" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = MODUL_PREFIX.".Angle.Int";
-                    } elseif ("enumerated_st" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = "SunSpec.StateCodes.Int";
-                    } elseif ("enumerated_stvnd" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = MODUL_PREFIX.".StateCodes.Int";
-                    } elseif ("bitfield" == strtolower($inverterModelRegister[IMR_UNITS])) {
-                        $profile = false;
-                    } else {
-                        $profile = false;
-                        if ("" != $inverterModelRegister[IMR_UNITS]) {
-                            echo "Profil '".$inverterModelRegister[IMR_UNITS]."' unbekannt.\n";
-                        }
-                    }
+					elseif("v" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Volt.Int";
+					}
+					elseif ("w" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
+						$profile = "~Watt.14490";
+					}
+					elseif ("w" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Watt.Int";
+					}
+					elseif ("hz" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
+						$profile = "~Hertz";
+					}
+					elseif ("hz" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Hertz.Int";
+					}
+					// Voltampere fuer elektrische Scheinleistung
+					elseif ("va" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
+						$profile = MODUL_PREFIX.".Scheinleistung.Float";
+					}
+					// Voltampere fuer elektrische Scheinleistung
+					elseif ("va" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Scheinleistung.Int";
+					}
+					// Var fuer elektrische Blindleistung
+					elseif ("var" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
+						$profile = MODUL_PREFIX.".Blindleistung.Float";
+					}
+					// Var fuer elektrische Blindleistung
+					elseif ("var" == strtolower($inverterModelRegister[IMR_UNITS]) || "var" == $inverterModelRegister[IMR_UNITS])
+					{
+						$profile = MODUL_PREFIX.".Blindleistung.Int";
+					}
+					elseif ("%" == $inverterModelRegister[IMR_UNITS] && 7 == $datenTyp)
+					{
+						$profile = "~Valve.F";
+					}
+					elseif ("%" == $inverterModelRegister[IMR_UNITS])
+					{
+						$profile = "~Valve";
+					}
+					elseif ("wh" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
+						$profile = MODUL_PREFIX.".Electricity.Float";
+					}
+					elseif ("wh" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Electricity.Int";
+					}
+					elseif (("° C" == $inverterModelRegister[IMR_UNITS]
+							|| "°C" == $inverterModelRegister[IMR_UNITS]
+							|| "C" == $inverterModelRegister[IMR_UNITS]
+						) && 7 == $datenTyp
+					)
+					{
+						$profile = "~Temperature";
+					}
+					elseif ("° C" == $inverterModelRegister[IMR_UNITS]
+						|| "°C" == $inverterModelRegister[IMR_UNITS]
+						|| "C" == $inverterModelRegister[IMR_UNITS]
+					)
+					{
+						$profile = MODUL_PREFIX.".Temperature.Int";
+					}
+					elseif ("cos()" == strtolower($inverterModelRegister[IMR_UNITS]) && 7 == $datenTyp)
+					{
+						$profile = MODUL_PREFIX.".Angle.Float";
+					}
+					elseif ("cos()" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Angle.Int";
+					}
+					elseif ("ohm" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".Ohm.Int";
+					}
+					elseif ("enumerated_st" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = "SunSpec.StateCodes.Int";
+					}
+					elseif ("enumerated_stvnd" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = MODUL_PREFIX.".StateCodes.Int";
+					}
+					elseif ("secs" == strtolower($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = "~UnixTimestamp";
+					}
+					elseif ("registers" == strtolower($inverterModelRegister[IMR_UNITS])
+						|| "bitfield" == strtolower($inverterModelRegister[IMR_UNITS])
+						|| "bitfield16" == strtolower($inverterModelRegister[IMR_UNITS])
+						|| "bitfield32" == strtolower($inverterModelRegister[IMR_UNITS])
+					)
+					{
+						$profile = false;
+					}
+					else
+					{
+						$profile = false;
+						if ("" != $inverterModelRegister[IMR_UNITS])
+						{
+							echo "Profil '".$inverterModelRegister[IMR_UNITS]."' unbekannt.\n";
+						}
+					}
 
 
 					$instanceId = @IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER].$uniqueIdent, $parentId);
@@ -1234,17 +1329,22 @@ array(40341, 40341, 1, "R", "0x03", "L", "Length of model block", "uint16", "Reg
 					array('Name' => "AFCI", 'Wert' => 13, "AFCI Event (Arc-Erkennung)"),
 				)
 			);
-			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Int", VARIABLETYPE_INTEGER, ' VA');
-			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Float", VARIABLETYPE_FLOAT, ' VA');
-			$this->createVarProfile(MODUL_PREFIX.".Blindleistung.Int", VARIABLETYPE_INTEGER, ' Var');
-			$this->createVarProfile(MODUL_PREFIX.".Blindleistung.Float", VARIABLETYPE_FLOAT, ' Var');
-			$this->createVarProfile(MODUL_PREFIX.".Angle.Int", VARIABLETYPE_INTEGER, ' °');
-			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
 			$this->createVarProfile(MODUL_PREFIX.".Ampere.Int", VARIABLETYPE_INTEGER, ' A');
+			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Float", VARIABLETYPE_FLOAT, ' Ah');
+			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Int", VARIABLETYPE_INTEGER, ' Ah');
+			$this->createVarProfile(MODUL_PREFIX.".Angle.Float", VARIABLETYPE_FLOAT, ' °');
+			$this->createVarProfile(MODUL_PREFIX.".Angle.Int", VARIABLETYPE_INTEGER, ' °');
+			$this->createVarProfile(MODUL_PREFIX.".Blindleistung.Float", VARIABLETYPE_FLOAT, ' Var');
+			$this->createVarProfile(MODUL_PREFIX.".Blindleistung.Int", VARIABLETYPE_INTEGER, ' Var');
 			$this->createVarProfile(MODUL_PREFIX.".Electricity.Float", VARIABLETYPE_FLOAT, ' Wh');
 			$this->createVarProfile(MODUL_PREFIX.".Electricity.Int", VARIABLETYPE_INTEGER, ' Wh');
-			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Int", VARIABLETYPE_INTEGER, ' Ah');
-/*
+			$this->createVarProfile(MODUL_PREFIX.".Hertz.Int", VARIABLETYPE_INTEGER, ' Hz');
+			$this->createVarProfile(MODUL_PREFIX.".Ohm.Int", VARIABLETYPE_INTEGER, ' Ohm');
+			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Float", VARIABLETYPE_FLOAT, ' VA');
+			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Int", VARIABLETYPE_INTEGER, ' VA');
+			// Temperature.Float: ~Temperature
+			$this->createVarProfile(MODUL_PREFIX.".Temperature.Int", VARIABLETYPE_INTEGER, ' °C');
+			// Volt.Float: ~Volt
 			$this->createVarProfile(MODUL_PREFIX.".Volt.Int", VARIABLETYPE_INTEGER, ' V');
 			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
 		}
