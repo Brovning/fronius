@@ -20,7 +20,7 @@ Dieses Modul erstellt anhand der Konfiguration der Fronius Instanz den nötigen 
 Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter und optional des Modells Nameplate erstellt.
 
 
-### 2. Vorraussetzungen
+### 2. Voraussetzungen
 
 - IP-Symcon ab Version 5.0
 - Der Fronius Wechselrichter muss Modbus TCP unterstützen!
