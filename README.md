@@ -47,8 +47,15 @@ Name     | Beschreibung
 Open | Schalter zum aktivieren und deaktivieren der Instanz
 IP | IP-Adresse des Fronius-Wechselrichters im lokalen Netzwerk
 Port | Port, welcher im Wechselrichter unter dem Menüpunkt Modbus angegeben wurde. Default: 502
-Nameplate Modell | Sollen die erweiterte Leistungsdaten (bspw. Scheinleistung, Blindleistung, cos(),...) des Nameplate Modell angezeigt werden? Default: false
-Abfrage-Intervall | Intervall (in ms) in welchem die Modbus-Adressen abgefragt werden sollen. Achtung: Abfrage-Intervall nicht zu klein wählen, um die Systemlast und auch die Archiv-Größe bei Logging nicht unnötig zu erhöhen! Default: 60000 (=60 Sekunden)
+Geräte Id | Modbus Geräte ID, welche im Fronius Menü gesetzt werden kann. Default für Inverter: 1, Default für SmartMeter: 240
+IC120 Nameplate | Soll das Nameplate Modell IC120 angezeigt werden? Default: false
+IC121 Basic Settings | Soll das Basic Settings Modell IC121 angezeigt werden? Default: false
+IC122 Extended Measurements & Status | Soll das Extended Measurements & Status Modell IC122 angezeigt werden? Default: false
+IC123 Immediate Controls | Soll das Immediate Controls Modell IC123 angezeigt werden? Default: false
+I160 Multiple MPPT Inverter Extension | Soll das Multiple MPPT Inverter Extension Modell I160 angezeigt werden? Default: false
+IC124 Basic Storage Control | Soll das Basic Storage Modell IC124 angezeigt werden? Achtung: Nur für Hybrid-Wechselrichter gültig! Default: false
+1-phasiger Wechselrichter | Wird anstatt einens 3-phasigen Wechselrichters (Symo) ein 1-phasiger Wechselrichter (Primo) verwendet? Default: false
+Abfrage-Intervall | Intervall (in Sekunden) in welchem die Modbus-Adressen abgefragt werden sollen. Achtung: Abfrage-Intervall nicht zu klein wählen, um die Systemlast und auch die Archiv-Größe bei Logging nicht unnötig zu erhöhen! Default: 60
 
 
 ### 5. Statusvariablen und Profile
@@ -382,7 +389,6 @@ Aktuell keine PHP-Funktionen verfügbar.
 ### 8. Versionshistorie
 
 #### v1.0
-v1.0
 - Feature Request #6: Unterstützung für 1-phasige Wechselrichter
 - Feature Request #7: Erweiterte Wechselrichter Modelle
 - Feature Request #8: SmartMeter hinzugefügt
