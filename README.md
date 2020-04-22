@@ -11,6 +11,8 @@ IP-Symcon (IPS) Modul für Fronius Wechselrichter mit TCP ModBus Unterstützung 
 5. [Statusvariablen und Profile](#5-statusvariablen-und-profile)
 6. [WebFront](#6-webfront)
 7. [PHP-Befehlsreferenz](#7-php-befehlsreferenz)
+8. [Versionshistorie](#8-versionshistorie)
+
 
 ### 1. Funktionsumfang
 
@@ -137,16 +139,23 @@ Name   | Typ
 ------ | -------
 SunSpec.StateCodes.Int | Integer
 Fronius.StateCodes.Int | Integer
-Fronius.Scheinleistung.Int | Integer
-Fronius.Scheinleistung.Float | Float
+Fronius.AmpereHour.Int | Integer
+Fronius.AmpereHour.Float | Float
+Fronius.Ampere.Int | Integer
+Fronius.Ampere.Float | Float
+Fronius.Angle.Int | Integer
 Fronius.Blindleistung.Int | Integer
 Fronius.Blindleistung.Float | Float
-Fronius.Angle.Int | Integer
-Fronius.Watt.Int | Integer
-Fronius.Ampere.Int | Integer
 Fronius.Electricity.Int | Integer
 Fronius.Electricity.Float | Float
-Fronius.AmpereHour.Int | Integer
+Fronius.Hertz.Int | Integer
+Fronius.Ohm.Int | Integer
+Fronius.Scheinleistung.Int | Integer
+Fronius.Scheinleistung.Float | Float
+Fronius.Temperature.Int | Integer
+Fronius.Volt.Int | Integer
+Fronius.Watt.Int | Integer
+
 
 ### 6. WebFront
 
@@ -159,6 +168,15 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 
 ### 8. Versionshistorie
+
+#### v1.0
+v1.0
+- Feature Request #6: Unterstützung für 1-phasige Wechselrichter
+- Feature Request #7: Erweiterte Wechselrichter Modelle
+- Feature Request #8: SmartMeter hinzugefügt
+- interne Umstellungen auf gemeinsame Funktionen
+- von byName auf byIdent umgestellt
+- Profile für Erweiterete Modelle und SmartMeter hinzugefügt
 
 #### v0.5 beta
 - Behobene Fehler: #9
