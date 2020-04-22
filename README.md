@@ -1,5 +1,5 @@
 # Fronius
-IP-Symcon (IPS) Modul für Fronius Wechselrichter mit TCP ModBus Unterstützung (bspw. Symo, Symo Hybrid,...).
+IP-Symcon (IPS) Modul für Fronius Inverter (Wechselrichter) und SmartMeter (Energiezähler) mit TCP ModBus Unterstützung (bspw. Primo, Symo, Symo Hybrid,...).
 
 
 ### Inhaltsverzeichnis
@@ -17,16 +17,16 @@ IP-Symcon (IPS) Modul für Fronius Wechselrichter mit TCP ModBus Unterstützung 
 ### 1. Funktionsumfang
 
 Dieses Modul erstellt anhand der Konfiguration der Fronius Instanz den nötigen Client Socket und das dazugehörige ModBus Gateway. Sofern diese bereits vorhanden sind, werden keine weiteren Client Sockets oder ModBus Gateways erstellt.
-Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter und optional des Modells Nameplate erstellt.
+Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter und optional der erweiterterten Inverter Modelle erstellt oder es wird alternativ das Meter Modell erstellt.
 
 
 ### 2. Voraussetzungen
 
 - IP-Symcon ab Version 5.0
-- Der Fronius Wechselrichter muss Modbus TCP unterstützen!
+- Der Fronius Wechselrichter oder SmartMeter muss Modbus TCP unterstützen!
 - Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe per 'TCP' und der Sunspec Model Type 'float' aktiviert werden.
 ![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Einstellungen%20-%20Modbus.JPG "Fronius - Einstellungen - Modbus")
-- Die Modbus Geräte-ID des Wechselrichters entspricht seiner Wechselrichter-Nummer, welche nur über das Bedienpanel des Wechselrichters eingestellt werden kann und nicht per Weboberfläche. Zu finden unter Setup > DATCOM > Wechselrichter-Nr. Die Werkseinstellung ist "01", was der Modbus Geräte-ID "1" entspricht. Hierbei gibt es nur eine einzige Ausnahme: Die Wechselrichter-Nummer "00" wird auf Modbus Geräte-ID "100" umgelegt, da bei Modbus die Geräte-ID "0" für Broadcast Nachrichten reserviert ist.
+- Die Modbus Geräte-ID des Wechselrichters entspricht seiner Wechselrichter-Nummer, welche nur über das Bedienpanel des Wechselrichters eingestellt werden kann und nicht per Weboberfläche. Zu finden unter Setup > DATCOM > Wechselrichter-Nr. Die Werkseinstellung ist "01", was der Modbus Geräte-ID "1" entspricht. Hierbei gibt es nur eine einzige Ausnahme: Die Wechselrichter-Nummer "00" wird auf Modbus Geräte-ID "100" umgelegt, da bei Modbus die Geräte-ID "0" für Broadcast Nachrichten reserviert ist. Der SmartMeter hat standardmäßig die Geräte-ID "240".
 ![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Setup%20-%20DATCOM%20-%20WechselrichterNr.jpg "Fronius - Setup - DATCOM - Wechselrichter-Nr.")
 
 
