@@ -356,6 +356,8 @@ StartRegister | Size | RW | FunctionCode | Name | Description | Type | Units
 
 Name   | Typ
 ------ | -------
+SunSpec.ChaSt.Int | Integer
+SunSpec.ID.Int | Integer
 SunSpec.StateCodes.Int | Integer
 Fronius.StateCodes.Int | Integer
 Fronius.AmpereHour.Int | Integer
@@ -387,6 +389,13 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 
 ### 8. Versionshistorie
+
+#### v1.1
+- Fehler #11: Nach IPS Neustart wird je ein weiteres FroniusModbusGateway und FroniusClientSocket erstellt
+- Feature Request #10: ScaleFactor (SF) berücksichtigen und Werte entsprechend umrechnen
+- Berechnung der Bits PVConn, StorConn, StActCtl und der UTC-Time Tms hinzugefügt
+- Profile SunSpec.ChaSt.Int und SunSpec.ID.Int hinzugefügt
+- interne Optimierungen
 
 #### v1.0
 - Feature Request #6: Unterstützung für 1-phasige Wechselrichter
