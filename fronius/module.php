@@ -127,27 +127,131 @@ function removeInvalidChars(\$input)
 }");
 
 			// IC120 model
-			$this->RegisterTimer("Update-IC120", 0, "
-");
+			$this->RegisterTimer("Update-IC120", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("IC120 Nameplate")."\", ".$this->InstanceID.");
+// Inverter - SF Variablen erstellen
+\$inverterModelRegister_array = array(array(40135, 40136), array(40137, 40138), array(40139, 40143), array(40140, 40143), array(40141, 40143), array(40142, 40143), array(40144, 40145), array(40146, 40150, \"cos()\"), array(40147, 40150, \"cos()\"), array(40148, 40150, \"cos()\"), array(40149, 40150, \"cos()\"), array(40151, 40152), array(40153, 40154), array(40155, 40156), array(40157, 40158));
+foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
+{
+	\$instanceId = IPS_GetObjectIDByIdent(\$inverterModelRegister[0], \$parentId);
+	\$targetId = IPS_GetObjectIDByIdent(\"Value_SF\", \$instanceId);
+	\$sourceValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", \$instanceId));
+	\$sfValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", IPS_GetObjectIDByIdent(\$inverterModelRegister[1], \$parentId)));
+	\$newValue = \$sourceValue * pow(10, \$sfValue);
+
+	if(GetValue(\$targetId) != \$newValue)
+	{
+		SetValue(\$targetId, \$newValue);
+	}
+
+	if(isset(\$inverterModelRegister[2]) && \"cos()\" == \$inverterModelRegister[2])
+	{
+		\$targetId = IPS_GetObjectIDByIdent(\"Value_cos\", \$instanceId);
+		\$newValue = cos(\$newValue);
+
+		if(GetValue(\$targetId) != \$newValue)
+		{
+			SetValue(\$targetId, \$newValue);
+		}
+	}
+}");
 
 			// IC121 model
-			$this->RegisterTimer("Update-IC121", 0, "
-");
+			$this->RegisterTimer("Update-IC121", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("IC121 Basic Settings")."\", ".$this->InstanceID.");
+// Inverter - SF Variablen erstellen
+\$inverterModelRegister_array = array(array(40162, 40182), array(40163, 40183), array(40164, 40184), array(40167, 40186), array(40168, 40187), array(40171, 40187), array(40173, 40189, \"cos()\"), array(40176, 40189, \"cos()\"));
+foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
+{
+	\$instanceId = IPS_GetObjectIDByIdent(\$inverterModelRegister[0], \$parentId);
+	\$targetId = IPS_GetObjectIDByIdent(\"Value_SF\", \$instanceId);
+	\$sourceValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", \$instanceId));
+	\$sfValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", IPS_GetObjectIDByIdent(\$inverterModelRegister[1], \$parentId)));
+	\$newValue = \$sourceValue * pow(10, \$sfValue);
+
+	if(GetValue(\$targetId) != \$newValue)
+	{
+		SetValue(\$targetId, \$newValue);
+	}
+
+	if(isset(\$inverterModelRegister[2]) && \"cos()\" == \$inverterModelRegister[2])
+	{
+		\$targetId = IPS_GetObjectIDByIdent(\"Value_cos\", \$instanceId);
+		\$newValue = cos(\$newValue);
+
+		if(GetValue(\$targetId) != \$newValue)
+		{
+			SetValue(\$targetId, \$newValue);
+		}
+	}
+}");
 
 			// IC122 model (PVConn, StorConn, StActCtl, Tms)
 			$this->RegisterTimer("Update-IC122", 0, "
 ");
 
 			// IC123 model
-			$this->RegisterTimer("Update-IC123", 0, "
-");
+			$this->RegisterTimer("Update-IC123", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("IC123 Immediate Controls")."\", ".$this->InstanceID.");
+// Inverter - SF Variablen erstellen
+\$inverterModelRegister_array = array(array(40243, 40261), array(40248, 40262, \"cos()\"));
+foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
+{
+	\$instanceId = IPS_GetObjectIDByIdent(\$inverterModelRegister[0], \$parentId);
+	\$targetId = IPS_GetObjectIDByIdent(\"Value_SF\", \$instanceId);
+	\$sourceValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", \$instanceId));
+	\$sfValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", IPS_GetObjectIDByIdent(\$inverterModelRegister[1], \$parentId)));
+	\$newValue = \$sourceValue * pow(10, \$sfValue);
+
+	if(GetValue(\$targetId) != \$newValue)
+	{
+		SetValue(\$targetId, \$newValue);
+	}
+
+	if(isset(\$inverterModelRegister[2]) && \"cos()\" == \$inverterModelRegister[2])
+	{
+		\$targetId = IPS_GetObjectIDByIdent(\"Value_cos\", \$instanceId);
+		\$newValue = cos(\$newValue);
+
+		if(GetValue(\$targetId) != \$newValue)
+		{
+			SetValue(\$targetId, \$newValue);
+		}
+	}
+}");
 
 			// IC124 model
-			$this->RegisterTimer("Update-IC124", 0, "
-");
+			$this->RegisterTimer("Update-IC124", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("IC124 Basic Storage Control")."\", ".$this->InstanceID.");
+// Inverter - SF Variablen erstellen
+\$inverterModelRegister_array = array(array(40316, 40332), array(40317, 40333), array(40318, 40333), array(40321, 40335), array(40322, 40336), array(40323, 40337), array(40324, 40338), array(40326, 40339), array(40327, 40339));
+foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
+{
+	\$instanceId = IPS_GetObjectIDByIdent(\$inverterModelRegister[0], \$parentId);
+	\$targetId = IPS_GetObjectIDByIdent(\"Value_SF\", \$instanceId);
+	\$sourceValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", \$instanceId));
+	\$sfValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", IPS_GetObjectIDByIdent(\$inverterModelRegister[1], \$parentId)));
+	\$newValue = \$sourceValue * pow(10, \$sfValue);
+
+	if(GetValue(\$targetId) != \$newValue)
+	{
+		SetValue(\$targetId, \$newValue);
+	}
+}");
 			// I160 model
-			$this->RegisterTimer("Update-I160", 0, "
-");
+			$this->RegisterTimer("Update-I160", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("I160 Multiple MPPT Inverter Extension")."\", ".$this->InstanceID.");
+// Inverter - SF Variablen erstellen
+\$inverterModelRegister_array = array(array(40283, 40266), array(40284, 40267), array(40285, 40268), array(40286, 40269), 
+array(40303, 40266), array(40304, 40267), array(40305, 40268), array(40306, 40269));
+foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
+{
+	\$instanceId = IPS_GetObjectIDByIdent(\$inverterModelRegister[0], \$parentId);
+	\$targetId = IPS_GetObjectIDByIdent(\"Value_SF\", \$instanceId);
+	\$sourceValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", \$instanceId));
+	\$sfValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", IPS_GetObjectIDByIdent(\$inverterModelRegister[1], \$parentId)));
+	\$newValue = \$sourceValue * pow(10, \$sfValue);
+
+	if(GetValue(\$targetId) != \$newValue)
+	{
+		SetValue(\$targetId, \$newValue);
+	}
+}");
 
 			// *** SmartMeter - Erstelle deaktivierte Timer ***
 			// Evt
@@ -571,30 +675,30 @@ function removeInvalidChars(\$input)
 							//	array(40132, 1, "R", 3, "ID", "A well-known value 120. Uniquely identifies this as a SunSpec Nameplate Model", "uint16", ""), // = 120
 							//	array(40133, 1, "R", 3, "L", "uint16", "Registers", "Length of Nameplate Model"), // = 26
 							//	array(40134, 1, "R", 3, "DERTyp", "enum16", "", "Type of DER device. Default value is 4 to indicate PV device."), // = 4
-							array(40135, 1, "R", 3, "WRtg", "WRtg_SF Continuous power output capability of the inverter.", "uint16", "W"),
-//							array(40136, 1, "R", 3, "WRtg_SF", "	Scale factor 1", "sunssf", ""),
-							array(40137, 1, "R", 3, "VARtg", "VARtg_SF Continuous Volt-Ampere capability of the inverter.", "uint16", "VA"),
-//							array(40138, 1, "R", 3, "VARtg_SF", "	Scale factor 1", "sunssf", ""),
-							array(40139, 1, "R", 3, "VArRtgQ1", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 1.", "int16", "var"),
-							array(40140, 1, "R", 3, "VArRtgQ2", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 2.", "int16", "var"),
-							array(40141, 1, "R", 3, "VArRtgQ3", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 3.", "int16", "var"),
-							array(40142, 1, "R", 3, "VArRtgQ4", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 4.", "int16", "var"),
-//							array(40143, 1, "R", 3, "VArRtg_SF", "Scale factor 1", "sunssf", ""),
-							array(40144, 1, "R", 3, "ARtg", "ARtg_SF Maximum RMS AC current level capability of the inverter.", "uint16", "A"),
-//							array(40145, 1, "R", 3, "ARtg_SF", "Scale factor -2", "sunssf", ""),
-							array(40146, 1, "R", 3, "PFRtgQ1", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 1.", "int16", "cos()"),
-							array(40147, 1, "R", 3, "PFRtgQ2", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 2.", "int16", "cos()"),
-							array(40148, 1, "R", 3, "PFRtgQ3", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 3.", "int16", "cos()"),
-							array(40149, 1, "R", 3, "PFRtgQ4", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 4.", "int16", "cos()"),
-//							array(40150, 1, "R", 3, "PFRtg_SF", "Scale factor -3", "sunssf", ""),
-							array(40151, 1, "R", 3, "WHRtg", "WHRtg_SF Nominal energy rating of storage device. (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "Wh"),
-//							array(40152, 1, "R", 3, "WHRtg_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
-							array(40153, 1, "R", 3, "AhrRtg", "AhrRtg_SF The useable capacity of the battery. Maximum charge minus minimum charge from a technology capability perspective (Amp-hour capacity rating).", "uint16", "AH"),
-//							array(40154, 1, "R", 3, "AhrRtg_SF", "Scale factor for amphour rating.", "sunssf", ""),
-							array(40155, 1, "R", 3, "MaxChaRte", "MaxChaRte_SF Maximum rate of energy transfer into the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "W"),
-//							array(40156, 1, "R", 3, "MaxChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
-							array(40157, 1, "R", 3, "MaxDisChaRte", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "W"),
-//							array(40158, 1, "R", 3, "MaxDisChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+							array(40135, 1, "R", 3, "WRtg", "WRtg_SF Continuous power output capability of the inverter.", "uint16", ""),
+							array(40137, 1, "R", 3, "VARtg", "VARtg_SF Continuous Volt-Ampere capability of the inverter.", "uint16", ""),
+							array(40139, 1, "R", 3, "VArRtgQ1", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 1.", "int16", ""),
+							array(40140, 1, "R", 3, "VArRtgQ2", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 2.", "int16", ""),
+							array(40141, 1, "R", 3, "VArRtgQ3", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 3.", "int16", ""),
+							array(40142, 1, "R", 3, "VArRtgQ4", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 4.", "int16", ""),
+							array(40144, 1, "R", 3, "ARtg", "ARtg_SF Maximum RMS AC current level capability of the inverter.", "uint16", ""),
+							array(40146, 1, "R", 3, "PFRtgQ1", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 1.", "int16", ""),
+							array(40147, 1, "R", 3, "PFRtgQ2", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 2.", "int16", ""),
+							array(40148, 1, "R", 3, "PFRtgQ3", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 3.", "int16", ""),
+							array(40149, 1, "R", 3, "PFRtgQ4", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 4.", "int16", ""),
+							array(40151, 1, "R", 3, "WHRtg", "WHRtg_SF Nominal energy rating of storage device. (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
+							array(40153, 1, "R", 3, "AhrRtg", "AhrRtg_SF The useable capacity of the battery. Maximum charge minus minimum charge from a technology capability perspective (Amp-hour capacity rating).", "uint16", ""),
+							array(40155, 1, "R", 3, "MaxChaRte", "MaxChaRte_SF Maximum rate of energy transfer into the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
+							array(40157, 1, "R", 3, "MaxDisChaRte", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
+							array(40136, 1, "R", 3, "WRtg_SF", "	Scale factor 1", "sunssf", ""),
+							array(40138, 1, "R", 3, "VARtg_SF", "	Scale factor 1", "sunssf", ""),
+							array(40143, 1, "R", 3, "VArRtg_SF", "Scale factor 1", "sunssf", ""),
+							array(40145, 1, "R", 3, "ARtg_SF", "Scale factor -2", "sunssf", ""),
+							array(40150, 1, "R", 3, "PFRtg_SF", "Scale factor -3", "sunssf", ""),
+							array(40152, 1, "R", 3, "WHRtg_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+							array(40154, 1, "R", 3, "AhrRtg_SF", "Scale factor for amphour rating.", "sunssf", ""),
+							array(40156, 1, "R", 3, "MaxChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+							array(40158, 1, "R", 3, "MaxDisChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
 							//	array(40159, 1, "R", 3, "Pad", "	Pad register", "", ""),
 						);
 
@@ -614,6 +718,48 @@ function removeInvalidChars(\$input)
 						}
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+
+
+						// Inverter - "SF" Variablen erstellen
+						$inverterModelRegister_array = array(
+							array(40135, 1, "R", 3, "WRtg", "WRtg_SF Continuous power output capability of the inverter.", "uint16", "W", 40136),
+							array(40137, 1, "R", 3, "VARtg", "VARtg_SF Continuous Volt-Ampere capability of the inverter.", "uint16", "VA", 40138),
+							array(40139, 1, "R", 3, "VArRtgQ1", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 1.", "int16", "var", 40143),
+							array(40140, 1, "R", 3, "VArRtgQ2", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 2.", "int16", "var", 40143),
+							array(40141, 1, "R", 3, "VArRtgQ3", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 3.", "int16", "var", 40143),
+							array(40142, 1, "R", 3, "VArRtgQ4", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 4.", "int16", "var", 40143),
+							array(40144, 1, "R", 3, "ARtg", "ARtg_SF Maximum RMS AC current level capability of the inverter.", "uint16", "A", 40145),
+							array(40146, 1, "R", 3, "PFRtgQ1", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 1.", "int16", "cos()", 40150),
+							array(40147, 1, "R", 3, "PFRtgQ2", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 2.", "int16", "cos()", 40150),
+							array(40148, 1, "R", 3, "PFRtgQ3", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 3.", "int16", "cos()", 40150),
+							array(40149, 1, "R", 3, "PFRtgQ4", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 4.", "int16", "cos()", 40150),
+							array(40151, 1, "R", 3, "WHRtg", "WHRtg_SF Nominal energy rating of storage device. (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "Wh", 40152),
+							array(40153, 1, "R", 3, "AhrRtg", "AhrRtg_SF The useable capacity of the battery. Maximum charge minus minimum charge from a technology capability perspective (Amp-hour capacity rating).", "uint16", "AH", 40154),
+							array(40155, 1, "R", 3, "MaxChaRte", "MaxChaRte_SF Maximum rate of energy transfer into the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "W", 40156),
+							array(40157, 1, "R", 3, "MaxDisChaRte", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "W", 40158),
+						);
+
+						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						{
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+							
+							$dataType = 7;
+							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
+
+							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+
+							if("cos()" == $inverterModelRegister[IMR_UNITS])
+							{
+								$varId = $this->MaintainInstanceVariable("Value_cos", IPS_GetName($instanceId)."_cos", VARIABLETYPE_FLOAT, "", 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+							}
+
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_UNITS + 1], $categoryId);
+							IPS_SetHidden($instanceId, true);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+						}
 					}
 					else
 					{
@@ -642,34 +788,34 @@ function removeInvalidChars(\$input)
 						/******* Basic Settings Model (IC121) */
 //							array(40160, 1, "R", "0x03", "ID", "A well-known value 121.  Uniquely identifies this as a SunSpec Basic Settings Model", "uint16", "", "", "121"),
 //							array(40161, 1, "R", "0x03", "L", "Registers, Length of Basic Settings Model", "uint16", "", "", "30"),
-							array(40162, 1, "RW", "0x03 0x06 0x10", "WMax", "Setting for maximum power output. Default to I_WRtg.", "uint16", "W", "VAMax_SF", ""),
-							array(40163, 1, "RW", "0x03 0x06 0x10", "VRef", "Voltage at the PCC.", "uint16", "V", "VAMax_SF", ""),
-							array(40164, 1, "RW", "0x03 0x06 0x10", "VRefOfs", "Offset  from PCC to inverter.", "int16", "V", "VRefOfs_SF", ""),
+							array(40162, 1, "RW", "0x03 0x06 0x10", "WMax", "Setting for maximum power output. Default to I_WRtg.", "uint16", "", "WMax_SF", ""),
+							array(40163, 1, "RW", "0x03 0x06 0x10", "VRef", "Voltage at the PCC.", "uint16", "", "VRef_SF", ""),
+							array(40164, 1, "RW", "0x03 0x06 0x10", "VRefOfs", "Offset  from PCC to inverter.", "int16", "", "VRefOfs_SF", ""),
 //							array(40165, 1, "RW", "0x03 0x06 0x10", "VMax", "Setpoint for maximum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
 //							array(40166, 1, "RW", "0x03 0x06 0x10", "VMin", "Setpoint for minimum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
-							array(40167, 1, "RW", "0x03", "VAMax", "Setpoint for maximum apparent power. Default to I_VARtg.", "uint16", "VA", "VAMax_SF", ""),
-							array(40168, 1, "R", "0x03", "VARMaxQ1", "Setting for maximum reactive power in quadrant 1. Default to VArRtgQ1.", "int16", "var", "VARMax_SF", ""),
+							array(40167, 1, "RW", "0x03", "VAMax", "Setpoint for maximum apparent power. Default to I_VARtg.", "uint16", "", "VAMax_SF", ""),
+							array(40168, 1, "R", "0x03", "VARMaxQ1", "Setting for maximum reactive power in quadrant 1. Default to VArRtgQ1.", "int16", "", "VARMax_SF", ""),
 //							array(40169, 1, "R", "0x03", "VARMaxQ2", "Setting for maximum reactive power in quadrant 2. Default to VArRtgQ2.", "int16", "var", "VARMax_SF", "Not supported"),
 //							array(40170, 1, "R", "0x03", "VARMaxQ3", "Setting for maximum reactive power in quadrant 3 Default to VArRtgQ3.", "int16", "var", "VARMax_SF", "Not supported"),
-							array(40171, 1, "R", "0x03", "VARMaxQ4", "Setting for maximum reactive power in quadrant 4 Default to VArRtgQ4.", "int16", "var", "VARMax_SF", ""),
+							array(40171, 1, "R", "0x03", "VARMaxQ4", "Setting for maximum reactive power in quadrant 4 Default to VArRtgQ4.", "int16", "", "VARMax_SF", ""),
 //							array(40172, 1, "R", "0x03", "WGra", "Default ramp rate of change of active power due to command or internal action. (% WMax/min)", "uint16", "%", "WGra_SF", "Not supported"),
-							array(40173, 1, "R", "0x03", "PFMinQ1", "Setpoint for minimum power factor value in quadrant 1. Default to PFRtgQ1.", "int16", "cos()", "PFMin_SF", ""),
+							array(40173, 1, "R", "0x03", "PFMinQ1", "Setpoint for minimum power factor value in quadrant 1. Default to PFRtgQ1.", "int16", "", "PFMin_SF", ""),
 //							array(40174, 1, "R", "0x03", "PFMinQ2", "Setpoint for minimum power factor value in quadrant 2. Default to PFRtgQ2.", "int16", "cos()", "PFMin_SF", "Not supported"),
 //							array(40175, 1, "R", "0x03", "PFMinQ3", "Setpoint for minimum power factor value in quadrant 3. Default to PFRtgQ3.", "int16", "cos()", "PFMin_SF", "Not supported"),
-							array(40176, 1, "R", "0x03", "PFMinQ4", "Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4.", "int16", "cos()", "PFMin_SF", ""),
+							array(40176, 1, "R", "0x03", "PFMinQ4", "Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4.", "int16", "", "PFMin_SF", ""),
 //							array(40177, 1, "R", "0x03", "VArAct", "VAR action on change between charging and discharging: 1=switch 2=maintain VAR characterization.", "enum16", "", "", "Not supported"),
 //							array(40178, 1, "R", "0x03", "ClcTotVA", "Calculation method for total apparent power. 1=vector 2=arithmetic.", "enum16", "", "", "Not supported"),
 //							array(40179, 1, "R", "0x03", "MaxRmpRte", "Setpoint for maximum ramp rate as percentage of nominal maximum ramp rate. This setting will limit the rate that watts delivery to the grid can increase or decrease in response to intermittent PV generation. (% WGra)", "uint16", "%", "MaxRmpRte_SF", "Not supported"),
 //							array(40180, 1, "R", "0x03", "ECPNomHz", "Setpoint for nominal frequency at the ECP.", "uint16", "Hz", "ECPNomHz_SF", "Not supported"),
 //							array(40181, 1, "R", "0x03", "ConnPh", "Identity of connected phase for single phase inverters. A=1 B=2 C=3.", "enum16", "", "", "Not supported"),
-//							array(40182, 1, "R", "0x03", "WMax_SF", "Scale factor for maximum power output.", "sunssf", "", "", "1"),
-//							array(40183, 1, "R", "0x03", "VRef_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "0"),
-//							array(40184, 1, "R", "0x03", "VRefOfs_SF", "Scale factor for offset voltage.", "sunssf", "", "", "0"),
+							array(40182, 1, "R", "0x03", "WMax_SF", "Scale factor for maximum power output.", "sunssf", "", "", "1"),
+							array(40183, 1, "R", "0x03", "VRef_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "0"),
+							array(40184, 1, "R", "0x03", "VRefOfs_SF", "Scale factor for offset voltage.", "sunssf", "", "", "0"),
 //							array(40185, 1, "R", "0x03", "VMinMax_SF", "Scale factor for min/max voltages.", "sunssf", "", "", "0"),
-//							array(40186, 1, "R", "0x03", "VAMax_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "1"),
-//							array(40187, 1, "R", "0x03", "VARMax_SF", "Scale factor for reactive power.", "sunssf", "", "", "1"),
+							array(40186, 1, "R", "0x03", "VAMax_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "1"),
+							array(40187, 1, "R", "0x03", "VARMax_SF", "Scale factor for reactive power.", "sunssf", "", "", "1"),
 //							array(40188, 1, "R", "0x03", "WGra_SF", "Scale factor for default ramp rate.", "sunssf", "", "", "Not supported"),
-//							array(40189, 1, "R", "0x03", "PFMin_SF", "Scale factor for minimum power factor.", "sunssf", "", "", "-3"),
+							array(40189, 1, "R", "0x03", "PFMin_SF", "Scale factor for minimum power factor.", "sunssf", "", "", "-3"),
 //							array(40190, 1, "R", "0x03", "MaxRmpRte_SF", "Scale factor for maximum ramp percentage.", "sunssf", "", "", "Not supported"),
 //							array(40191, 1, "R", "0x03", "ECPNomHz_SF", "Scale factor for nominal frequency.", "sunssf", "", "", "Not supported"),
 						);
@@ -684,6 +830,41 @@ function removeInvalidChars(\$input)
 						}
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+
+
+						// Inverter - "SF" Variablen erstellen
+						$inverterModelRegister_array = array(
+							array(40162, 1, "RW", "0x03 0x06 0x10", "WMax", "Setting for maximum power output. Default to I_WRtg.", "uint16", "W", 40182),
+							array(40163, 1, "RW", "0x03 0x06 0x10", "VRef", "Voltage at the PCC.", "uint16", "V", 40183),
+							array(40164, 1, "RW", "0x03 0x06 0x10", "VRefOfs", "Offset  from PCC to inverter.", "int16", "V", 40184),
+							array(40167, 1, "RW", "0x03", "VAMax", "Setpoint for maximum apparent power. Default to I_VARtg.", "uint16", "VA", 40186),
+							array(40168, 1, "R", "0x03", "VARMaxQ1", "Setting for maximum reactive power in quadrant 1. Default to VArRtgQ1.", "int16", "var", 40187),
+							array(40171, 1, "R", "0x03", "VARMaxQ4", "Setting for maximum reactive power in quadrant 4 Default to VArRtgQ4.", "int16", "var", 40187),
+							array(40173, 1, "R", "0x03", "PFMinQ1", "Setpoint for minimum power factor value in quadrant 1. Default to PFRtgQ1.", "int16", "cos()", 40189),
+							array(40176, 1, "R", "0x03", "PFMinQ4", "Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4.", "int16", "cos()", 40189),
+						);
+
+						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						{
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+							
+							$dataType = 7;
+							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
+
+							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+
+							if("cos()" == $inverterModelRegister[IMR_UNITS])
+							{
+								$varId = $this->MaintainInstanceVariable("Value_cos", IPS_GetName($instanceId)."_cos", VARIABLETYPE_FLOAT, "", 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+							}
+
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_UNITS + 1], $categoryId);
+							IPS_SetHidden($instanceId, true);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+						}
 					}
 					else
 					{
@@ -805,12 +986,12 @@ function removeInvalidChars(\$input)
 							array(40240, 1, "RW", "0x03 0x06 0x10", "Conn_WinTms", "Time window for connect/disconnect.", "uint16", "Secs", "", ""),
 							array(40241, 1, "RW", "0x03 0x06 0x10", "Conn_RvrtTms", "Timeout period for connect/disconnect.", "uint16", "Secs", "", ""),
 							array(40242, 1, "RW", "0x03 0x06 0x10", "Conn", "Enumerated valued.  Connection control.", "uint16", "bitfield16", "", "0: Disconnected, 1: Connected"),
-							array(40243, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct", "Set power output to specified level. (% WMax)", "uint16", "%", "WMaxLimPct_SF", ""),
+							array(40243, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct", "Set power output to specified level. (% WMax)", "uint16", "", "WMaxLimPct_SF", ""),
 							array(40244, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct_WinTms", "Time window for power limit change.", "uint16", "Secs", "", "0 – 300"),
 							array(40245, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct_RvrtTms", "Timeout period for power limit.", "uint16", "Secs", "", "0 – 28800"),
 							array(40246, 1, "RW", "0x03", "WMaxLimPct_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
 							array(40247, 1, "RW", "0x03 0x06 0x10", "WMaxLim_Ena", "Enumerated valued.  Throttle enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
-							array(40248, 1, "RW", "0x03 0x06 0x10", "OutPFSet", "Set power factor to specific value - cosine of angle.", "int16", "cos()", "OutPFSet_SF", ""),
+							array(40248, 1, "RW", "0x03 0x06 0x10", "OutPFSet", "Set power factor to specific value - cosine of angle.", "int16", "", "OutPFSet_SF", ""),
 							array(40249, 1, "RW", "0x03 0x06 0x10", "OutPFSet_WinTms", "Time window for power factor change.", "uint16", "Secs", "", "0 – 300"),
 							array(40250, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RvrtTms", "Timeout period for power factor.", "uint16", "Secs", "", "0 – 28800"),
 							array(40251, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
@@ -823,8 +1004,8 @@ function removeInvalidChars(\$input)
 							array(40258, 1, "RW", "0x03 0x06 0x10", "VArPct_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
 							array(40259, 1, "R", "0x03", "VArPct_Mod", "Enumerated value. VAR limit mode.", "enum16", "", "", "2: VAR limit as a % of VArMax"),
 							array(40260, 1, "RW", "0x03 0x06 0x10", "VArPct_Ena", "Enumerated valued.  Fixed VAR enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
-//							array(40261, 1, "R", "0x03", "WMaxLimPct_SF", "Scale factor for power output percent.", "sunssf", "", "", "-2"),
-//							array(40262, 1, "R", "0x03", "OutPFSet_SF", "Scale factor for power factor.", "sunssf", "", "", "-3"),
+							array(40261, 1, "R", "0x03", "WMaxLimPct_SF", "Scale factor for power output percent.", "sunssf", "", "", "-2"),
+							array(40262, 1, "R", "0x03", "OutPFSet_SF", "Scale factor for power factor.", "sunssf", "", "", "-3"),
 //							array(40263, 1, "R", "0x03", "VArPct_SF", "Scale factor for reactive power.", "sunssf", "", "", "0"),
 						);
 
@@ -842,6 +1023,35 @@ function removeInvalidChars(\$input)
 						}
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+
+
+						// Inverter - "SF" Variablen erstellen
+						$inverterModelRegister_array = array(
+							array(40243, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct", "Set power output to specified level. (% WMax)", "uint16", "%", 40261),
+							array(40248, 1, "RW", "0x03 0x06 0x10", "OutPFSet", "Set power factor to specific value - cosine of angle.", "int16", "cos()", 40262),
+						);
+
+						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						{
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+							
+							$dataType = 7;
+							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
+
+							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+
+							if("cos()" == $inverterModelRegister[IMR_UNITS])
+							{
+								$varId = $this->MaintainInstanceVariable("Value_cos", IPS_GetName($instanceId)."_cos", VARIABLETYPE_FLOAT, "", 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+							}
+
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_UNITS + 1], $categoryId);
+							IPS_SetHidden($instanceId, true);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+						}
 					}
 					else
 					{
@@ -881,32 +1091,32 @@ function removeInvalidChars(\$input)
 							ersten (und einzigen) Eingangs werden normal angezeigt. */
 //							array(40264, 1, "R", "0x03", "ID", "A well-known value 160.  Uniquely identifies this as a SunSpec Multiple MPPT Inverter Extension Model Mode", "uint16", "", "", "160"),
 //							array(40265, 1, "R", "0x03", "L", "Length of Multiple MPPT Inverter Extension Model", "uint16", "", "", "48"),
-							array(40266, 1, "R", "0x03", "DCA_SF", "Current Scale Factor", "sunssf", "", "", ""),
-							array(40267, 1, "R", "0x03", "DCV_SF", "Voltage Scale Factor", "sunssf", "", "", ""),
-							array(40268, 1, "R", "0x03", "DCW_SF", "Power Scale Factor", "sunssf", "", "", ""),
-							array(40269, 1, "R", "0x03", "DCWH_SF", "Energy Scale Factor", "sunssf", "", "", ""),
+							array(40266, 1, "R", "0x03", "DCA_SF", "Current Scale Factor", "sunssf", "", "", "SF=-2"),
+							array(40267, 1, "R", "0x03", "DCV_SF", "Voltage Scale Factor", "sunssf", "", "", "SF=-2"),
+							array(40268, 1, "R", "0x03", "DCW_SF", "Power Scale Factor", "sunssf", "", "", "SF=-1"),
+							array(40269, 1, "R", "0x03", "DCWH_SF", "Energy Scale Factor", "sunssf", "", "", "SF=0"),
 							array(40270, 2, "R", "0x03", "Evt", "Global Events", "uint32", "bitfield32", "", ""),
 							array(40272, 1, "R", "0x03", "N", "Number of Modules", "uint16", "", "", "2"),
 //							array(40273, 1, "R", "0x03", "TmsPer", "Timestamp Period", "uint16", "", "", "Not supported"),
 //							array(40274, 1, "R", "0x03", "1_ID", "Input ID", "uint16", "", "", "1"),
 //							array(40275, 8, "R", "0x03", "1_IDStr", "Input ID Sting", "String16", "", "", "'String 1'"),
-							array(40283, 1, "R", "0x03", "1_DCA", "DC Current", "uint16", "A", "DCA_SF", ""),
-							array(40284, 1, "R", "0x03", "1_DCV", "DC Voltage", "uint16", "V", "DCV_SF", ""),
-							array(40285, 1, "R", "0x03", "1_DCW", "DC Power", "uint16", "W", "DCW_SF", ""),
-							array(40286, 2, "R", "0x03", "1_DCWH", "Lifetime Energy", "acc32", "Wh", "DCWH_SF", ""),
+							array(40283, 1, "R", "0x03", "1_DCA", "DC Current", "uint16", "", "DCA_SF", ""),
+							array(40284, 1, "R", "0x03", "1_DCV", "DC Voltage", "uint16", "", "DCV_SF", ""),
+							array(40285, 1, "R", "0x03", "1_DCW", "DC Power", "uint16", "", "DCW_SF", ""),
+							array(40286, 2, "R", "0x03", "1_DCWH", "Lifetime Energy", "acc32", "", "DCWH_SF", ""),
 							array(40288, 2, "R", "0x03", "1_Tms", "Timestamp", "uint32", "Secs", "", ""),
 							array(40290, 1, "R", "0x03", "1_Tmp", "Temperature", "int16", "C", "", ""),
-							array(40291, 1, "R", "0x03", "1_DCSt", "Operating State", "enum16", "", "", ""),
+							array(40291, 1, "R", "0x03", "1_DCSt", "Operating State", "enum16", "Enumerated_St", "", ""),
 							array(40292, 2, "R", "0x03", "1_DCEvt", "Module Events", "uint32", "bitfield32", "", ""),
 //							array(40294, 1, "R", "0x03", "2_ID", "Input ID", "uint16", "", "", "2"),
 //							array(40295, 8, "R", "0x03", "2_IDStr", "Input ID Sting", "String16", "", "", "'String 2' or 'Not supported'"),
-							array(40303, 1, "R", "0x03", "2_DCA", "DC Current", "uint16", "A", "DCA_SF", "Not supported if only one DC input."),
-							array(40304, 1, "R", "0x03", "2_DCV", "DC Voltage", "uint16", "V", "DCV_SF", "Not supported if only one DC input."),
-							array(40305, 1, "R", "0x03", "2_DCW", "DC Power", "uint16", "W", "DCW_SF", "Not supported if only one DC input."),
-							array(40306, 2, "R", "0x03", "2_DCWH", "Lifetime Energy", "acc32", "Wh", "DCWH_SF", "Not supported if only one DC input."),
+							array(40303, 1, "R", "0x03", "2_DCA", "DC Current", "uint16", "", "DCA_SF", "Not supported if only one DC input."),
+							array(40304, 1, "R", "0x03", "2_DCV", "DC Voltage", "uint16", "", "DCV_SF", "Not supported if only one DC input."),
+							array(40305, 1, "R", "0x03", "2_DCW", "DC Power", "uint16", "", "DCW_SF", "Not supported if only one DC input."),
+							array(40306, 2, "R", "0x03", "2_DCWH", "Lifetime Energy", "acc32", "", "DCWH_SF", "Not supported if only one DC input."),
 							array(40308, 2, "R", "0x03", "2_Tms", "Timestamp", "uint32", "Secs", "", "Not supported if only one DC input."),
 							array(40310, 1, "R", "0x03", "2_Tmp", "Temperature", "int16", "C", "", "Not supported if only one DC input."),
-							array(40311, 1, "R", "0x03", "2_DCSt", "Operating State", "enum16", "", "", "Not supported if only one DC input."),
+							array(40311, 1, "R", "0x03", "2_DCSt", "Operating State", "enum16", "Enumerated_St", "", "Not supported if only one DC input."),
 							array(40312, 2, "R", "0x03", "2_DCEvt", "Module Events", "uint32", "bitfield32", "", "Not supported if only one DC input."),
 						);
 
@@ -922,6 +1132,36 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 						}
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+
+
+						// Inverter - "SF" Variablen erstellen
+						$inverterModelRegister_array = array(
+							array(40283, 1, "R", "0x03", "1_DCA", "DC Current", "uint16", "A", 40266),
+							array(40284, 1, "R", "0x03", "1_DCV", "DC Voltage", "uint16", "V", 40267),
+							array(40285, 1, "R", "0x03", "1_DCW", "DC Power", "uint16", "W", 40268),
+							array(40286, 2, "R", "0x03", "1_DCWH", "Lifetime Energy", "acc32", "Wh", 40269),
+							array(40303, 1, "R", "0x03", "2_DCA", "DC Current", "uint16", "A", 40266),
+							array(40304, 1, "R", "0x03", "2_DCV", "DC Voltage", "uint16", "V", 40267),
+							array(40305, 1, "R", "0x03", "2_DCW", "DC Power", "uint16", "W", 40268),
+							array(40306, 2, "R", "0x03", "2_DCWH", "Lifetime Energy", "acc32", "Wh", 40269),
+						);
+
+						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						{
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+							
+							$dataType = 7;
+							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
+
+							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_UNITS + 1], $categoryId);
+							IPS_SetHidden($instanceId, true);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+						}
 					}
 					else
 					{
@@ -957,30 +1197,30 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 							- Ladung des Energiespeichers vom Netz erlauben/verbieten */
 //							array(40314, 1, "R", "0x03", "ID", "A well-known value 124.  Uniquely identifies this as a SunSpec Basic Storage Controls Model", "uint16", "", "", "124"),
 //							array(40315, 1, "R", "0x03", "L", "Registers, Length of Basic Storage Controls", "uint16", "", "", "24"),
-							array(40316, 1, "R", "0x03", "WchaMax", "Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that  InWRte and OutWRte can be negative to define ranges for charging and discharging only.", "uint16", "W", "WChaMax_SF", ""),
-							array(40317, 1, "R", "0x03", "WchaGra", "Setpoint for maximum charging rate. Default is MaxChaRte. (% WChaMax/sec)", "uint16", "%", "WChaDisChaGra_SF", "100"),
-							array(40318, 1, "R", "0x03", "WdisChaGra", "Setpoint for maximum discharge rate. Default is MaxDisChaRte. (% WChaMax/sec)", "uint16", "%", "WChaDisChaGra_SF", "100"),
+							array(40316, 1, "R", "0x03", "WchaMax", "Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that  InWRte and OutWRte can be negative to define ranges for charging and discharging only.", "uint16", "", "WChaMax_SF", ""),
+							array(40317, 1, "R", "0x03", "WchaGra", "Setpoint for maximum charging rate. Default is MaxChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
+							array(40318, 1, "R", "0x03", "WdisChaGra", "Setpoint for maximum discharge rate. Default is MaxDisChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
 							array(40319, 1, "RW", "0x03 0x06 0x10", "StorCtl_Mod", "Activate hold/discharge/charge storage control mode. Bitfield value. Additional Fronius description: Active hold/discharge/charge storage control mode. Set the charge field to enable charging and the discharge field to enable discharging. Bitfield value.", "uint16", "bitfield16", "", "bit 0: CHARGE, bit 1: DiSCHARGE"),
 //							array(40320, 1, "R", "0x03", "VAChaMax", "Setpoint for maximum charging VA.", "uint16", "VA", "VAChaMax_SF", "Not supported"),
-							array(40321, 1, "RW", "0x03 0x06 0x10", "MinRsvPct", "Setpoint for minimum reserve for storage as a percentage of the nominal maximum storage. (% WChaMax)", "uint16", "%", "MinRsvPct_SF", ""),
-							array(40322, 1, "R", "0x03", "ChaState", "Currently available energy as a percent of the capacity rating. (% AhrRtg)", "uint16", "%", "ChaState_SF", ""),
-							array(40323, 1, "R", "0x03", "StorAval", "State of charge (ChaState) minus storage reserve (MinRsvPct) times capacity rating (AhrRtg).", "uint16", "AH", "StorAval_SF", ""),
-							array(40324, 1, "R", "0x03", "InBatV", "Internal battery voltage.", "uint16", "V", "InBatV_SF", ""),
-							array(40325, 1, "R", "0x03", "ChaSt", "Charge status of storage device. Enumerated value.", "enum16", "", "", "1: OFF, 2: EMPTY, 3: DISCHAGING, 4: CHARGING, 5: FULL, 6: HOLDING, 7: TESTING"),
-							array(40326, 1, "RW", "0x03 0x06 0x10", "OutWRte", "Percent of max discharge rate. Additional Fronius description: Defines maximum Discharge rate. If not used than the default is 100 and wChaMax defines max. Discharge rate. See wChaMax for details. (% WChaMax)", "int16", "%", "InOutWRte_SF", ""),
-							array(40327, 1, "RW", "0x03 0x06 0x10", "InWRte", "Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax)", "int16", "%", "InOutWRte_SF", ""),
+							array(40321, 1, "RW", "0x03 0x06 0x10", "MinRsvPct", "Setpoint for minimum reserve for storage as a percentage of the nominal maximum storage. (% WChaMax)", "uint16", "", "MinRsvPct_SF", ""),
+							array(40322, 1, "R", "0x03", "ChaState", "Currently available energy as a percent of the capacity rating. (% AhrRtg)", "uint16", "", "ChaState_SF", ""),
+							array(40323, 1, "R", "0x03", "StorAval", "State of charge (ChaState) minus storage reserve (MinRsvPct) times capacity rating (AhrRtg).", "uint16", "", "StorAval_SF", ""),
+							array(40324, 1, "R", "0x03", "InBatV", "Internal battery voltage.", "uint16", "", "InBatV_SF", ""),
+							array(40325, 1, "R", "0x03", "ChaSt", "Charge status of storage device. Enumerated value.", "enum16", "Enumerated_ChaSt", "", "1: OFF, 2: EMPTY, 3: DISCHARGING, 4: CHARGING, 5: FULL, 6: HOLDING, 7: TESTING"),
+							array(40326, 1, "RW", "0x03 0x06 0x10", "OutWRte", "Percent of max discharge rate. Additional Fronius description: Defines maximum Discharge rate. If not used than the default is 100 and wChaMax defines max. Discharge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
+							array(40327, 1, "RW", "0x03 0x06 0x10", "InWRte", "Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
 //							array(40328, 1, "R", "0x03", "InOutWRte_WinTms", "Time window for charge/discharge rate change.", "uint16", "Secs", "", "Not supported"),
 //							array(40329, 1, "R", "0x03", "InOutWRte_RvrtTms", "Timeout period for charge/discharge rate.", "uint16", "Secs", "", "Not supported"),
 //							array(40330, 1, "R", "0x03", "InOutWRte_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "Not supported"),
 							array(40331, 1, "RW", "0x03 0x06 0x10", "ChaGriSet", "Setpoint to enable/disable charging from grid", "enum16", "", "", "0: PV (Charging from grid disabled), 1: GRID (Charging from grid enabled)"),
-//							array(40332, 1, "R", "0x03", "WchaMax_SF", "Scale factor for maximum charge.", "sunssf", "", "", "0"),
-//							array(40333, 1, "R", "0x03", "WchaDisChaGra_SF", "Scale factor for maximum charge and discharge rate.", "sunssf", "", "", "0"),
+							array(40332, 1, "R", "0x03", "WchaMax_SF", "Scale factor for maximum charge.", "sunssf", "", "", "0"),
+							array(40333, 1, "R", "0x03", "WchaDisChaGra_SF", "Scale factor for maximum charge and discharge rate.", "sunssf", "", "", "0"),
 //							array(40334, 1, "R", "0x03", "VAChaMax_SF", "Scale factor for maximum charging VA.", "sunssf", "", "", "Not supported"),
-//							array(40335, 1, "R", "0x03", "MinRsvPct_SF", "Scale factor for minimum reserve percentage.", "sunssf", "", "", "-2"),
-//							array(40336, 1, "R", "0x03", "ChaState_SF", "Scale factor for available energy percent.", "sunssf", "", "", "-2"),
-//							array(40337, 1, "R", "0x03", "StorAval_SF", "Scale factor for state of charge.", "sunssf", "", "", "-2"),
-//							array(40338, 1, "R", "0x03", "InBatV_SF", "Scale factor for battery voltage.", "sunssf", "", "", "-2"),
-//							array(40339, 1, "R", "0x03", "InOutWRte_SF", "Scale factor for percent charge/discharge rate.", "sunssf", "", "", "-2"),
+							array(40335, 1, "R", "0x03", "MinRsvPct_SF", "Scale factor for minimum reserve percentage.", "sunssf", "", "", "-2"),
+							array(40336, 1, "R", "0x03", "ChaState_SF", "Scale factor for available energy percent.", "sunssf", "", "", "-2"),
+							array(40337, 1, "R", "0x03", "StorAval_SF", "Scale factor for state of charge.", "sunssf", "", "", "-2"),
+							array(40338, 1, "R", "0x03", "InBatV_SF", "Scale factor for battery voltage.", "sunssf", "", "", "-2"),
+							array(40339, 1, "R", "0x03", "InOutWRte_SF", "Scale factor for percent charge/discharge rate.", "sunssf", "", "", "-2"),
 //							array(40340, 1, "R", "0x03", "ID", "Identifies this as End block", "uint16", "", "", "0xFFFF"),
 //							array(40341, 1, "R", "0x03", "L", "Registers, Length of model block", "uint16", "", "", "0"),
 						);
@@ -999,6 +1239,37 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						}
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+
+
+						// Inverter - "SF" Variablen erstellen
+						$inverterModelRegister_array = array(
+							array(40316, 1, "R", "0x03", "WchaMax", "Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that  InWRte and OutWRte can be negative to define ranges for charging and discharging only.", "uint16", "W", 40332),
+							array(40317, 1, "R", "0x03", "WchaGra", "Setpoint for maximum charging rate. Default is MaxChaRte. (% WChaMax/sec)", "uint16", "%", 40333),
+							array(40318, 1, "R", "0x03", "WdisChaGra", "Setpoint for maximum discharge rate. Default is MaxDisChaRte. (% WChaMax/sec)", "uint16", "%", 40333),
+							array(40321, 1, "RW", "0x03 0x06 0x10", "MinRsvPct", "Setpoint for minimum reserve for storage as a percentage of the nominal maximum storage. (% WChaMax)", "uint16", "%", 40335),
+							array(40322, 1, "R", "0x03", "ChaState", "Currently available energy as a percent of the capacity rating. (% AhrRtg)", "uint16", "%", 40336),
+							array(40323, 1, "R", "0x03", "StorAval", "State of charge (ChaState) minus storage reserve (MinRsvPct) times capacity rating (AhrRtg).", "uint16", "AH", 40337),
+							array(40324, 1, "R", "0x03", "InBatV", "Internal battery voltage.", "uint16", "V", 40338),
+							array(40326, 1, "RW", "0x03 0x06 0x10", "OutWRte", "Percent of max discharge rate. Additional Fronius description: Defines maximum Discharge rate. If not used than the default is 100 and wChaMax defines max. Discharge rate. See wChaMax for details. (% WChaMax)", "int16", "%", 40339),
+							array(40327, 1, "RW", "0x03 0x06 0x10", "InWRte", "Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax)", "int16", "%", 40339),
+						);
+
+						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						{
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+							
+							$dataType = 7;
+							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
+
+							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
+
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_UNITS + 1], $categoryId);
+							IPS_SetHidden($instanceId, true);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+						}
 					}
 					else
 					{
