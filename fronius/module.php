@@ -220,7 +220,13 @@ function removeInvalidChars(\$input)
 				$this->SetStatus(201);
 			}
 
-			if("" != $hostIp)
+			// Workaround für "InstanceInterface not available" Fehlermeldung beim Server-Start...
+			if (KR_READY != IPS_GetKernelRunlevel())
+			{
+				// --> do nothing
+			}
+			// Instanzen nur mit Konfigurierter IP erstellen
+			else if("" != $hostIp)
 			{
 				$this->checkProfiles();
 				list($gatewayId_Old, $interfaceId_Old) = $this->readOldModbusGateway();
