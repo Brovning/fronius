@@ -185,8 +185,78 @@ foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
 }");
 
 			// IC122 model (PVConn, StorConn, StActCtl, Tms)
-			$this->RegisterTimer("Update-IC122", 0, "
-");
+			$this->RegisterTimer("Update-IC122", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("IC122 Extended Measurements & Status")."\", ".$this->InstanceID.");
+//PVConn
+\$instanceId = IPS_GetObjectIDByIdent(\"40194\", \$parentId);
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
+\$varValue = GetValue(\$varId);
+
+\$bitArray = array(\"Connected\",  \"Responsive\", \"Operating\", \"Testing\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
+	\$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}
+
+//StorConn
+\$instanceId = IPS_GetObjectIDByIdent(\"40195\", \$parentId);
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
+\$varValue = GetValue(\$varId);
+
+\$bitArray = array(\"Connected\",  \"Responsive\", \"Operating\", \"Testing\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
+	\$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}
+
+//StActCtl
+\$instanceId = IPS_GetObjectIDByIdent(\"40227\", \$parentId);
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
+\$varValue = GetValue(\$varId);
+
+\$bitArray = array(\"FixedW - Leistungsreduktion\", \"FixedVAR - konstante Blindleistungs-Vorgabe\",  \"FixedPF - konstanter Power-Factor\");
+
+for(\$i = 0; \$i < count(\$bitArray); \$i++)
+{
+	\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\$bitArray[\$i]), \$instanceId);
+	\$bitValue = (\$varValue >> \$i ) & 0x1;
+
+	if(GetValue(\$bitId) != \$bitValue)
+	{
+		SetValue(\$bitId, \$bitValue);
+	}
+}
+
+//Tms
+\$instanceId = IPS_GetObjectIDByIdent(\"40233\", \$parentId);
+\$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
+\$varValue = GetValue(\$varId);
+
+\$bitId = IPS_GetObjectIDByIdent(removeInvalidChars(\"UTC\"), \$instanceId);
+\$bitValue = \$varValue + 946681200;
+
+if(GetValue(\$bitId) != \$bitValue)
+{
+	SetValue(\$bitId, \$bitValue);
+}
+
+function removeInvalidChars(\$input)
+{
+	return preg_replace( '/[^a-z0-9]/i', '', \$input);
+}");
 
 			// IC123 model
 			$this->RegisterTimer("Update-IC123", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("IC123 Immediate Controls")."\", ".$this->InstanceID.");
@@ -891,35 +961,14 @@ function removeInvalidChars(\$input)
 					{
 						$inverterModelRegister_array = array(
 							/******* Extended Measurements & Status Model (IC122)
-							Allgemeines:
-							Dieses Modell liefert einige zusätzliche Mess- und Statuswerte, die das normale Inverter Model nicht abdeckt:
-							- PVConn (3)
-							Dieses Bitfeld zeigt den Status des Wechselrichter an
-							- Bit 0: Verbunden
-							- Bit 1: Ansprechbar
-							- Bit 2: Arbeitet (Wechselrichter speist ein)
-							- ECPConn (5)
-							Dieses Register zeigt den Verbindungsstatus zum Netz an
-							- ECPConn = 1: Wechselrichter speist gerade ein
-							- ECPConn = 0: Wechselrichter speist nicht ein
-							- ActWH (6 - 9)
-							Wirkenergiezähler
-							- StActCtl (36 - 37)
-							Bitfeld für zurzeit aktive Wechselrichter-Modi
-							- Bit 0: Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe)
-							- Bit 1: konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct)
-							- Bit 2: Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)
-							- TmSrc (38 - 41)
-							Quelle für die Zeitsynchronisation. Das Register liefert den String „RTC“ zurück.
-							- Tms (42 - 43)
-							Aktuelle Uhrzeit und Datum der RTC
-							Angegeben werden die Sekunden vom 1. Jänner 2000 00:00 (UTC) bis zur aktuellen Zeit */
+							Allgemeines: Dieses Modell liefert einige zusätzliche Mess- und Statuswerte, die das normale Inverter Model nicht abdeckt.
+							*/
 //							array(40192, 1, "R", "0x03", "ID", "A well-known value 122.  Uniquely identifies this as a SunSpec Measurements_Status Model", "uint16", "", "", "122"),
 //							array(40193, 1, "R", "0x03", "L", "Registers, Length of Measurements_Status Model", "uint16", "", "", "44"),
-							array(40194, 1, "R", "0x03", "PVConn", "PV inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "Bit 0: Connected, Bit 1: Available, Bit 2: Operating, Bit 3: Test"),
-							array(40195, 1, "R", "0x03", "StorConn", "Storage inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "bit 0: CONNECTED, bit 1: AVAILABLE, bit 2: OPERATING, bit 3: TEST"),
-							array(40196, 1, "R", "0x03", "ECPConn", "ECP connection status: disconnected=0  connected=1.", "uint16", "bitfield16", "", "0: Disconnected, 1: Connected"),
-							array(40197, 4, "R", "0x03", "ActWh", "AC lifetime active (real) energy output.", "acc64", "Wh", "", ""),
+							array(40194, 1, "R", "0x03", "PVConn - PV inverter status", "PV inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "Dieses Bitfeld zeigt den Status des Wechselrichter an: Bit 0: Verbunden, Bit 1: Ansprechbar, Bit 2: Arbeitet (Wechselrichter speist ein) / Bit 0: Connected, Bit 1: Available, Bit 2: Operating, Bit 3: Test"),
+							array(40195, 1, "R", "0x03", "StorConn - storage inverter status", "Storage inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "bit 0: CONNECTED, bit 1: AVAILABLE, bit 2: OPERATING, bit 3: TEST"),
+							array(40196, 1, "R", "0x03", "ECPConn - electrical connection point status", "Electrical Connection Point connection status: disconnected=0  connected=1. / Dieses Register zeigt den Verbindungsstatus zum Netz an: ECPConn = 1: Wechselrichter speist gerade ein, ECPConn = 0: Wechselrichter speist nicht ein", "uint16", "bitfield16", "", "0: Disconnected, 1: Connected"),
+							array(40197, 4, "R", "0x03", "ActWh - AC energy output", "AC lifetime active (real) energy output. / Wirkenergiezähler", "acc64", "Wh", "", ""),
 /*							array(40201, 4, "R", "0x03", "ActVAh", "AC lifetime apparent energy output.", "acc64", "VAh", "", "Not supported"),
 							array(40205, 4, "R", "0x03", "ActVArhQ1", "AC lifetime reactive energy output in quadrant 1.", "acc64", "varh", "", "Not supported"),
 							array(40209, 4, "R", "0x03", "ActVArhQ2", "AC lifetime reactive energy output in quadrant 2.", "acc64", "varh", "", "Not supported"),
@@ -930,9 +979,9 @@ function removeInvalidChars(\$input)
 							array(40223, 1, "R", "0x03", "WAval", "Amount of Watts available.", "uint16", "W", "WAval_SF", "Not supported"),
 							array(40224, 1, "R", "0x03", "WAval_SF", "Scale factor for available Watts.", "sunssf", "", "", "Not supported"),
 							array(40225, 2, "R", "0x03", "StSetLimMsk", "Bit Mask indicating setpoint limit(s) reached. Bits are persistent and must be cleared by the controller.", "uint32", "bitfield32", "", "Not supported"),
-*/							array(40227, 2, "R", "0x03", "StActCtl", "Bit Mask indicating which inverter controls are currently active.", "uint32", "bitfield32", "", "Bit 0: FixedW, Bit 1: FixedVAR, Bit 2: FixedPF"),
-//							array(40229, 4, "R", "0x03", "TmSrc", "Source of time synchronization.", "String8", "", "", "RTC"),
-							array(40233, 2, "R", "0x03", "Tms", "Seconds since 01-01-2000 00:00 UTC", "uint32", "Secs", "", ""),
+*/							array(40227, 2, "R", "0x03", "StActCtl - inverter controls", "Bit Mask indicating which inverter controls are currently active. / Bitfeld für zurzeit aktive Wechselrichter-Modi: Bit 0: Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe), Bit 1: konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct), Bit 2: Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)", "uint32", "bitfield32", "", "Bit 0: FixedW, Bit 1: FixedVAR, Bit 2: FixedPF"),
+//							array(40229, 4, "R", "0x03", "TmSrc", "Source of time synchronization. / Quelle für die Zeitsynchronisation. Das Register liefert den String „RTC“ zurück.", "String8", "", "", "RTC"),
+							array(40233, 2, "R", "0x03", "Tms - time", "Seconds since 01-01-2000 00:00 UTC / Sekunden vom 1. Januar 2000 00:00 (UTC) bis zur aktuellen Zeit", "uint32", "", "", ""),
 /*							array(40235, 1, "R", "0x03", "RtSt", "Bit Mask indicating which voltage ride through modes are currently active.", "uint16", "bitfield16", "", "Not supported"),
 							array(40236, 1, "R", "0x03", "Ris", "Isolation resistance", "uint16", "Ohm", "Ris_SF", "Not supported"),
 							array(40237, 1, "R", "0x03", "Ris_SF", "Scale factor for Isolation resistance", "int16", "", "", "Not supported"),
@@ -948,6 +997,66 @@ function removeInvalidChars(\$input)
 						}
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+
+
+						// Inverter - Bit 0 - 3 für "PVConn" erstellen
+						$instanceId = IPS_GetObjectIDByIdent("40194", $categoryId);
+						$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+						IPS_SetHidden($varId, true);
+
+						$bitArray = array(
+							array('varName' => "Connected", 'varProfile' => "~Switch", 'varInfo' => "Verbunden"),
+							array('varName' => "Responsive", 'varProfile' => "~Switch", 'varInfo' => "Ansprechbar"),
+							array('varName' => "Operating", 'varProfile' => "~Switch", 'varInfo' => "Arbeitet (Wechselrichter speist ein)"),
+							array('varName' => "Testing", 'varProfile' => "~Switch", 'varInfo' => "Test"),
+						);
+
+						foreach ($bitArray as $bit)
+						{
+							$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
+						}
+
+						// Inverter - Bit 0 - 3 für "StorConn" erstellen
+						$instanceId = IPS_GetObjectIDByIdent("40195", $categoryId);
+						$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+						IPS_SetHidden($varId, true);
+
+						$bitArray = array(
+							array('varName' => "Connected", 'varProfile' => "~Switch", 'varInfo' => "Verbunden"),
+							array('varName' => "Responsive", 'varProfile' => "~Switch", 'varInfo' => "Ansprechbar"),
+							array('varName' => "Operating", 'varProfile' => "~Switch", 'varInfo' => "Arbeitet (Wechselrichter lädt)"),
+							array('varName' => "Testing", 'varProfile' => "~Switch", 'varInfo' => "Test"),
+						);
+
+						foreach ($bitArray as $bit)
+						{
+							$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
+						}
+
+
+						// Inverter - Bit 0 - 2 für "StActCtl" erstellen
+						$instanceId = IPS_GetObjectIDByIdent("40227", $categoryId);
+						$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+						IPS_SetHidden($varId, true);
+
+						$bitArray = array(
+							array('varName' => "FixedW - Leistungsreduktion", 'varProfile' => "~Switch", 'varInfo' => "Power reduction (FixedW; corresponds to WMaxLimPct specification) / Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe)"),
+							array('varName' => "FixedVAR - konstante Blindleistungs-Vorgabe", 'varProfile' => "~Switch", 'varInfo' => "Constant reactive power specification (FixedVAR; corresponds to VArMaxPct) / konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct)"),
+							array('varName' => "FixedPF - konstanter Power-Factor", 'varProfile' => "~Switch", 'varInfo' => "Setting a constant power factor (FixedPF; corresponds to OutPFSet) / Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)"),
+						);
+
+						foreach ($bitArray as $bit)
+						{
+							$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
+						}
+
+						// Inverter - UTC für "Tms" erstellen
+						$instanceId = IPS_GetObjectIDByIdent("40233", $categoryId);
+						$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+						IPS_SetHidden($varId, true);
+
+						$varId = $this->MaintainInstanceVariable($this->removeInvalidChars("UTC"), "UTC", VARIABLETYPE_INTEGER, "~UnixTimestamp", 0, true, $instanceId, "UTC time");
+						
 //						$this->SetTimerInterval("Update-IC122", 5000);
 					}
 					else
