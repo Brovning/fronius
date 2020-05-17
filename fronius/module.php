@@ -52,8 +52,8 @@ if (!defined('IMR_START_REGISTER'))
 			$this->RegisterPropertyInteger('pollCycle', '60');
 
 			// *** Inverter - Erstelle deaktivierte Timer ***
-			// Evt1
-			$this->RegisterTimer("Update-Evt1", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40120\", ".$this->InstanceID.");
+			// I11X model (Evt1, EvtVnd1, EvtVnd2, EvtVnd3)
+			$this->RegisterTimer("Update-I11X", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40120\", ".$this->InstanceID.");
 \$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
@@ -70,14 +70,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 	}
 }
 
-function removeInvalidChars(\$input)
-{
-	return preg_replace( '/[^a-z0-9]/i', '', \$input);
-}");
-
-
-			// EvtVnd1
-			$this->RegisterTimer("Update-EvtVnd1", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40124\", ".$this->InstanceID.");
+\$instanceId = IPS_GetObjectIDByIdent(\"40124\", ".$this->InstanceID.");
 \$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
@@ -94,14 +87,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 	}
 }
 
-function removeInvalidChars(\$input)
-{
-	return preg_replace( '/[^a-z0-9]/i', '', \$input);
-}");
-
-
-			// EvtVnd2
-			$this->RegisterTimer("Update-EvtVnd2", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40126\", ".$this->InstanceID.");
+\$instanceId = IPS_GetObjectIDByIdent(\"40126\", ".$this->InstanceID.");
 \$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
@@ -118,14 +104,7 @@ for(\$i = 0; \$i < count(\$bitArray); \$i++)
 	}
 }
 
-function removeInvalidChars(\$input)
-{
-	return preg_replace( '/[^a-z0-9]/i', '', \$input);
-}");
-
-
-			// EvtVnd3
-			$this->RegisterTimer("Update-EvtVnd3", 0, "\$instanceId = IPS_GetObjectIDByIdent(\"40128\", ".$this->InstanceID.");
+\$instanceId = IPS_GetObjectIDByIdent(\"40128\", ".$this->InstanceID.");
 \$varId = IPS_GetObjectIDByIdent(\"Value\", \$instanceId);
 \$varValue = GetValue(\$varId);
 
@@ -146,6 +125,29 @@ function removeInvalidChars(\$input)
 {
 	return preg_replace( '/[^a-z0-9]/i', '', \$input);
 }");
+
+			// IC120 model
+			$this->RegisterTimer("Update-IC120", 0, "
+");
+
+			// IC121 model
+			$this->RegisterTimer("Update-IC121", 0, "
+");
+
+			// IC122 model (PVConn, StorConn, StActCtl, Tms)
+			$this->RegisterTimer("Update-IC122", 0, "
+");
+
+			// IC123 model
+			$this->RegisterTimer("Update-IC123", 0, "
+");
+
+			// IC124 model
+			$this->RegisterTimer("Update-IC124", 0, "
+");
+			// I160 model
+			$this->RegisterTimer("Update-I160", 0, "
+");
 
 			// *** SmartMeter - Erstelle deaktivierte Timer ***
 			// Evt
@@ -271,12 +273,12 @@ function removeInvalidChars(\$input)
 
 
 				$inverterModelRegister_array = array(
-					/* ********** Inverter Model ************************************************************************
+					/* ********** Inverter Model I11X ************************************************************************
 				Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
 					- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
 				HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
 						************************************************************************************************** */
-					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)", "uint16", ""),
+					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)", "uint16", "Enumerated_ID"),
 					array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block", "uint16", ""),
 					array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
 					array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "AC Phase-A Current value", "float32", "A"),
@@ -615,6 +617,8 @@ function removeInvalidChars(\$input)
 					}
 					else
 					{
+						$this->SetTimerInterval("Update-IC120", 0);
+
 						if(false !== $categoryId)
 						{
 							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
@@ -683,6 +687,8 @@ function removeInvalidChars(\$input)
 					}
 					else
 					{
+						$this->SetTimerInterval("Update-IC121", 0);
+
 						if(false !== $categoryId)
 						{
 							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
@@ -761,9 +767,12 @@ function removeInvalidChars(\$input)
 						}
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
+//						$this->SetTimerInterval("Update-IC122", 5000);
 					}
 					else
 					{
+						$this->SetTimerInterval("Update-IC122", 0);
+
 						if(false !== $categoryId)
 						{
 							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
@@ -836,6 +845,8 @@ function removeInvalidChars(\$input)
 					}
 					else
 					{
+						$this->SetTimerInterval("Update-IC123", 0);
+
 						if(false !== $categoryId)
 						{
 							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
@@ -914,6 +925,8 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 					}
 					else
 					{
+						$this->SetTimerInterval("Update-I160", 0);
+
 						if(false !== $categoryId)
 						{
 							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
@@ -989,6 +1002,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					}
 					else
 					{
+						$this->SetTimerInterval("Update-IC124", 0);
+
 						if(false !== $categoryId)
 						{
 							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
@@ -1007,10 +1022,13 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				else
 				{
 					// Inverter - Timer deaktivieren
-					$this->SetTimerInterval("Update-Evt1", 0);
-					$this->SetTimerInterval("Update-EvtVnd1", 0);
-					$this->SetTimerInterval("Update-EvtVnd2", 0);
-					$this->SetTimerInterval("Update-EvtVnd3", 0);
+					$this->SetTimerInterval("Update-I11X", 0);
+					$this->SetTimerInterval("Update-IC120", 0);
+					$this->SetTimerInterval("Update-IC121", 0);
+					$this->SetTimerInterval("Update-IC122", 0);
+					$this->SetTimerInterval("Update-IC123", 0);
+					$this->SetTimerInterval("Update-IC124", 0);
+					$this->SetTimerInterval("Update-I160", 0);
 
 					// Inverter spezifische Funktionen deaktivieren
 /* verursacht aktuell noch Probleme, da der ClientSocket erstellt/gelöscht wird!
@@ -1086,10 +1104,32 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					if (!$readSmartmeter)
 					{
 						// Inverter - Timer aktivieren
-						$this->SetTimerInterval("Update-Evt1", 5000);
-						$this->SetTimerInterval("Update-EvtVnd1", 5000);
-						$this->SetTimerInterval("Update-EvtVnd2", 5000);
-						$this->SetTimerInterval("Update-EvtVnd3", 5000);
+						$this->SetTimerInterval("Update-I11X", 5000);
+
+						if ($readIC120)
+						{
+							$this->SetTimerInterval("Update-IC120", 5000);
+						}
+						if ($readIC121)
+						{
+							$this->SetTimerInterval("Update-IC121", 5000);
+						}
+						if ($readIC122)
+						{
+							$this->SetTimerInterval("Update-IC122", 5000);
+						}
+						if ($readIC123)
+						{
+							$this->SetTimerInterval("Update-IC123", 5000);
+						}
+						if ($readIC124)
+						{
+							$this->SetTimerInterval("Update-IC124", 5000);
+						}
+						if ($readI160)
+						{
+							$this->SetTimerInterval("Update-I160", 5000);
+						}
 					}
 					else
 					{
@@ -1128,10 +1168,13 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					//IPS_Sleep(100);
 
 					// Inverter - Timer deaktivieren
-					$this->SetTimerInterval("Update-Evt1", 0);
-					$this->SetTimerInterval("Update-EvtVnd1", 0);
-					$this->SetTimerInterval("Update-EvtVnd2", 0);
-					$this->SetTimerInterval("Update-EvtVnd3", 0);
+					$this->SetTimerInterval("Update-I11X", 0);
+					$this->SetTimerInterval("Update-IC120", 0);
+					$this->SetTimerInterval("Update-IC121", 0);
+					$this->SetTimerInterval("Update-IC122", 0);
+					$this->SetTimerInterval("Update-IC123", 0);
+					$this->SetTimerInterval("Update-IC124", 0);
+					$this->SetTimerInterval("Update-I160", 0);
 
 					// SmartMeter - Timer deaktivieren
 					$this->SetTimerInterval("SM_Update-Evt", 0);
