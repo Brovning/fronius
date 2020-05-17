@@ -1454,6 +1454,33 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 		
 		private function checkProfiles()
 		{
+			$this->createVarProfile("SunSpec.ChaSt.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
+					array('Name' => "OFF", 'Wert' => 1, "OFF: Energiespeicher nicht verfügbar"),
+					array('Name' => "EMPTY", 'Wert' => 2, "EMPTY: Energiespeicher vollständig entladen"),
+					array('Name' => "DISCHAGING", 'Wert' => 3, "DISCHARGING: Energiespeicher wird entladen"),
+					array('Name' => "CHARGING", 'Wert' => 4, "CHARGING: Energiespeicher wird geladen"),
+					array('Name' => "FULL", 'Wert' => 5, "FULL: Energiespeicher vollständig geladen"),
+					array('Name' => "HOLDING", 'Wert' => 6, "HOLDING: Energiespeicher wird weder geladen noch entladen"),
+					array('Name' => "TESTING", 'Wert' => 7, "TESTING: Energiespeicher wird getestet"),
+				)
+			);
+			$this->createVarProfile("SunSpec.ID.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+					array('Name' => "single phase Inv (i)", 'Wert' => 101, "101: single phase Inverter (int)"),
+					array('Name' => "split phase Inv (i)", 'Wert' => 102, "102: split phase Inverter (int)"),
+					array('Name' => "three phase Inv (i)", 'Wert' => 103, "103: three phase Inverter (int)"),
+					array('Name' => "single phase Inv (f)", 'Wert' => 111, "111: single phase Inverter (float)"),
+					array('Name' => "split phase Inv (f)", 'Wert' => 112, "112: split phase Inverter (float)"),
+					array('Name' => "three phase Inv (f)", 'Wert' => 113, "113: three phase Inverter (float)"),
+					array('Name' => "single phase Meter (i)", 'Wert' => 201, "201: single phase Meter (int)"),
+					array('Name' => "split phase Meter (i)", 'Wert' => 202, "202: split phase (int)"),
+					array('Name' => "three phase Meter (i)", 'Wert' => 203, "203: three phase (int)"),
+					array('Name' => "single phase Meter (f)", 'Wert' => 211, "211: single phase Meter (float)"),
+					array('Name' => "split phase Meter (f)", 'Wert' => 212, "212: split phase Meter (float)"),
+					array('Name' => "three phase Meter (f)", 'Wert' => 213, "213: three phase Meter (float)"),
+					array('Name' => "string combiner (i)", 'Wert' => 403, "403: String Combiner (int)"),
+				)
+			);
 			$this->createVarProfile("SunSpec.StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
 					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
 					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
