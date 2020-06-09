@@ -1,5 +1,5 @@
 # Fronius
-IP-Symcon (IPS) Modul für Fronius Inverter (Wechselrichter) und SmartMeter (Energiezähler) mit TCP ModBus Unterstützung (bspw. Galvo, Primo, Symo, Symo Hybrid,...).
+IP-Symcon (IPS) Modul für Fronius Inverter (Wechselrichter) und SmartMeter (Energiezähler) mit ModBus TCP Unterstützung (bspw. Galvo, Primo, Symo, Symo Hybrid,...).
 
 
 ### Inhaltsverzeichnis
