@@ -1,0 +1,8 @@
+Version 1.0.0-0
+ - initial version
+
+Version 1.1.0-0
+ - added Smart-Meter register maps
+
+Version 1.1.1-0
+ - change Linux LF to Windows CR/LF in file _CHANGELOG.TXT
