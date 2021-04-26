@@ -394,6 +394,11 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 ### 8. Versionshistorie
 
+#### v1.2
+- Fronius Primo GEN24, Symo GEN24, Tauro und Galvo hinzugefügt
+- Logwerte F_Site_Power, F_Site_Energy_Day, F_Site_Energy_Year und F_Site_Energy_Total hinzugefügt
+- interne Optimierungen
+
 #### v1.1
 - Fehler #11: Nach IPS Neustart wird je ein weiteres FroniusModbusGateway und FroniusClientSocket erstellt
 - Feature Request #10: ScaleFactor (SF) berücksichtigen und Werte entsprechend umrechnen
