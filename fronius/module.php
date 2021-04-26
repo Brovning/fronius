@@ -413,19 +413,19 @@ function removeInvalidChars(\$input)
 				/* ****** Fronius Register **************************************************************************
 					HINWEIS! Diese Register gelten nur für Wechselrichter. Für Fronius String Controls und Energiezähler sind diese Register nicht relevant
 					************************************************************************************************** */
-/*				$inverterModelRegister_array = array(
-					array(212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
+				$inverterModelRegister_array = array(
+/*					array(212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
 					array(213, 1, "RW", "0x03 0x06 0x10", "F_Store_Data", "Rating data of all inverters connected to the Fronius Datamanager are persistently stored by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
 					array(214, 1, "R", "0x03", "F_Active_State_Code", "Current active state code of inverter - Description can be found in inverter manual: Status-Code des Wechselrichters: Das Register F_Active_State_Code (214) zeigt den Status-Code des Wechselrichter an der gerade aufgetreten ist. Dieser wird eventuell auch am Display des Wechselrichter angezeigt. Dieser Code wird auch als Event Flag im Inverter Modell dargestellt. Der angezeigte Code bleibt so lange aktiv bis der entsprechende Status nicht mehr am Wechselrichter anliegt. Alternativ kann der Status auch per Register F_Reset_All_Event_ Flags gelöscht werden.", "uint16", "", "", "not supported for Fronius Hybrid inverters (because of this inverter status maybe reported differently during nighttime compared to other inverter types)"),
 					array(215, 1, "RW", "0x03 0x06 0x10", "F_Reset_All_Event_Flags", "Write 0xFFFF to reset all event flags and active state code.", "uint16", "", "", "0xFFFF"),
 					array(216, 1, "RW", "0x03 0x06 0x10", "F_ModelType", "Type of SunSpec models used for inverter and meter data. Write 1 or 2 and then immediately 6 to acknowledge setting.", "uint16", "", "", "1: Floating point, 2: Integer & SF"),
 					array(217, 1, "RW", "0x03 0x06 0x10", "F_Storage_Restrictions_View_Mode", "Type of Restrictions reported in BasicStorageControl Model (IC124). Local restrictions are those that are set by Modbus Interface. Global restrictions are those that are set system wide.", "uint16", "", "", "0: local (default); 1: global"),
-					array(500, 2, "R", "0x03", "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W", "", ""),
-					array(502, 4, "R", "0x03", "F_Site_Energy_Day", "Total energy for current day of all connected inverters.", "uint64", "Wh", "", ""),
-					array(506, 4, "R", "0x03", "F_Site_Energy_Year", "Total energy for last year of all connected inverters.", "uint64", "Wh", "", ""),
-					array(510, 4, "R", "0x03", "F_Site_Energy_Total", "Total energy of all connected inverters.", "uint64", "Wh", "", ""),
-				);
-*/
+*/					array(500, 2, "R", 3, "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W"),
+					array(502, 4, "R", 3, "F_Site_Energy_Day", "Total energy for current day of all connected inverters.", "uint64", "Wh"),
+					array(506, 4, "R", 3, "F_Site_Energy_Year", "Total energy for last year of all connected inverters.", "uint64", "Wh"),
+					array(510, 4, "R", 3, "F_Site_Energy_Total", "Total energy of all connected inverters.", "uint64", "Wh"),
+//				);
+
 
 				/* ********** Common Model **************************************************************************
 					Die Beschreibung des Common Block inklusive der SID Register (Register 40001-40002)
@@ -433,20 +433,20 @@ function removeInvalidChars(\$input)
 					Energiezähler). Jedes Gerät besitzt einen eigenen Common Block, in dem Informationen
 					über das Gerät (Modell, Seriennummer, SW Version, etc.) aufgeführt sind.
 					************************************************************************************************** */
-				$inverterModelRegister_array = array(
-					//				    array(40001, 2, "R", 3, "SID", "uint32", "", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map"),
-					//				    array(40003, 1, "R", 3, "ID", "uint16", "", "Well-known value. Uniquely identifies this as a SunSpec Common Model block"), // = 1
-					//    array(40004, 1, "R", 3, "L", "uint16", "", "Registers Length of Common Model block"), // = 65
-					/*					array(40005, 16, "R", 3, "Mn", "String32", "", "Manufacturer z.B. Fronius"),
-				array(40021, 16, "R", 3, "Md", "String32", "", "Device model z.B. IG+150V"),
-				array(40037, 8, "R", 3, "Opt", "String16", "", "SW version of datamanager z.B. 3.3.6-13"),
-				array(40045, 8, "R", 3, "Vr", "String16", "", "SW version of inverter"),
-				array(40053, 16, "R", 3, "SN", "String32", "", "Serialnumber of inverter, string control or energy meter"),
-						*/				//  array(40069, 1, "R", 3, "DA", "uint16", "", "Modbus Device Address 1 - 247"), // = 1
+/*				$inverterModelRegister_array = array(
+					// array(40001, 2, "R", 3, "SID", "uint32", "", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map"),
+					// array(40003, 1, "R", 3, "ID", "uint16", "", "Well-known value. Uniquely identifies this as a SunSpec Common Model block"), // = 1
+					// array(40004, 1, "R", 3, "L", "uint16", "", "Registers Length of Common Model block"), // = 65
+					// array(40005, 16, "R", 3, "Mn", "String32", "", "Manufacturer z.B. Fronius"),
+					// array(40021, 16, "R", 3, "Md", "String32", "", "Device model z.B. IG+150V"),
+					// array(40037, 8, "R", 3, "Opt", "String16", "", "SW version of datamanager z.B. 3.3.6-13"),
+					// array(40045, 8, "R", 3, "Vr", "String16", "", "SW version of inverter"),
+					// array(40053, 16, "R", 3, "SN", "String32", "", "Serialnumber of inverter, string control or energy meter"),
+					//  array(40069, 1, "R", 3, "DA", "uint16", "", "Modbus Device Address 1 - 247"), // = 1
 				);
+*/
 
-
-				$inverterModelRegister_array = array(
+//				$inverterModelRegister_array = array(
 					/* ********** Inverter Model I11X ************************************************************************
 				Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
 					- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
@@ -1736,6 +1736,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$datenTyp = 7;
 			}
+			elseif ("uint64" == strtolower($type))
+			{
+				$datenTyp = 8;
+			}
 			elseif ("string32" == strtolower($type)
 				|| "string16" == strtolower($type)
 				|| "string8" == strtolower($type)
@@ -1830,7 +1834,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = "~Valve";
 			}
-			elseif ("wh" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("wh" == strtolower($unit) && (7 == $datenTyp || 8 == $datenTyp))
 			{
 				$profile = MODUL_PREFIX.".Electricity.Float";
 			}
@@ -1880,6 +1884,14 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			elseif ("enumerated_stvnd" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".StateCodes.Int";
+			}
+			elseif ("" == $unit && "emergency-power" == strtolower($datenTyp))
+			{
+				$profile = MODUL_PREFIX.".Emergency-Power.Int";
+			}
+			elseif ("powermeter" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".Powermeter.Int";
 			}
 			elseif ("secs" == strtolower($unit))
 			{
@@ -1964,6 +1976,31 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					array('Name' => "AFCI", 'Wert' => 13, "AFCI Event (Arc-Erkennung)"),
 				)
 			);
+/*
+			$this->createVarProfile(MODUL_PREFIX.".Emergency-Power.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+					array('Name' => "nicht unterstützt", 'Wert' => 0, "Notstrom wird nicht von Ihrem Gerät unterstützt", 'Farbe' => 16753920),
+					array('Name' => "aktiv", 'Wert' => 1, "Notstrom aktiv (Ausfall des Stromnetzes)", 'Farbe' => 65280),
+					array('Name' => "nicht aktiv", 'Wert' => 2, "Notstrom nicht aktiv", 'Farbe' => -1),
+					array('Name' => "nicht verfügbar", 'Wert' => 3, "Notstrom nicht verfügbar", 'Farbe' => 16753920),
+					array('Name' => "Fehler", 'Wert' => 4, "Der Motorschalter des S10 E befindet sich nicht in der richtigen Position, sondern wurde manuell abgeschaltet oder nicht eingeschaltet.", 'Farbe' => 16711680),
+				)
+			);
+
+			$this->createVarProfile(MODUL_PREFIX.".Powermeter.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+				array('Name' => "N/A", 'Wert' => 0),
+				array('Name' => "Wurzelleistungsmesser", 'Wert' => 1, "Dies ist der Regelpunkt des Systems. Der Regelpunkt entspricht üblicherweise dem Hausanschlusspunkt."),
+				array('Name' => "Externe Produktion", 'Wert' => 2),
+				array('Name' => "Zweirichtungszähler", 'Wert' => 3),
+				array('Name' => "Externer Verbrauch", 'Wert' => 4),
+				array('Name' => "Farm", 'Wert' => 5),
+				array('Name' => "Wird nicht verwendet", 'Wert' => 6),
+				array('Name' => "Wallbox", 'Wert' => 7),
+				array('Name' => "Externer Leistungsmesser Farm", 'Wert' => 8),
+				array('Name' => "Datenanzeige", 'Wert' => 9, "Wird nicht in die Regelung eingebunden, sondern dient nur der Datenaufzeichnung des Kundenportals."),
+				array('Name' => "Regelungsbypass", 'Wert' => 10, "Die gemessene Leistung wird nicht in die Batterie geladen, aus der Batterie entladen."),
+				)
+			);
+*/
 			$this->createVarProfile(MODUL_PREFIX.".Ampere.Int", VARIABLETYPE_INTEGER, ' A');
 			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Float", VARIABLETYPE_FLOAT, ' Ah');
 			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Int", VARIABLETYPE_INTEGER, ' Ah');
