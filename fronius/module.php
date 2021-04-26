@@ -1527,10 +1527,13 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						fclose($fp);
 
 						// Client Soket aktivieren
-						IPS_SetProperty($interfaceId, "Open", true);
-						IPS_ApplyChanges($interfaceId);
-						//IPS_Sleep(100);
-
+						if (false == IPS_GetProperty($interfaceId, "Open"))
+						{
+							IPS_SetProperty($interfaceId, "Open", true);
+							IPS_ApplyChanges($interfaceId);
+							//IPS_Sleep(100);
+						}
+						
 						// aktiv
 						$this->SetStatus(102);
 					}
@@ -1543,10 +1546,13 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				else
 				{
 					// Client Soket deaktivieren
-					IPS_SetProperty($interfaceId, "Open", false);
-					IPS_ApplyChanges($interfaceId);
-					//IPS_Sleep(100);
-
+					if (true == IPS_GetProperty($interfaceId, "Open"))
+					{
+						IPS_SetProperty($interfaceId, "Open", false);
+						IPS_ApplyChanges($interfaceId);
+						//IPS_Sleep(100);
+					}
+					
 					// Inverter - Timer deaktivieren
 					$this->SetTimerInterval("Update-I11X", 0);
 					$this->SetTimerInterval("Update-IC120", 0);
@@ -1606,7 +1612,6 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 					$instanceId = @IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER].$uniqueIdent, $parentId);
 					$initialCreation = false;
-					$applyChanges = false;
 
 					// Modbus-Instanz erstellen, sofern noch nicht vorhanden
 					if (false === $instanceId)
@@ -1618,7 +1623,6 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						IPS_SetName($instanceId, $inverterModelRegister[IMR_NAME]);
 						IPS_SetInfo($instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
-						$applyChanges = true;
 						$initialCreation = true;
 					}
 
@@ -1633,7 +1637,6 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 						// neues Gateway verbinden
 						IPS_ConnectInstance($instanceId, $gatewayId);
-						$applyChanges = true;
 					}
 
 
@@ -1641,23 +1644,19 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					if ($datenTyp != IPS_GetProperty($instanceId, "DataType"))
 					{
 						IPS_SetProperty($instanceId, "DataType", $datenTyp);
-						$applyChanges = true;
 					}
 					if (false != IPS_GetProperty($instanceId, "EmulateStatus"))
 					{
 						IPS_SetProperty($instanceId, "EmulateStatus", false);
-						$applyChanges = true;
 					}
 					if ($pollCycle != IPS_GetProperty($instanceId, "Poller"))
 					{
 						IPS_SetProperty($instanceId, "Poller", $pollCycle);
-						$applyChanges = true;
 					}
 /*
 					if(0 != IPS_GetProperty($instanceId, "Factor"))
 					{
 						IPS_SetProperty($instanceId, "Factor", 0);
-						$applyChanges = true;
 					}
 */
 
@@ -1696,10 +1695,9 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
 					}
 
-					if ($applyChanges)
+					if(IPS_HasChanges($instanceId))
 					{
 						IPS_ApplyChanges($instanceId);
-						//IPS_Sleep(100);
 					}
 
 					// Statusvariable der Modbus-Instanz ermitteln
@@ -1710,7 +1708,6 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					{
 						// Justification Rule 11: es ist die Funktion RegisterVariable...() in diesem Fall nicht nutzbar, da die Variable durch die Modbus-Instanz bereits erstellt wurde
 						// --> Custo Profil wird initial einmal beim Instanz-erstellen gesetzt
-
 						IPS_SetVariableCustomProfile($varId, $profile);
 					}
 				}
@@ -2034,7 +2031,43 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
 		}
 
+		private function GetVariableValue($instanceIdent, $variableIdent = "Value")
+		{
+			$instanceId = IPS_GetObjectIDByIdent($this->removeInvalidChars($instanceIdent), $this->InstanceID);
+			$varId = IPS_GetObjectIDByIdent($this->removeInvalidChars($variableIdent), $instanceId);
 
+			return GetValue($varId);
+		}
 
+		private function GetVariableId($instanceIdent, $variableIdent = "Value")
+		{
+			$instanceId = IPS_GetObjectIDByIdent($this->removeInvalidChars($instanceIdent), $this->InstanceID);
+			$varId = IPS_GetObjectIDByIdent($this->removeInvalidChars($variableIdent), $instanceId);
+
+			return $varId;
+		}
+
+		private function GetLoggedValuesInterval($id, $minutes)
+		{
+			$archiveId = IPS_GetInstanceListByModuleID("{43192F0B-135B-4CE7-A0A7-1475603F3060}");
+			if (isset($archiveId[0]))
+			{
+				$archiveId = $archiveId[0];
+
+				$returnValue = $this->getArithMittelOfLog($archiveId, $id, $minutes);
+			}
+			else
+			{
+				$archiveId = false;
+
+				// no archive found
+				$this->SetStatus(201);
+				echo MODUL_PREFIX."_GetBatteryPowerW(): Archive not found!";
+
+				$returnValue = GetValue($id);
+			}
+
+			return $returnValue;
+		}
 
 	}
