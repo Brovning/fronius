@@ -75,6 +75,10 @@ HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
 
 StartRegister | Size | RW | FunctionCode | Name | Type | Units | Description
 ------------- | ---- | -- | ------------ | ---- | ---- | ----- | -----------
+500 | 2 | R | 3 | F_Site_Power | uint32 | W | Total power (site sum) of all connected inverters.
+502 | 4 | R | 3 | F_Site_Energy_Day | uint64 | Wh | Total energy for current day of all connected inverters.
+506 | 4 | R | 3 | F_Site_Energy_Year | uint64 | Wh | Total energy for last year of all connected inverters.
+510 | 4 | R | 3 | F_Site_Energy_Total | uint64 | Wh | Total energy of all connected inverters.
 40070 | 1 | R | 3 | ID |  uint16 |   |  Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)
 40071 | 1 | R | 3 | L |  uint16 |   |  Registers, Length of inverter model block
 40072 | 2 | R | 3 | A |  float32 |  A |  AC Total Current value
