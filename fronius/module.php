@@ -1660,27 +1660,40 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						$applyChanges = true;
 					}
 */
+
+					// Read-Settings
 					if ($inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET != IPS_GetProperty($instanceId, "ReadAddress"))
 					{
 						IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET);
-						$applyChanges = true;
 					}
-					if ($inverterModelRegister[IMR_FUNCTION_CODE] != IPS_GetProperty($instanceId, "ReadFunctionCode"))
+					if(6 == $inverterModelRegister[IMR_FUNCTION_CODE])
 					{
-						IPS_SetProperty($instanceId, "ReadFunctionCode", $inverterModelRegister[IMR_FUNCTION_CODE]);
-						$applyChanges = true;
+						$ReadFunctionCode = 3;
 					}
-/*
-					if( != IPS_GetProperty($instanceId, "WriteAddress"))
+					else
 					{
-						IPS_SetProperty($instanceId, "WriteAddress", );
-						$applyChanges = true;
+						$ReadFunctionCode = $inverterModelRegister[IMR_FUNCTION_CODE];
 					}
-*/
+
+					if ($ReadFunctionCode != IPS_GetProperty($instanceId, "ReadFunctionCode"))
+					{
+						IPS_SetProperty($instanceId, "ReadFunctionCode", $ReadFunctionCode);
+					}
+
+					// Write-Settings
+					if (4 < $inverterModelRegister[IMR_FUNCTION_CODE] && $inverterModelRegister[IMR_FUNCTION_CODE] != IPS_GetProperty($instanceId, "WriteFunctionCode"))
+					{
+						IPS_SetProperty($instanceId, "WriteFunctionCode", $inverterModelRegister[IMR_FUNCTION_CODE]);
+					}
+
+					if (4 < $inverterModelRegister[IMR_FUNCTION_CODE] && $inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET != IPS_GetProperty($instanceId, "WriteAddress"))
+					{
+						IPS_SetProperty($instanceId, "WriteAddress", $inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET);
+					}
+
 					if (0 != IPS_GetProperty($instanceId, "WriteFunctionCode"))
 					{
 						IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
-						$applyChanges = true;
 					}
 
 					if ($applyChanges)
