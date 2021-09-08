@@ -34,7 +34,7 @@
         },
         {
             "type": "Label",
-            "label": "Geräte ID des Wechselrichters (bspw.: ID=1) oder des SmartMeters (immer: ID=240)"
+            "label": "Geräte ID des Wechselrichters (bspw.: ID=1) oder des SmartMeters (vor GEN24: ID=240, ab GEN24: ID=200)"
         },
         {
             "type": "NumberSpinner",

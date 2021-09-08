@@ -377,8 +377,8 @@ function removeInvalidChars(\$input)
 			$readOnePhaseInverter = $this->ReadPropertyBoolean('readOnePhaseInverter');
 			$pollCycle = $this->ReadPropertyInteger('pollCycle') * 1000;
 
-			// SmartMeter nutzen immer die GeraeteID=240
-			$readSmartmeter = (240 == $hostmodbusDevice);
+			// SmartMeter nutzen immer die GeraeteID=240 (vor GEN24) oder GeraeteID=200 (ab GEN24)
+			$readSmartmeter = (240 == $hostmodbusDevice || 200 == $hostmodbusDevice);
 
 			$inverterCategoryArray = array(
 				"IC120" => "IC120 Nameplate",
