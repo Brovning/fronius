@@ -394,6 +394,9 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 ### 8. Versionshistorie
 
+#### v1.3
+- SmartMeter-Unterstützung für ID=200 hinzugefügt. Default bei GEN24.
+
 #### v1.2
 - Fronius Primo GEN24, Symo GEN24, Tauro und Galvo hinzugefügt
 - Logwerte F_Site_Power, F_Site_Energy_Day, F_Site_Energy_Year und F_Site_Energy_Total hinzugefügt
