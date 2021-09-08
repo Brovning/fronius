@@ -26,7 +26,8 @@ Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter un
 - Der Fronius Wechselrichter oder SmartMeter muss Modbus TCP unterstützen!
 - Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe per 'TCP' und der Sunspec Model Type 'float' aktiviert werden.
 ![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Einstellungen%20-%20Modbus.JPG "Fronius - Einstellungen - Modbus")
-- Die Modbus Geräte-ID des Wechselrichters entspricht seiner Wechselrichter-Nummer, welche nur über das Bedienpanel des Wechselrichters eingestellt werden kann und nicht per Weboberfläche. Zu finden unter Setup > DATCOM > Wechselrichter-Nr. Die Werkseinstellung ist "01", was der Modbus Geräte-ID "1" entspricht. Hierbei gibt es nur eine einzige Ausnahme: Die Wechselrichter-Nummer "00" wird auf Modbus Geräte-ID "100" umgelegt, da bei Modbus die Geräte-ID "0" für Broadcast Nachrichten reserviert ist. Der SmartMeter hat standardmäßig die Geräte-ID "240".
+- Die Modbus Geräte-ID des Wechselrichters entspricht seiner Wechselrichter-Nummer, welche nur über das Bedienpanel des Wechselrichters eingestellt werden kann und nicht per Weboberfläche. Zu finden unter Setup > DATCOM > Wechselrichter-Nr. Die Werkseinstellung ist "01", was der Modbus Geräte-ID "1" entspricht. Hierbei gibt es nur eine einzige Ausnahme: Die Wechselrichter-Nummer "00" wird auf Modbus Geräte-ID "100" umgelegt, da bei Modbus die Geräte-ID "0" für Broadcast Nachrichten reserviert ist. Der SmartMeter hatte standardmäßig die Geräte-ID "240". Ab GEN24 hat der SmartMeter standardmäßig die Geräte-ID "200". Beide werden unterstützt und somit kann der Wechselrichter nicht diese Geräte-IDs
+-  verwenden!
 ![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Setup%20-%20DATCOM%20-%20WechselrichterNr.jpg "Fronius - Setup - DATCOM - Wechselrichter-Nr.")
 
 
@@ -47,7 +48,7 @@ Name     | Beschreibung
 Open | Schalter zum aktivieren und deaktivieren der Instanz
 IP | IP-Adresse des Fronius-Wechselrichters im lokalen Netzwerk
 Port | Port, welcher im Wechselrichter unter dem Menüpunkt Modbus angegeben wurde. Default: 502
-Geräte Id | Modbus Geräte ID, welche im Fronius Menü gesetzt werden kann. Default für Inverter: 1, Default für SmartMeter: 240
+Geräte Id | Modbus Geräte ID, welche im Fronius Menü gesetzt werden kann. Default für Inverter: 1, Default für SmartMeter: 200 oder 240
 IC120 Nameplate | Soll das Nameplate Modell IC120 angezeigt werden? Default: false
 IC121 Basic Settings | Soll das Basic Settings Modell IC121 angezeigt werden? Default: false
 IC122 Extended Measurements & Status | Soll das Extended Measurements & Status Modell IC122 angezeigt werden? Default: false
