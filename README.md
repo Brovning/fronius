@@ -1,5 +1,6 @@
 [![Version](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Symcon%20Version-6.0%20%3E-green.svg)](https://www.symcon.de/forum/threads/https://community.symcon.de/t/ip-symcon-6-0-ist-ab-jetzt-verfuegbar/125851)
+[![Version](https://img.shields.io/badge/Symcon%20Version-5.0%20%3C-green.svg)](https://community.symcon.de/t/ip-symcon-5-0-verfuegbar/47528)
+[![Version](https://img.shields.io/badge/Symcon%20Version-6.0%20%3E-green.svg)](https://community.symcon.de/t/ip-symcon-6-0-ist-ab-jetzt-verfuegbar/125851)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
 
 
