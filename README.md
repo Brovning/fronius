@@ -403,6 +403,9 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 ### 8. Versionshistorie
 
+#### v1.4
+- Bugfix #15: "Die Instanz hat noch ungespeicherte Änderungen" auch wenn nichts geändert wurde
+
 #### v1.3
 - SmartMeter-Unterstützung für ID=200 hinzugefügt. Default bei GEN24.
 
