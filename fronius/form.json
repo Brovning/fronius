@@ -98,7 +98,7 @@
             "label": " "
         },
         {
-            "type": "ValidationTextBox",
+            "type": "NumberSpinner",
             "caption": "Abfrage-Intervall (in Sekunden)",
             "name": "pollCycle"
         },
