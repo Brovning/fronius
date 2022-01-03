@@ -15,7 +15,7 @@ jobs:
       run: git submodule update --init -- .style
 
     - name: Install latest PHP-CS-Fixer
-      run: wget https://cs.symfony.com/download/php-cs-fixer-v2.phar
+      run: wget https://cs.symfony.com/download/php-cs-fixer-v3.phar
 
     - name: Run Checks
-      run: PHP_CS_FIXER_IGNORE_ENV=1 php php-cs-fixer-v2.phar fix --config=.style/.php_cs -v --diff --allow-risky=yes .
+      run: php php-cs-fixer-v3.phar fix --config=.style/.php-cs-fixer.php -v --diff --allow-risky=yes .

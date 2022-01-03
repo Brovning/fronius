@@ -1,5 +1,6 @@
 <?php
-return PhpCsFixer\Config::create()
+$config = new PhpCsFixer\Config();
+return $config
     ->setRules([
         'align_multiline_comment' => [
             'comment_type' => 'all_multiline'
@@ -107,7 +108,7 @@ return PhpCsFixer\Config::create()
         //list_syntax 
         'logical_operators' => true,
         'lowercase_cast' => true,
-        'lowercase_constants' => true,
+        'constant_case' => ['case' => 'lower'],
         'lowercase_keywords' => true,
         'lowercase_static_reference' => true,
         'magic_constant_casing' => true,
@@ -144,7 +145,7 @@ return PhpCsFixer\Config::create()
         'no_multiline_whitespace_around_double_arrow' => true,
         //no_null_property_initialization
         //no_short_bool_cast
-        'no_short_echo_tag' => true,
+        'echo_tag_syntax' => ['format' => 'long'],
         'no_singleline_whitespace_before_semicolons'=> true,
         'no_spaces_after_function_name' => true,
         'no_spaces_around_offset' => true,
@@ -207,7 +208,7 @@ return PhpCsFixer\Config::create()
         'switch_case_space' => true,
         'ternary_operator_spaces' => true,
         //ternary_to_null_coalescing
-        'trailing_comma_in_multiline_array' => false,
+        'trailing_comma_in_multiline' => ['elements' => ['arrays']],
         'trim_array_spaces' => true,
         'unary_operator_spaces' => true,
         'visibility_required' => true,
