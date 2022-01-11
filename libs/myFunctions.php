@@ -33,12 +33,6 @@ if (!defined('MODBUS_ADDRESSES'))
 	define("MODBUS_ADDRESSES", "{CB197E50-273D-4535-8C91-BB35273E3CA5}");
 }
 
-// Offset von Register (erster Wert 1) zu Adresse (erster Wert 0) ist -1
-if (!defined('MODBUS_REGISTER_TO_ADDRESS_OFFSET'))
-{
-	define("MODBUS_REGISTER_TO_ADDRESS_OFFSET", -1);
-}
-
 trait myFunctions
 {
 	/* Arithmetisches Mittel von Logwerten

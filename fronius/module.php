@@ -2,15 +2,18 @@
 
 require_once __DIR__ . '/../libs/myFunctions.php';  // globale Funktionen
 
-if (!defined('DEBUG'))
-{
-	define("DEBUG", false);
-}
+define("DEVELOPMENT", false);
 
 // Modul Prefix
 if (!defined('MODUL_PREFIX'))
 {
 	define("MODUL_PREFIX", "Fronius");
+}
+
+// Offset von Register (erster Wert 1) zu Adresse (erster Wert 0) ist -1
+if (!defined('MODBUS_REGISTER_TO_ADDRESS_OFFSET'))
+{
+	define("MODBUS_REGISTER_TO_ADDRESS_OFFSET", -1);
 }
 
 // ArrayOffsets
