@@ -1812,6 +1812,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Ampere.Int";
 			}
+			elseif ("ma" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".MilliAmpere.Int";
+			}
 			elseif (("ah" == strtolower($unit)
 					|| "vah" == strtolower($unit))
 				&& 7 == $datenTyp
@@ -1841,6 +1845,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Watt.Int";
 			}
+			elseif ("h" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".Hours.Int";
+			}
 			elseif ("hz" == strtolower($unit) && 7 == $datenTyp)
 			{
 				$profile = "~Hertz";
@@ -1848,6 +1856,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			elseif ("hz" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Hertz.Int";
+			}
+			elseif ("l/min" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".Volumenstrom.Int";
 			}
 			// Voltampere fuer elektrische Scheinleistung
 			elseif ("va" == strtolower($unit) && 7 == $datenTyp)
@@ -1928,7 +1940,19 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".StateCodes.Int";
 			}
-			elseif ("" == $unit && "emergency-power" == strtolower($datenTyp))
+			elseif ("enumerated_zirkulation" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".Zirkulation.Int";
+			}
+			elseif ("enumerated_betriebsart" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".Betriebsart.Int";
+			}
+			elseif ("enumerated_statsheizkreis" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".StatsHeizkreis.Int";
+			}
+			elseif ("emergency-power" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Emergency-Power.Int";
 			}
