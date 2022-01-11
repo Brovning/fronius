@@ -1693,6 +1693,14 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					{
 						$ReadFunctionCode = 3;
 					}
+					else if("R" == $inverterModelRegister[IMR_FUNCTION_CODE])
+					{
+						$ReadFunctionCode = 3;
+					}
+					else if("RW" == $inverterModelRegister[IMR_FUNCTION_CODE])
+					{
+						$ReadFunctionCode = 3;
+					}
 					else
 					{
 						$ReadFunctionCode = $inverterModelRegister[IMR_FUNCTION_CODE];
