@@ -20,13 +20,16 @@
         {
             "type": "ValidationTextBox",
             "caption": "IP",
-            "name": "hostIp"
+            "name": "hostIp",
+            "validate": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
         },
         {
             "type": "NumberSpinner",
-            "caption": "Port",
+            "caption": "Port (Standard: 502)",
             "name": "hostPort",
-            "digits": 0
+            "digits": 0,
+            "minimum": 1,
+            "maximum": 65535
         },
         {
             "type": "Label",
@@ -38,9 +41,30 @@
         },
         {
             "type": "NumberSpinner",
-            "caption": "Geräte ID",
+            "caption": "Geräte ID (Standard: 1, 200 oder 240)",
             "name": "hostmodbusDevice",
-            "digits": 0
+            "digits": 0,
+            "minimum": 1,
+            "maximum": 255
+        },
+        {
+            "type": "Label",
+            "label": " "
+        },
+        {
+            "type": "Label",
+            "label": "In welchem Zeitintervall sollen die Modbus-Werte abgefragt werden (Empfehlung: 10 Sekunden)?"
+        },
+	{
+            "type": "NumberSpinner",
+            "caption": "Abfrage-Intervall (in Sekunden)",
+            "name": "pollCycle",
+            "minimum": 1,
+            "maximum": 3600
+        },
+        {
+            "type": "Label",
+            "label": "Achtung: Die Berechnung der Wirkarbeit (Wh/kWh) wird exakter, je kleiner der Abfarge-Intervall gewählt wird.\nABER: Je kleiner der Abfrage-Intervall, um so höher die Systemlast und auch die Archiv-Größe bei aktiviertem Logging!"
         },
         {
             "type": "Label",
@@ -92,19 +116,6 @@
             "type": "CheckBox",
             "caption": "1-phasiger Wechselrichter (bspw. Primo-Serie)",
             "name": "readOnePhaseInverter"
-        },
-        {
-            "type": "Label",
-            "label": " "
-        },
-        {
-            "type": "NumberSpinner",
-            "caption": "Abfrage-Intervall (in Sekunden)",
-            "name": "pollCycle"
-        },
-        {
-            "type": "Label",
-            "label": "Achtung: Abfrage-Intervall nicht zu klein wählen, um die Systemlast und auch die Archiv-Größe bei Logging nicht unnötig zu erhöhen!"
         }
     ],
     "status": [
