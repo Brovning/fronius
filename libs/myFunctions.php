@@ -116,7 +116,7 @@ trait myFunctions
                 break;
             }
         }
-        
+
         return array($modbusGatewayId_Old, $clientSocketId_Old);
     }
 
@@ -124,7 +124,7 @@ trait myFunctions
     {
         if(!IPS_ModuleExists($moduleId))
         {
-            echo "ModuleId ".$moduleId." does not exist!\n";
+            $this->SendDebug("deleteInstanceNotInUse()", "ERROR: ModuleId ".$moduleId." does not exist!", 0);
         }
         else
         {
@@ -176,7 +176,7 @@ trait myFunctions
                     $foundGatewayId = $modbusInstanceId;
                 }
 
-                if(DEBUG) echo "ModBus Instance and ClientSocket found: ".$modbusInstanceId.", ".$connectionInstanceId."\n";
+                $this->SendDebug("ModBusInstance and ClientSocket", "found: ModBusInstance=".$foundGatewayId.", ClientSocket=".$foundClientSocketId, 0);
 
                 break;
             }
@@ -187,7 +187,7 @@ trait myFunctions
         $currentGatewayId = 0;
         if(0 == $foundGatewayId)
         {
-            if(DEBUG) echo "ModBus Instance not found!\n";
+            $this->SendDebug("ModBusInstance and ClientSocket", "not found!", 0);
 
             // ModBus Gateway erstellen
             $currentGatewayId = IPS_CreateInstance(MODBUS_INSTANCES); 
@@ -198,6 +198,8 @@ trait myFunctions
             $clientSocketId = (int)IPS_GetInstance($currentGatewayId)['ConnectionID'];
             IPS_SetInfo($clientSocketId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
             IPS_SetName($clientSocketId, MODUL_PREFIX."ClientSocket_Temp");
+
+            $this->SendDebug("ModBusInstance and ClientSocket", "created: ModBusInstance=".$currentGatewayId.", ClientSocket=".$clientSocketId, 0);
         }
         else
         {
@@ -251,11 +253,13 @@ trait myFunctions
         // ClientSocket erstellen, sofern noch nicht vorhanden
         else /*if (0 == $currentClientSocketId)*/
         {
-            if(DEBUG) echo "Client Socket not found!\n";
+            $this->SendDebug("ModBusInstance and ClientSocket", "ModBusInstance=".$currentGatewayId.", ClientSocket not found!", 0);
 
             // Client Soket erstellen
             $currentClientSocketId = IPS_CreateInstance(CLIENT_SOCKETS);
             IPS_SetInfo($currentClientSocketId, MODUL_PREFIX."-Modul: ".date("Y-m-d H:i:s"));
+
+            $this->SendDebug("ModBusInstance and ClientSocket", "ClientSocket=".$currentClientSocketId." created", 0);
 
             $applyChanges = true;
         }
@@ -302,6 +306,8 @@ trait myFunctions
 
             // neuen ClientSocket mit Gateway verbinden
             IPS_ConnectInstance($currentGatewayId, $currentClientSocketId);
+
+            $this->SendDebug("ModBusInstance and ClientSocket", "remove old ClientSocket=".$oldClientSocket." and connect new ClientSocket=".$currentClientSocketId." with ModBusInstance=".$currentGatewayId, 0);
         }
         
         return array($currentGatewayId, $currentClientSocketId);
@@ -334,7 +340,7 @@ trait myFunctions
                 }
             }
 
-            if(DEBUG) echo "Profil ".$ProfilName." erstellt\n";
+            $this->SendDebug("Variable-Profile", "Profile ".$ProfilName." created", 0);
         }
     }
 
@@ -351,6 +357,8 @@ trait myFunctions
             if(false !== $instanceId)
             {
                 $this->deleteInstanceRecursive($instanceId);
+
+                $this->SendDebug("delete Modbus address", "REG_".$register[IMR_START_REGISTER]." - ".$register[IMR_NAME].", ID=".$instanceId, 0);
             }
         }
     }
@@ -384,7 +392,7 @@ trait myFunctions
                     $varId = $this->RegisterVariableString($Ident, $Name, $Profil, $Position);
                     break;
                 default:
-                    echo "Variable-Type unknown!";
+                    $this->SendDebug("MaintainInstanceVariable", "ERROR: Variable-Type unknown!", 0);
                     $varId = false;
                     exit;
             }
@@ -468,7 +476,7 @@ trait myFunctions
                 }
                 else if(2 < $mode)
                 {
-                    echo "Error in getPowerSumOfLog(): Mode '".$mode."' unkown!\n";
+                    $this->SendDebug("getPowerSumOfLog()", "ERROR: Mode '".$mode."' unkown!", 0);
                 }
             }
         }
@@ -476,7 +484,7 @@ trait myFunctions
         return $bufferSum;
     }
 
-    // Inspired from module SymconTest/HookServe
+    // Inspired by module SymconTest/HookServe
     private function RegisterHook($WebHook)
     {
         $ids = IPS_GetInstanceListByModuleID('{015A6EB8-D6E5-4B93-B496-0D3F77AE9FE1}');
@@ -500,7 +508,7 @@ trait myFunctions
         }
     }
 
-    // Inspired from module SymconTest/HookServe
+    // Inspired by module SymconTest/HookServe
     private function GetMimeType($extension)
     {
         $lines = file(IPS_GetKernelDirEx() . 'mime.types');
@@ -529,6 +537,8 @@ trait myFunctions
         else
         {
             $archiveId = false;
+
+            $this->SendDebug("getArchiveId()", "ERROR: archive of IP-Symcon not found!", 0);
         }
 
         return $archiveId;
