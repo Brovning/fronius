@@ -404,8 +404,13 @@ function removeInvalidChars(\$input)
 			{
 				// --> do nothing
 			}
+			else if("" == $hostIp)
+			{
+				// keine IP --> inaktiv
+				$this->SetStatus(104);
+			}
 			// Instanzen nur mit Konfigurierter IP erstellen
-			else if("" != $hostIp)
+			else
 			{
 				$this->checkProfiles();
 				list($gatewayId_Old, $interfaceId_Old) = $this->readOldModbusGateway();
@@ -1523,11 +1528,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					// Erreichbarkeit von IP und Port pruefen
 					$portOpen = false;
 					$waitTimeoutInSeconds = 1; 
-					if($fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
+					if(/*Sys_Ping($hostIp, $waitTimeoutInSeconds*1000)*/ $fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
 					{   
 						// It worked
 						$portOpen = true;
-						fclose($fp);
 
 						// Client Soket aktivieren
 						if (false == IPS_GetProperty($interfaceId, "Open"))
@@ -1544,6 +1548,12 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					{
 						// IP oder Port nicht erreichbar
 						$this->SetStatus(200);
+					}
+
+					// Close fsockopen
+					if(isset($fp))
+					{
+						fclose($fp); // nötig für fsockopen!
 					}
 				}
 				else
@@ -1585,11 +1595,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					$this->deleteInstanceNotInUse($interfaceId_Old, MODBUS_INSTANCES);
 				}
 			}
-			else
-			{
-				// keine IP --> inaktiv
-				$this->SetStatus(104);
-			}
+
 		}
 
 		private function createModbusInstances($inverterModelRegister_array, $parentId, $gatewayId, $pollCycle, $uniqueIdent = "")
