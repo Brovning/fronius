@@ -2010,6 +2010,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 		private function checkProfiles()
 		{
+/*
 			$this->createVarProfile(MODUL_PREFIX.".TempFehler.Int", VARIABLETYPE_INTEGER, '', 0, 2, 1, 0, 0, array(
 					array('Name' => "OK", 'Wert' => 0, "OK", 'Farbe' => $this->getRgbColor("green")),
 					array('Name' => "Kurzschluss", 'Wert' => 1, "Kurzschlussfehler", 'Farbe' => $this->getRgbColor("red")),
