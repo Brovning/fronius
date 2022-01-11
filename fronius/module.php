@@ -1543,11 +1543,15 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						
 						// aktiv
 						$this->SetStatus(102);
+
+						$this->SendDebug("Module-Status", MODUL_PREFIX."-module activated", 0);
 					}
 					else
 					{
 						// IP oder Port nicht erreichbar
 						$this->SetStatus(200);
+
+						$this->SendDebug("Module-Status", "ERROR: ".MODUL_PREFIX." with IP=".$hostIp." and Port=".$hostPort." cannot be reached!", 0);
 					}
 
 					// Close fsockopen
@@ -1580,6 +1584,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 					// inaktiv
 					$this->SetStatus(104);
+
+					$this->SendDebug("Module-Status", MODUL_PREFIX."-module deactivated", 0);
 				}
 
 
@@ -1626,6 +1632,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					// Modbus-Instanz erstellen, sofern noch nicht vorhanden
 					if (false === $instanceId)
 					{
+						$this->SendDebug("create Modbus address", "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]." (datatype=".$datenTyp.", profile=".$profile.")", 0);
+
 						$instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
 
 						IPS_SetParent($instanceId, $parentId);
@@ -1639,6 +1647,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					// Gateway setzen
 					if (IPS_GetInstance($instanceId)['ConnectionID'] != $gatewayId)
 					{
+						$this->SendDebug("set Modbus Gateway", "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]." --> GatewayID ".$gatewayId, 0);
+
 						// sofern bereits eine Gateway verbunden ist, dieses trennen
 						if (0 != IPS_GetInstance($instanceId)['ConnectionID'])
 						{
@@ -1718,7 +1728,11 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 
 					// Profil der Statusvariable initial einmal zuweisen
-					if ($initialCreation && false != $profile)
+					if(false != $profile && !IPS_VariableProfileExists($profile))
+					{
+						$this->SendDebug("Variable-Profile", "Profile ".$profile." does not exist!", 0);
+					}	
+					else if ($initialCreation && false != $profile)
 					{
 						// Justification Rule 11: es ist die Funktion RegisterVariable...() in diesem Fall nicht nutzbar, da die Variable durch die Modbus-Instanz bereits erstellt wurde
 						// --> Custo Profil wird initial einmal beim Instanz-erstellen gesetzt
@@ -1977,7 +1991,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				$profile = false;
 				if ("" != $unit)
 				{
-					echo "Profil '".$unit."' unbekannt.\n";
+					$this->SendDebug("getProfile()", "ERROR: Profil '".$unit."' unbekannt!", 0);
 				}
 			}
 
