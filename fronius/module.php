@@ -1673,6 +1673,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					{
 						IPS_SetProperty($instanceId, "Poller", $pollCycle);
 					}
+					// set length for modbus datatype string
 					if (10 == $datenTyp && $inverterModelRegister[IMR_SIZE] != IPS_GetProperty($instanceId, "Length")) // if string --> set length accordingly
 					{
 						IPS_SetProperty($instanceId, "Length", $inverterModelRegister[IMR_SIZE]);
@@ -2009,6 +2010,47 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 		private function checkProfiles()
 		{
+			$this->createVarProfile(MODUL_PREFIX.".TempFehler.Int", VARIABLETYPE_INTEGER, '', 0, 2, 1, 0, 0, array(
+					array('Name' => "OK", 'Wert' => 0, "OK", 'Farbe' => $this->getRgbColor("green")),
+					array('Name' => "Kurzschluss", 'Wert' => 1, "Kurzschlussfehler", 'Farbe' => $this->getRgbColor("red")),
+					array('Name' => "Unterbrechung", 'Wert' => 2, "Unterbrechungsfehler", 'Farbe' => $this->getRgbColor("red")),
+				)
+			);
+
+			$this->createVarProfile(MODUL_PREFIX.".Betriebsart.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+					array('Name' => "Auto PWM", 'Wert' => 0, "Auto PWM", 'Farbe' => $this->getRgbColor("green")),
+					array('Name' => "Hand PWM", 'Wert' => 1, "Hand PWM", 'Farbe' => $this->getRgbColor("yellow")),
+					array('Name' => "Auto analog", 'Wert' => 2, "Auto analog", 'Farbe' => $this->getRgbColor("green")),
+					array('Name' => "Hand analog", 'Wert' => 3, "Hand analog", 'Farbe' => $this->getRgbColor("yellow")),
+					array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
+				)
+			);
+
+			$this->createVarProfile(MODUL_PREFIX.".StatsHeizkreis.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+					array('Name' => "Aus", 'Wert' => 1, "Aus"),
+					array('Name' => "Automatik", 'Wert' => 2, "Automatik"),
+					array('Name' => "Tagbetrieb", 'Wert' => 3, "Tagbetrieb"),
+					array('Name' => "Absenkbetrieb", 'Wert' => 4, "Absenkbetrieb"),
+					array('Name' => "Standby", 'Wert' => 5, "Standby"),
+					array('Name' => "Eco", 'Wert' => 6, "Eco"),
+					array('Name' => "Urlaub", 'Wert' => 7, "Urlaub"),
+					array('Name' => "WW Vorrang", 'Wert' => 8, "WW Vorrang"),
+					array('Name' => "Frostschutz", 'Wert' => 9, "Frostschutz"),
+					array('Name' => "Pumpenschutz", 'Wert' => 10, "Pumpenschutz"),
+					array('Name' => "Estrich", 'Wert' => 11, "Estrich"),
+					array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
+				)
+			);
+
+			$this->createVarProfile(MODUL_PREFIX.".Zirkulation.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+					array('Name' => "Aus", 'Wert' => 1, "Aus"),
+					array('Name' => "Puls", 'Wert' => 2, "Puls"),
+					array('Name' => "Temp", 'Wert' => 3, "Temp"),
+					array('Name' => "Warten", 'Wert' => 4, "Warten"),
+					array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
+				)
+			);
+*/
 			$this->createVarProfile("SunSpec.ChaSt.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
 					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
 					array('Name' => "OFF", 'Wert' => 1, "OFF: Energiespeicher nicht verfügbar"),
@@ -2041,10 +2083,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
 					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
 					array('Name' => "STARTING", 'Wert' => 3, "Wechselrichter startet"),
-					array('Name' => "MPPT", 'Wert' => 4, "Wechselrichter arbeitet normal", 'Farbe' => 65280),
-					array('Name' => "THROTTLED", 'Wert' => 5, "Leistungsreduktion aktiv", 'Farbe' => 16744448),
+					array('Name' => "MPPT", 'Wert' => 4, "Wechselrichter arbeitet normal", 'Farbe' => $this->getRgbColor("green")),
+					array('Name' => "THROTTLED", 'Wert' => 5, "Leistungsreduktion aktiv", 'Farbe' => $this->getRgbColor("orange")),
 					array('Name' => "SHUTTING_DOWN", 'Wert' => 6, "Wechselrichter schaltet ab"),
-					array('Name' => "FAULT", 'Wert' => 7, "Ein oder mehr Fehler existieren, siehe St *oder Evt * Register", 'Farbe' => 16711680),
+					array('Name' => "FAULT", 'Wert' => 7, "Ein oder mehr Fehler existieren, siehe St *oder Evt * Register", 'Farbe' => $this->getRgbColor("red")),
 					array('Name' => "STANDBY", 'Wert' => 8, "Standby"),
 				)
 			);
@@ -2053,10 +2095,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
 					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
 					array('Name' => "STARTING", 'Wert' => 3, "Wechselrichter startet"),
-					array('Name' => "MPPT", 'Wert' => 4, "Wechselrichter arbeitet normal", 'Farbe' => 65280),
-					array('Name' => "THROTTLED", 'Wert' => 5, "Leistungsreduktion aktiv", 'Farbe' => 16744448),
+					array('Name' => "MPPT", 'Wert' => 4, "Wechselrichter arbeitet normal", 'Farbe' => $this->getRgbColor("green")),
+					array('Name' => "THROTTLED", 'Wert' => 5, "Leistungsreduktion aktiv", 'Farbe' => $this->getRgbColor("orange")),
 					array('Name' => "SHUTTING_DOWN", 'Wert' => 6, "Wechselrichter schaltet ab"),
-					array('Name' => "FAULT", 'Wert' => 7, "Ein oder mehr Fehler existieren, siehe St * oder Evt * Register", 'Farbe' => 16711680),
+					array('Name' => "FAULT", 'Wert' => 7, "Ein oder mehr Fehler existieren, siehe St * oder Evt * Register", 'Farbe' => $this->getRgbColor("red")),
 					array('Name' => "STANDBY", 'Wert' => 8, "Standby"),
 					array('Name' => "NO_BUSINIT", 'Wert' => 9, "Keine SolarNet Kommunikation"),
 					array('Name' => "NO_COMM_INV", 'Wert' => 10, "Keine Kommunikation mit Wechselrichter möglich"),
@@ -2068,13 +2110,12 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 /*
 			$this->createVarProfile(MODUL_PREFIX.".Emergency-Power.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
 					array('Name' => "nicht unterstützt", 'Wert' => 0, "Notstrom wird nicht von Ihrem Gerät unterstützt", 'Farbe' => 16753920),
-					array('Name' => "aktiv", 'Wert' => 1, "Notstrom aktiv (Ausfall des Stromnetzes)", 'Farbe' => 65280),
+					array('Name' => "aktiv", 'Wert' => 1, "Notstrom aktiv (Ausfall des Stromnetzes)", 'Farbe' => $this->getRgbColor("green")),
 					array('Name' => "nicht aktiv", 'Wert' => 2, "Notstrom nicht aktiv", 'Farbe' => -1),
 					array('Name' => "nicht verfügbar", 'Wert' => 3, "Notstrom nicht verfügbar", 'Farbe' => 16753920),
-					array('Name' => "Fehler", 'Wert' => 4, "Der Motorschalter des S10 E befindet sich nicht in der richtigen Position, sondern wurde manuell abgeschaltet oder nicht eingeschaltet.", 'Farbe' => 16711680),
+					array('Name' => "Fehler", 'Wert' => 4, "Der Motorschalter des S10 E befindet sich nicht in der richtigen Position, sondern wurde manuell abgeschaltet oder nicht eingeschaltet.", 'Farbe' => $this->getRgbColor("red")),
 				)
 			);
-
 			$this->createVarProfile(MODUL_PREFIX.".Powermeter.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
 				array('Name' => "N/A", 'Wert' => 0),
 				array('Name' => "Wurzelleistungsmesser", 'Wert' => 1, "Dies ist der Regelpunkt des Systems. Der Regelpunkt entspricht üblicherweise dem Hausanschlusspunkt."),
@@ -2100,6 +2141,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			$this->createVarProfile(MODUL_PREFIX.".Electricity.Float", VARIABLETYPE_FLOAT, ' Wh');
 			$this->createVarProfile(MODUL_PREFIX.".Electricity.Int", VARIABLETYPE_INTEGER, ' Wh');
 			$this->createVarProfile(MODUL_PREFIX.".Hertz.Int", VARIABLETYPE_INTEGER, ' Hz');
+//			$this->createVarProfile(MODUL_PREFIX.".Hours.Int", VARIABLETYPE_INTEGER, ' h');
+//			$this->createVarProfile(MODUL_PREFIX.".MilliAmpere.Int", VARIABLETYPE_INTEGER, ' mA');
 			$this->createVarProfile(MODUL_PREFIX.".Ohm.Int", VARIABLETYPE_INTEGER, ' Ohm');
 			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Float", VARIABLETYPE_FLOAT, ' VA');
 			$this->createVarProfile(MODUL_PREFIX.".Scheinleistung.Int", VARIABLETYPE_INTEGER, ' VA');
@@ -2107,6 +2150,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			$this->createVarProfile(MODUL_PREFIX.".Temperature.Int", VARIABLETYPE_INTEGER, ' °C');
 			// Volt.Float: ~Volt
 			$this->createVarProfile(MODUL_PREFIX.".Volt.Int", VARIABLETYPE_INTEGER, ' V');
+//			$this->createVarProfile(MODUL_PREFIX.".Volumenstrom.Int", VARIABLETYPE_INTEGER, ' l/min');
 			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
 		}
 
