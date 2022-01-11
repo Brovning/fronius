@@ -441,18 +441,18 @@ function removeInvalidChars(\$input)
 					Energiezähler). Jedes Gerät besitzt einen eigenen Common Block, in dem Informationen
 					über das Gerät (Modell, Seriennummer, SW Version, etc.) aufgeführt sind.
 					************************************************************************************************** */
-/*				$inverterModelRegister_array = array(
-					// array(40001, 2, "R", 3, "SID", "uint32", "", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map"),
-					// array(40003, 1, "R", 3, "ID", "uint16", "", "Well-known value. Uniquely identifies this as a SunSpec Common Model block"), // = 1
-					// array(40004, 1, "R", 3, "L", "uint16", "", "Registers Length of Common Model block"), // = 65
-					// array(40005, 16, "R", 3, "Mn", "String32", "", "Manufacturer z.B. Fronius"),
-					// array(40021, 16, "R", 3, "Md", "String32", "", "Device model z.B. IG+150V"),
-					// array(40037, 8, "R", 3, "Opt", "String16", "", "SW version of datamanager z.B. 3.3.6-13"),
-					// array(40045, 8, "R", 3, "Vr", "String16", "", "SW version of inverter"),
-					// array(40053, 16, "R", 3, "SN", "String32", "", "Serialnumber of inverter, string control or energy meter"),
-					//  array(40069, 1, "R", 3, "DA", "uint16", "", "Modbus Device Address 1 - 247"), // = 1
-				);
-*/
+//				$inverterModelRegister_array = array(
+					// array(40001, 2, "R", 3, "SID", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map", "uint32", ""),
+					// array(40003, 1, "R", 3, "ID", "Well-known value. Uniquely identifies this as a SunSpec Common Model block", "uint16", ""), // = 1
+					// array(40004, 1, "R", 3, "L", "Registers Length of Common Model block", "uint16", ""), // = 65
+					array(40005, 16, "R", 3, "Mn", "Manufacturer z.B. Fronius", "String32", ""),
+					array(40021, 16, "R", 3, "Md", "Device model z.B. IG+150V", "String32", ""),
+					array(40037, 8, "R", 3, "Opt", "SW version of datamanager z.B. 3.3.6-13", "String16", ""),
+					array(40045, 8, "R", 3, "Vr", "SW version of inverter", "String16", ""),
+					array(40053, 16, "R", 3, "SN", "Serialnumber of inverter, string control or energy meter", "String32", ""),
+					//  array(40069, 1, "R", 3, "DA", "Modbus Device Address 1 - 247", "uint16", ""), // = 1
+//				);
+
 
 //				$inverterModelRegister_array = array(
 					/* ********** Inverter Model I11X ************************************************************************
@@ -1598,26 +1598,27 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 		}
 
-		private function createModbusInstances($inverterModelRegister_array, $parentId, $gatewayId, $pollCycle, $uniqueIdent = "")
+		private function createModbusInstances($modelRegister_array, $parentId, $gatewayId, $pollCycle, $uniqueIdent = "")
 		{
 			// Workaround für "InstanceInterface not available" Fehlermeldung beim Server-Start...
 			if (KR_READY == IPS_GetKernelRunlevel())
 			{
 				// Erstelle Modbus Instancen
-				foreach ($inverterModelRegister_array as $inverterModelRegister)
+				foreach ($modelRegister_array as $inverterModelRegister)
 				{
-					if (DEBUG)
-					{
-						echo "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]."\n";
-					}
-
 					$datenTyp = $this->getModbusDatatype($inverterModelRegister[IMR_TYPE]);
 					if("continue" == $datenTyp)
 					{
 						continue;
 					}
 
-					$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $datenTyp);
+                    if (isset($inverterModelRegister[IMR_UNITS])) {
+                        $profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $datenTyp);
+                    }
+					else
+					{
+						$profile = false;
+					}
 
 					$instanceId = @IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER].$uniqueIdent, $parentId);
 					$initialCreation = false;
@@ -1661,6 +1662,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					if ($pollCycle != IPS_GetProperty($instanceId, "Poller"))
 					{
 						IPS_SetProperty($instanceId, "Poller", $pollCycle);
+					}
+					if (10 == $datenTyp && $inverterModelRegister[IMR_SIZE] != IPS_GetProperty($instanceId, "Length")) // if string --> set length accordingly
+					{
+						IPS_SetProperty($instanceId, "Length", $inverterModelRegister[IMR_SIZE]);
 					}
 /*
 					if(0 != IPS_GetProperty($instanceId, "Factor"))
@@ -1726,14 +1731,24 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 		private function getModbusDatatype($type)
 		{
 			// Datentyp ermitteln
-			// 0=Bit, 1=Byte, 2=Word, 3=DWord, 4=ShortInt, 5=SmallInt, 6=Integer, 7=Real
-			if ("uint16" == strtolower($type)
+			// 0=Bit (1 bit)
+			// 1=Byte (8 bit unsigned)
+			if ("uint8" == strtolower($type)
+				|| "enum8" == strtolower($type)
+				|| "int8" == strtolower($type)
+			)
+			{
+				$datenTyp = 1;
+			}
+			// 2=Word (16 bit unsigned)
+			else if ("uint16" == strtolower($type)
 				|| "enum16" == strtolower($type)
 				|| "uint8+uint8" == strtolower($type)
 			)
 			{
 				$datenTyp = 2;
 			}
+			// 3=DWord (32 bit unsigned)
 			elseif ("uint32" == strtolower($type)
 				|| "acc32" == strtolower($type)
 				|| "acc64" == strtolower($type)
@@ -1741,36 +1756,45 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$datenTyp = 3;
 			}
-			elseif ("int16" == strtolower($type)
-				|| "sunssf" == strtolower($type)
-			)
+			// 4=Char / ShortInt (8 bit signed)
+			elseif ("sunssf" == strtolower($type))
 			{
 				$datenTyp = 4;
 			}
+			// 5=Short / SmallInt (16 bit signed)
+			elseif ("int16" == strtolower($type))
+			{
+				$datenTyp = 5;
+			}
+			// 6=Integer (32 bit signed)
 			elseif ("int32" == strtolower($type))
 			{
 				$datenTyp = 6;
 			}
+			// 7=Real (32 bit signed)
 			elseif ("float32" == strtolower($type))
 			{
 				$datenTyp = 7;
 			}
+			// 8=Int64
 			elseif ("uint64" == strtolower($type))
 			{
 				$datenTyp = 8;
 			}
+			// 9=Real64 (32 bit signed)
+			// 10=String
 			elseif ("string32" == strtolower($type)
 				|| "string16" == strtolower($type)
 				|| "string8" == strtolower($type)
 				|| "string" == strtolower($type)
 			)
 			{
-				echo "Datentyp '".$type."' wird von Modbus in IPS nicht unterstützt! --> skip\n";
-				return "continue";
+				$datenTyp = 10;
 			}
 			else
 			{
-				echo "Fehler: Unbekannter Datentyp '".$type."'! --> skip\n";
+				$this->SendDebug("getModbusDatatype()", "Unbekannter Datentyp '".$type."'! --> skip", 0);
+
 				return "continue";
 			}	
 
@@ -2071,7 +2095,6 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 				// no archive found
 				$this->SetStatus(201);
-				echo MODUL_PREFIX."_GetBatteryPowerW(): Archive not found!";
 
 				$returnValue = GetValue($id);
 			}
