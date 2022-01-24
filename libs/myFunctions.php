@@ -21,6 +21,11 @@ if (!defined('KL_DEBUG'))
 
 if (!defined('IS_NOARCHIVE'))
 {
+	if (!defined('IS_EBASE'))
+	{
+		define('IS_EBASE', 200);
+	}
+
 	define('IS_NOARCHIVE', IS_EBASE + 1);
 	define('IS_IPPORTERROR', IS_EBASE + 2);
 }
