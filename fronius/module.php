@@ -1,6 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../libs/myFunctions.php';  // globale Funktionen
+declare(strict_types=1);
+
+require_once __DIR__.'/../libs/myFunctions.php';  // globale Funktionen
 
 define("DEVELOPMENT", false);
 
@@ -28,6 +30,7 @@ if (!defined('IMR_START_REGISTER'))
 	define("IMR_DESCRIPTION", 5);
 	define("IMR_TYPE", 6);
 	define("IMR_UNITS", 7);
+	define("IMR_SF", 8);
 }
 
 	class Fronius extends IPSModule
@@ -358,6 +361,144 @@ function removeInvalidChars(\$input)
 		{
 			//Never delete this line!
 			parent::Destroy();
+		}
+
+		public function GetConfigurationForm()
+		{
+			$formElements = array();
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Der Fronius Wechselrichter oder SmartMeter (Energiezähler) muss Modbus TCP unterstützen!"
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe über Modbus per 'TCP' und der Sunspec Model Type 'float' aktiviert werden."
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "Open",
+				'name' => "active",
+			);
+			$formElements[] = array(
+				'type' => "ValidationTextBox",
+				'caption' => "IP",
+				'name' => "hostIp",
+				'validate' => "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+			);
+			$formElements[] = array(
+				'type' => "NumberSpinner",
+				'caption' => "Port (Standard: 502)",
+				'name' => "hostPort",
+				'digits' => 0,
+				'minimum' => 1,
+				'maximum' => 65535,
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Geräte ID des Wechselrichters (bspw.: ID=1) oder des SmartMeters (vor GEN24: ID=240, ab GEN24: ID=200)"
+			);
+			$formElements[] = array(
+				'type' => "NumberSpinner",
+				'caption' => "Geräte ID (Standard: 1, 200 oder 240)",
+				'name' => "hostmodbusDevice",
+				'digits' => 0,
+				'minimum' => 1,
+				'maximum' => 255
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "In welchem Zeitintervall sollen die Modbus-Werte abgefragt werden (Empfehlung: 10 bis 60 Sekunden)?"
+			);
+		$formElements[] = array(
+				'type' => "NumberSpinner",
+				'caption' => "Abfrage-Intervall (in Sekunden)",
+				'name' => "pollCycle",
+				'minimum' => 1,
+				'maximum' => 3600
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Achtung: Die Berechnung der Wirkarbeit (Wh/kWh) wird exakter, je kleiner der Abfarge-Intervall gewählt wird.\nABER: Je kleiner der Abfrage-Intervall, um so höher die Systemlast und auch die Archiv-Größe bei aktiviertem Logging!"
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " "
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Sollen die erweiterten Leistungsdaten für Wechselrichter (bspw. Scheinleistung, Blindleistung, cos(),...) angezeigt werden?"
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC120 Nameplate Modell",
+				'name' => "readIC120"
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC121 Basic Settings Modell",
+				'name' => "readIC121"
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC122 Extended Measurements & Status Modell",
+				'name' => "readIC122"
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC123 Immediate Controls Modell",
+				'name' => "readIC123"
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC124 Basic Storage Control Model (nur Hybrid-Wechselrichter!)",
+				'name' => "readIC124"
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "I160 Multiple MPPT Inverter Extension Modell",
+				'name' => "readI160"
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " "
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Wird anstatt einens 3-phasigen Wechselrichters (Symo) ein 1-phasiger Wechselrichter (Primo) verwendet?"
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "1-phasiger Wechselrichter (bspw. Primo-Serie)",
+				'name' => "readOnePhaseInverter"
+			);
+	
+			$formActions = array();
+
+			$formStatus = array();
+			$formStatus[] = array(
+				'code' => IS_IPPORTERROR,
+				'icon' => "error",
+				'caption' => "IP oder Port sind nicht erreichtbar",
+			);
+			$formStatus[] = array(
+				'code' => IS_NOARCHIVE,
+				'icon' => "error",
+				'caption' => "Archiv nicht gefunden",
+			);
+
+			return json_encode(array('elements' => $formElements, 'actions' => $formActions, 'status' => $formStatus));
 		}
 
 		public function ApplyChanges()
