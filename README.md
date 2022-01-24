@@ -32,12 +32,12 @@ Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter un
 - IP-Symcon ab Version 5.0
 - Der Fronius Wechselrichter oder SmartMeter muss Modbus TCP unterstützen!
 - Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe per 'TCP' und der Sunspec Model Type 'float' aktiviert werden.
-![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Einstellungen%20-%20Modbus.JPG "Fronius - Einstellungen - Modbus")
+![alt text](https://github.com/Brovning/fronius/blob/main/docs/Fronius%20-%20Einstellungen%20-%20Modbus.JPG "Fronius - Einstellungen - Modbus")
 - Die Modbus Geräte-ID des Wechselrichters entspricht seiner Wechselrichter-Nummer, welche nur über das Bedienpanel des Wechselrichters eingestellt werden kann und nicht per Weboberfläche. Zu finden unter Setup > DATCOM > Wechselrichter-Nr. Die Werkseinstellung ist "01", was der Modbus Geräte-ID "1" entspricht. Hierbei gibt es nur eine einzige Ausnahme: Die Wechselrichter-Nummer "00" wird auf Modbus Geräte-ID "100" umgelegt, da bei Modbus die Geräte-ID "0" für Broadcast Nachrichten reserviert ist. 
-![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20Setup%20-%20DATCOM%20-%20WechselrichterNr.jpg "Fronius - Setup - DATCOM - Wechselrichter-Nr.")
+![alt text](https://github.com/Brovning/fronius/blob/main/docs/Fronius%20-%20Setup%20-%20DATCOM%20-%20WechselrichterNr.jpg "Fronius - Setup - DATCOM - Wechselrichter-Nr.")
 - GEN24 Modbus Geräte-ID für Wechselrichter: Die unit-id vom Wechselrichter ist immer 0x01 und kann scheinbar nicht mehr geändert werden. Die Identifikation ist durch die IP-Adresse möglich.
 - Der SmartMeter hatte standardmäßig die Geräte-ID "240". Ab GEN24 hat der SmartMeter standardmäßig die Geräte-ID "200". Beide werden unterstützt und somit kann der Wechselrichter nicht diese Geräte-IDs verwenden! Um die ID des SmartMeters zu ändern, das Passwort „2633“ am SmartMeter mit „Up“ und „Down“ einstellen und jeden einzelnen Wert mit „Enter“ bestätigen. Anschließend die Adresse ebenfalls mit „Up“ und „Down“ einstellen und jeden einzelnen Wert mit „Enter“ bestätigen.
-![alt text](https://github.com/Brovning/fronius/blob/master/docs/Fronius%20-%20SmartMeter%20-%20Device-ID.jpg "Fronius - SmartMeter - DeviceID")
+![alt text](https://github.com/Brovning/fronius/blob/main/docs/Fronius%20-%20SmartMeter%20-%20Device-ID.jpg "Fronius - SmartMeter - DeviceID")
 
 
 ### 3. Software-Installation
