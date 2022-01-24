@@ -19,6 +19,12 @@ if (!defined('KL_DEBUG'))
 	define('KL_WARNING', 10204);	// Warnung
 }
 
+if (!defined('IS_NOARCHIVE'))
+{
+	define('IS_NOARCHIVE', IS_EBASE + 1);
+	define('IS_IPPORTERROR', IS_EBASE + 2);
+}
+
 // ModBus RTU TCP
 if (!defined('MODBUS_INSTANCES'))
 {
@@ -32,6 +38,21 @@ if (!defined('MODBUS_ADDRESSES'))
 {
 	define("MODBUS_ADDRESSES", "{CB197E50-273D-4535-8C91-BB35273E3CA5}");
 }
+
+if (!defined('MODBUSDATATYPE_BIT'))
+{
+	define('MODBUSDATATYPE_BIT', 1);
+	define('MODBUSDATATYPE_WORD', 2);
+	define('MODBUSDATATYPE_DWORD', 3);
+	define('MODBUSDATATYPE_CHAR', 4);
+	define('MODBUSDATATYPE_SHORT', 5);
+	define('MODBUSDATATYPE_INT', 6);
+	define('MODBUSDATATYPE_REAL', 7);
+	define('MODBUSDATATYPE_INT64', 8);
+	define('MODBUSDATATYPE_REAL64', 9);
+	define('MODBUSDATATYPE_STRING', 10);
+}
+
 
 trait myFunctions
 {

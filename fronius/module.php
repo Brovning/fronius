@@ -1668,35 +1668,37 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 					// Erreichbarkeit von IP und Port pruefen
 					$portOpen = false;
-					$waitTimeoutInSeconds = 1; 
-					if(/*Sys_Ping($hostIp, $waitTimeoutInSeconds*1000)*/ $fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
-					{   
+					$waitTimeoutInSeconds = 1;
+					if (/*Sys_Ping($hostIp, $waitTimeoutInSeconds*1000)*/ $fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
+					{
 						// It worked
 						$portOpen = true;
 
-						// Client Soket aktivieren
+						// Client Socket aktivieren
 						if (false == IPS_GetProperty($interfaceId, "Open"))
 						{
 							IPS_SetProperty($interfaceId, "Open", true);
 							IPS_ApplyChanges($interfaceId);
 							//IPS_Sleep(100);
+
+							$this->SendDebug("ClientSocket-Status", "ClientSocket activated (".$interfaceId.")", 0);
 						}
-						
+
 						// aktiv
-						$this->SetStatus(102);
+						$this->SetStatus(IS_ACTIVE);
 
 						$this->SendDebug("Module-Status", MODUL_PREFIX."-module activated", 0);
 					}
 					else
 					{
 						// IP oder Port nicht erreichbar
-						$this->SetStatus(200);
+						$this->SetStatus(IS_IPPORTERROR);
 
 						$this->SendDebug("Module-Status", "ERROR: ".MODUL_PREFIX." with IP=".$hostIp." and Port=".$hostPort." cannot be reached!", 0);
 					}
 
 					// Close fsockopen
-					if(isset($fp))
+					if (isset($fp) && false !== $fp)
 					{
 						fclose($fp); // nötig für fsockopen!
 					}
@@ -1709,6 +1711,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						IPS_SetProperty($interfaceId, "Open", false);
 						IPS_ApplyChanges($interfaceId);
 						//IPS_Sleep(100);
+
+						$this->SendDebug("ClientSocket-Status", "ClientSocket deactivated (".$interfaceId.")", 0);
 					}
 					
 					// Inverter - Timer deaktivieren
@@ -1724,22 +1728,26 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					$this->SetTimerInterval("SM_Update-Evt", 0);
 
 					// inaktiv
-					$this->SetStatus(104);
+					$this->SetStatus(IS_INACTIVE);
 
 					$this->SendDebug("Module-Status", MODUL_PREFIX."-module deactivated", 0);
 				}
 
 
 				// pruefen, ob sich ModBus-Gateway geaendert hat
-				if(0 != $gatewayId_Old && $gatewayId != $gatewayId_Old)
+				if (0 != $gatewayId_Old && $gatewayId != $gatewayId_Old)
 				{
 					$this->deleteInstanceNotInUse($gatewayId_Old, MODBUS_ADDRESSES);
+
+					$this->SendDebug("ModbusGateway-Status", "ModbusGateway deleted (".$gatewayId_Old.")", 0);
 				}
 
 				// pruefen, ob sich ClientSocket Interface geaendert hat
-				if(0 != $interfaceId_Old && $interfaceId != $interfaceId_Old)
+				if (0 != $interfaceId_Old && $interfaceId != $interfaceId_Old)
 				{
 					$this->deleteInstanceNotInUse($interfaceId_Old, MODBUS_INSTANCES);
+
+					$this->SendDebug("ClientSocket-Status", "ClientSocket deleted (".$interfaceId_Old.")", 0);
 				}
 			}
 
@@ -1753,15 +1761,28 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				// Erstelle Modbus Instancen
 				foreach ($modelRegister_array as $inverterModelRegister)
 				{
+					// get datatype
 					$datenTyp = $this->getModbusDatatype($inverterModelRegister[IMR_TYPE]);
-					if("continue" == $datenTyp)
+					if ("continue" == $datenTyp)
 					{
 						continue;
 					}
 
-                    if (isset($inverterModelRegister[IMR_UNITS])) {
-                        $profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $datenTyp);
-                    }
+/*					// if scale factor is given, variable will be of type float
+					if (isset($inverterModelRegister[IMR_SF]) && 10000 >= $inverterModelRegister[IMR_SF])
+					{
+						$varDataType = MODBUSDATATYPE_REAL;
+					}
+					else
+*/					{
+						$varDataType = $datenTyp;
+					}
+
+					// get profile
+					if (isset($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $varDataType);
+					}
 					else
 					{
 						$profile = false;
@@ -1773,7 +1794,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					// Modbus-Instanz erstellen, sofern noch nicht vorhanden
 					if (false === $instanceId)
 					{
-						$this->SendDebug("create Modbus address", "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]." (datatype=".$datenTyp.", profile=".$profile.")", 0);
+						$this->SendDebug("create Modbus address", "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]." (modbusDataType=".$datenTyp.", varDataType=".$varDataType.", profile=".$profile.")", 0);
 
 						$instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
 
@@ -1801,28 +1822,33 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					}
 
 
-					// Modbus-Instanz konfigurieren
+					// ************************
+					// config Modbus-Instance
+					// ************************
+					// set data type
 					if ($datenTyp != IPS_GetProperty($instanceId, "DataType"))
 					{
 						IPS_SetProperty($instanceId, "DataType", $datenTyp);
 					}
+					// set emulation state
 					if (false != IPS_GetProperty($instanceId, "EmulateStatus"))
 					{
 						IPS_SetProperty($instanceId, "EmulateStatus", false);
 					}
+					// set poll cycle
 					if ($pollCycle != IPS_GetProperty($instanceId, "Poller"))
 					{
 						IPS_SetProperty($instanceId, "Poller", $pollCycle);
 					}
 					// set length for modbus datatype string
-					if (10 == $datenTyp && $inverterModelRegister[IMR_SIZE] != IPS_GetProperty($instanceId, "Length")) // if string --> set length accordingly
-					{
+					if (MODBUSDATATYPE_STRING == $datenTyp && $inverterModelRegister[IMR_SIZE] != IPS_GetProperty($instanceId, "Length"))
+					{ // if string --> set length accordingly
 						IPS_SetProperty($instanceId, "Length", $inverterModelRegister[IMR_SIZE]);
 					}
-/*
-					if(0 != IPS_GetProperty($instanceId, "Factor"))
+/*					// set scale factor
+					if (isset($inverterModelRegister[IMR_SF]) && 10000 >= $inverterModelRegister[IMR_SF] && $inverterModelRegister[IMR_SF] != IPS_GetProperty($instanceId, "Factor"))
 					{
-						IPS_SetProperty($instanceId, "Factor", 0);
+						IPS_SetProperty($instanceId, "Factor", $inverterModelRegister[IMR_SF]);
 					}
 */
 
@@ -1831,15 +1857,15 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					{
 						IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET);
 					}
-					if(6 == $inverterModelRegister[IMR_FUNCTION_CODE])
+					if (6 == $inverterModelRegister[IMR_FUNCTION_CODE])
 					{
 						$ReadFunctionCode = 3;
 					}
-					else if("R" == $inverterModelRegister[IMR_FUNCTION_CODE])
+					elseif ("R" == $inverterModelRegister[IMR_FUNCTION_CODE])
 					{
 						$ReadFunctionCode = 3;
 					}
-					else if("RW" == $inverterModelRegister[IMR_FUNCTION_CODE])
+					elseif ("RW" == $inverterModelRegister[IMR_FUNCTION_CODE])
 					{
 						$ReadFunctionCode = 3;
 					}
@@ -1869,7 +1895,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
 					}
 
-					if(IPS_HasChanges($instanceId))
+					if (IPS_HasChanges($instanceId))
 					{
 						IPS_ApplyChanges($instanceId);
 					}
@@ -1878,15 +1904,18 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 
 					// Profil der Statusvariable initial einmal zuweisen
-					if(false != $profile && !IPS_VariableProfileExists($profile))
+					if (false != $profile && !IPS_VariableProfileExists($profile))
 					{
 						$this->SendDebug("Variable-Profile", "Profile ".$profile." does not exist!", 0);
-					}	
-					else if ($initialCreation && false != $profile)
+					}
+					elseif ($initialCreation && false != $profile)
 					{
 						// Justification Rule 11: es ist die Funktion RegisterVariable...() in diesem Fall nicht nutzbar, da die Variable durch die Modbus-Instanz bereits erstellt wurde
 						// --> Custo Profil wird initial einmal beim Instanz-erstellen gesetzt
-						IPS_SetVariableCustomProfile($varId, $profile);
+						if (!IPS_SetVariableCustomProfile($varId, $profile))
+						{
+							$this->SendDebug("Variable-Profile", "Error setting profile ".$profile." for VarID ".$varId."!", 0);
+						}
 					}
 				}
 			}
@@ -1900,67 +1929,67 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			if ("uint8" == strtolower($type)
 				|| "enum8" == strtolower($type)
 				|| "int8" == strtolower($type)
-			)
-			{
-				$datenTyp = 1;
+			) {
+				$datenTyp = MODBUSDATATYPE_BIT;
 			}
 			// 2=Word (16 bit unsigned)
-			else if ("uint16" == strtolower($type)
+			elseif ("uint16" == strtolower($type)
 				|| "enum16" == strtolower($type)
 				|| "uint8+uint8" == strtolower($type)
-			)
-			{
-				$datenTyp = 2;
+			) {
+				$datenTyp = MODBUSDATATYPE_WORD;
 			}
 			// 3=DWord (32 bit unsigned)
 			elseif ("uint32" == strtolower($type)
 				|| "acc32" == strtolower($type)
 				|| "acc64" == strtolower($type)
-			)
-			{
-				$datenTyp = 3;
+			) {
+				$datenTyp = MODBUSDATATYPE_DWORD;
 			}
 			// 4=Char / ShortInt (8 bit signed)
 			elseif ("sunssf" == strtolower($type))
 			{
-				$datenTyp = 4;
+				$datenTyp = MODBUSDATATYPE_CHAR;
 			}
 			// 5=Short / SmallInt (16 bit signed)
 			elseif ("int16" == strtolower($type))
 			{
-				$datenTyp = 5;
+				$datenTyp = MODBUSDATATYPE_SHORT;
 			}
 			// 6=Integer (32 bit signed)
 			elseif ("int32" == strtolower($type))
 			{
-				$datenTyp = 6;
+				$datenTyp = MODBUSDATATYPE_INT;
 			}
 			// 7=Real (32 bit signed)
 			elseif ("float32" == strtolower($type))
 			{
-				$datenTyp = 7;
+				$datenTyp = MODBUSDATATYPE_REAL;
 			}
 			// 8=Int64
 			elseif ("uint64" == strtolower($type))
 			{
-				$datenTyp = 8;
+				$datenTyp = MODBUSDATATYPE_INT64;
 			}
-			// 9=Real64 (32 bit signed)
+			/* 9=Real64 (32 bit signed)
+			elseif ("???" == strtolower($type))
+			{
+				$datenTyp = MODBUSDATATYPE_REAL64;
+			}*/
 			// 10=String
 			elseif ("string32" == strtolower($type)
 				|| "string16" == strtolower($type)
 				|| "string8" == strtolower($type)
 				|| "string" == strtolower($type)
-			)
-			{
-				$datenTyp = 10;
+			) {
+				$datenTyp = MODBUSDATATYPE_STRING;
 			}
 			else
 			{
 				$this->SendDebug("getModbusDatatype()", "Unbekannter Datentyp '".$type."'! --> skip", 0);
 
 				return "continue";
-			}	
+			}
 
 			return $datenTyp;
 		}
@@ -1968,7 +1997,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 		private function getProfile($unit, $datenTyp = -1)
 		{
 			// Profil ermitteln
-			if ("a" == strtolower($unit) && 7 == $datenTyp)
+			if ("a" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Ampere";
 			}
@@ -1982,26 +2011,24 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			}
 			elseif (("ah" == strtolower($unit)
 					|| "vah" == strtolower($unit))
-				&& 7 == $datenTyp
-			)
-			{
-						$profile = MODUL_PREFIX.".AmpereHour.Float";
+				&& MODBUSDATATYPE_REAL == $datenTyp
+			) {
+				$profile = MODUL_PREFIX.".AmpereHour.Float";
 			}
 			elseif ("ah" == strtolower($unit)
 				|| "vah" == strtolower($unit)
-			)
-			{
-						$profile = MODUL_PREFIX.".AmpereHour.Int";
+			) {
+				$profile = MODUL_PREFIX.".AmpereHour.Int";
 			}
-			elseif ("v" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("v" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Volt";
 			}
-			elseif("v" == strtolower($unit))
+			elseif ("v" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Volt.Int";
 			}
-			elseif ("w" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("w" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Watt.14490";
 			}
@@ -2013,7 +2040,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Hours.Int";
 			}
-			elseif ("hz" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("hz" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Hertz";
 			}
@@ -2026,7 +2053,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				$profile = MODUL_PREFIX.".Volumenstrom.Int";
 			}
 			// Voltampere fuer elektrische Scheinleistung
-			elseif ("va" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("va" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = MODUL_PREFIX.".Scheinleistung.Float";
 			}
@@ -2036,7 +2063,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				$profile = MODUL_PREFIX.".Scheinleistung.Int";
 			}
 			// Var fuer elektrische Blindleistung
-			elseif ("var" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("var" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = MODUL_PREFIX.".Blindleistung.Float";
 			}
@@ -2045,7 +2072,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Blindleistung.Int";
 			}
-			elseif ("%" == $unit && 7 == $datenTyp)
+			elseif ("%" == $unit && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Valve.F";
 			}
@@ -2053,7 +2080,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = "~Valve";
 			}
-			elseif ("wh" == strtolower($unit) && (7 == $datenTyp || 8 == $datenTyp))
+			elseif ("wh" == strtolower($unit) && (MODBUSDATATYPE_REAL == $datenTyp || MODBUSDATATYPE_INT64 == $datenTyp))
 			{
 				$profile = MODUL_PREFIX.".Electricity.Float";
 			}
@@ -2061,22 +2088,21 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Electricity.Int";
 			}
-			elseif (("° C" == $unit
+			elseif ((
+				"° C" == $unit
 					|| "°C" == $unit
 					|| "C" == $unit
-				) && 7 == $datenTyp
-			)
-			{
+			) && MODBUSDATATYPE_REAL == $datenTyp
+			) {
 				$profile = "~Temperature";
 			}
 			elseif ("° C" == $unit
 				|| "°C" == $unit
 				|| "C" == $unit
-			)
-			{
+			) {
 				$profile = MODUL_PREFIX.".Temperature.Int";
 			}
-			elseif ("cos()" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("cos()" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = MODUL_PREFIX.".Angle.Float";
 			}
@@ -2116,13 +2142,17 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".StatsHeizkreis.Int";
 			}
-			elseif ("emergency-power" == strtolower($unit))
+			elseif ("enumerated_emergency-power" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Emergency-Power.Int";
 			}
-			elseif ("powermeter" == strtolower($unit))
+			elseif ("enumerated_powermeter" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Powermeter.Int";
+			}
+			elseif ("enumerated_sg-ready-status" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".SG-Ready-Status.Int";
 			}
 			elseif ("secs" == strtolower($unit))
 			{
@@ -2132,8 +2162,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				|| "bitfield" == strtolower($unit)
 				|| "bitfield16" == strtolower($unit)
 				|| "bitfield32" == strtolower($unit)
-			)
-			{
+			) {
 				$profile = false;
 			}
 			else
@@ -2145,7 +2174,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				}
 			}
 
-			return $profile;			
+			return $profile;
 		}
 
 
@@ -2326,7 +2355,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				$archiveId = false;
 
 				// no archive found
-				$this->SetStatus(201);
+				$this->SetStatus(IS_NOARCHIVE);
 
 				$returnValue = GetValue($id);
 			}
