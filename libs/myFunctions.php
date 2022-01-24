@@ -60,10 +60,10 @@ trait myFunctions
 	 * ermittelt aus den Logwerten
 	 * TimeRange = Zeitintervall in Minuten
 	 */
-	private function getArithMittelOfLog($archiveId, $logId, $timeRange, $startZeit = false)
+	private function getArithMittelOfLog(int $archiveId, int $logId, int $timeRange, int $startZeit = 0)//PHP8 :mixed
 	{
 		// Startzeit des Intervalls auf aktuelle Zeit setzen, wenn nicht gesetzt
-		if (!$startZeit)
+		if (0 == $startZeit)
 		{
 			$startZeit = time();
 		}
@@ -119,7 +119,7 @@ trait myFunctions
 		}
 	}
 
-	private function readOldModbusGateway()
+	private function readOldModbusGateway(): array
 	{
 		$modbusGatewayId_Old = 0;
 		$clientSocketId_Old = 0;
@@ -141,8 +141,10 @@ trait myFunctions
 		return array($modbusGatewayId_Old, $clientSocketId_Old);
 	}
 
-	private function deleteInstanceNotInUse($connectionId_Old, $moduleId)
+	private function deleteInstanceNotInUse(int $connectionId_Old, string $moduleId): bool
 	{
+		$returnValue = true;
+
 		if (!IPS_ModuleExists($moduleId))
 		{
 			$this->SendDebug("deleteInstanceNotInUse()", "ERROR: ModuleId ".$moduleId." does not exist!", 0);
@@ -165,12 +167,14 @@ trait myFunctions
 			// Loesche Connection-Instanz (bspw. ModbusAddress, ClientSocket,...), wenn nicht mehr in Verwendung
 			if (!$inUse)
 			{
-				IPS_DeleteInstance($connectionId_Old);
+				$returnValue &= IPS_DeleteInstance($connectionId_Old);
 			}
 		}
+
+		return $returnValue;
 	}
 
-	private function checkModbusGateway($hostIp, $hostPort, $hostmodbusDevice, $hostSwapWords)
+	private function checkModbusGateway(string $hostIp, int $hostPort, int $hostmodbusDevice, int $hostSwapWords): array
 	{
 		// Splitter-Instance Id des ModbusGateways
 		$foundGatewayId = 0;
@@ -337,66 +341,74 @@ trait myFunctions
 		return array($currentGatewayId, $currentClientSocketId);
 	}
 
-	private function createVarProfile($ProfilName, $ProfileType, $Suffix = '', $MinValue = 0, $MaxValue = 0, $StepSize = 0, $Digits = 0, $Icon = 0, $Associations = '')
+	private function createVarProfile(string $ProfilName, int $ProfileType, string $Suffix = '', int $MinValue = 0, int $MaxValue = 0, int $StepSize = 0, int $Digits = 0, int $Icon = 0, array $Associations = array()): bool
 	{
+		$returnValue = true;
+
 		if (!IPS_VariableProfileExists($ProfilName))
 		{
-			IPS_CreateVariableProfile($ProfilName, $ProfileType);
-			IPS_SetVariableProfileText($ProfilName, '', $Suffix);
+			$returnValue &= IPS_CreateVariableProfile($ProfilName, $ProfileType);
+			$returnValue &= IPS_SetVariableProfileText($ProfilName, '', $Suffix);
 
 			if (in_array($ProfileType, array(VARIABLETYPE_INTEGER, VARIABLETYPE_FLOAT)))
 			{
-				IPS_SetVariableProfileValues($ProfilName, $MinValue, $MaxValue, $StepSize);
-				IPS_SetVariableProfileDigits($ProfilName, $Digits);
+				$returnValue &= IPS_SetVariableProfileValues($ProfilName, $MinValue, $MaxValue, $StepSize);
+				$returnValue &= IPS_SetVariableProfileDigits($ProfilName, $Digits);
 			}
 
-			IPS_SetVariableProfileIcon($ProfilName, $Icon);
+			$returnValue &= IPS_SetVariableProfileIcon($ProfilName, $Icon);
 
-			if ($Associations != '')
+			foreach ($Associations as $a)
 			{
-				foreach ($Associations as $a)
-				{
-					$w = isset($a['Wert']) ? $a['Wert'] : '';
-					$n = isset($a['Name']) ? $a['Name'] : '';
-					$i = isset($a['Icon']) ? $a['Icon'] : '';
-					$f = isset($a['Farbe']) ? $a['Farbe'] : -1;
-					IPS_SetVariableProfileAssociation($ProfilName, $w, $n, $i, $f);
-				}
+				$w = isset($a['Wert']) ? $a['Wert'] : '';
+				$n = isset($a['Name']) ? $a['Name'] : '';
+				$i = isset($a['Icon']) ? $a['Icon'] : '';
+				$f = isset($a['Farbe']) ? $a['Farbe'] : -1;
+				$returnValue &= IPS_SetVariableProfileAssociation($ProfilName, $w, $n, $i, $f);
 			}
 
 			$this->SendDebug("Variable-Profile", "Profile ".$ProfilName." created", 0);
 		}
+
+		return $returnValue;
 	}
 
-	private function removeInvalidChars($input)
+	private function removeInvalidChars(string $input): string
 	{
 		return preg_replace('/[^a-z0-9]/i', '', $input);
 	}
 
-	private function deleteModbusInstancesRecursive($inverterModelRegister_array, $categoryId, $uniqueIdent = "")
+	private function deleteModbusInstancesRecursive(array $inverterModelRegister_array, int $categoryId, string $uniqueIdent = ""): bool
 	{
+		$returnValue = true;
+
 		foreach ($inverterModelRegister_array as $register)
 		{
 			$instanceId = @IPS_GetObjectIDByIdent($register[IMR_START_REGISTER].$uniqueIdent, $categoryId);
 			if (false !== $instanceId)
 			{
-				$this->deleteInstanceRecursive($instanceId);
+				$returnValue &= $this->deleteInstanceRecursive($instanceId);
 
 				$this->SendDebug("delete Modbus address", "REG_".$register[IMR_START_REGISTER]." - ".$register[IMR_NAME].", ID=".$instanceId, 0);
 			}
 		}
+
+		return $returnValue;
 	}
 
-	private function deleteInstanceRecursive($instanceId)
+	private function deleteInstanceRecursive(int $instanceId): bool
 	{
+		$returnValue = true;
 		foreach (IPS_GetChildrenIDs($instanceId) as $childChildId)
 		{
-			IPS_DeleteVariable($childChildId);
+			$returnValue &= IPS_DeleteVariable($childChildId);
 		}
-		IPS_DeleteInstance($instanceId);
+		$returnValue &= IPS_DeleteInstance($instanceId);
+
+		return $returnValue;
 	}
 
-	private function MaintainInstanceVariable($Ident, $Name, $Typ, $Profil = "", $Position = 0, $Beibehalten = true, $instanceId, $varInfo = "")
+	private function MaintainInstanceVariable(string $Ident, string $Name, int $Typ, string $Profil = "", int $Position = 0, bool $Beibehalten = true, int $instanceId, string $varInfo = "")//PHP8 : mixed
 	{
 		$varId = @IPS_GetObjectIDByIdent($Ident, $instanceId);
 		if (false === $varId && $Beibehalten)
@@ -433,7 +445,7 @@ trait myFunctions
 		return $varId;
 	}
 
-	private function myMaintainVariable($Ident, $Name, $Typ, $Profil = "", $Position = 0, $Beibehalten = true)
+	private function myMaintainVariable(string $Ident, string $Name, int $Typ, string $Profil = "", int $Position = 0, bool $Beibehalten = true)//PHP8 :mixed
 	{
 		$this->MaintainVariable($Ident, $Name, $Typ, $Profil, $Position, $Beibehalten);
 
@@ -449,7 +461,7 @@ trait myFunctions
 		return $varId;
 	}
 
-	private function getPowerSumOfLog($logId, $startTime, $endTime, $mode = 0)
+	private function getPowerSumOfLog(int $logId, int $startTime, int $endTime, int $mode = 0): float
 	{
 		$archiveId = $this->getArchiveId();
 		$bufferSum = 0;
@@ -538,7 +550,7 @@ trait myFunctions
 	}
 
 	// Inspired by module SymconTest/HookServe
-	private function GetMimeType($extension)
+	private function GetMimeType(string $extension): string
 	{
 		$lines = file(IPS_GetKernelDirEx().'mime.types');
 		foreach ($lines as $line)
@@ -560,7 +572,7 @@ trait myFunctions
 	}
 
 	// ermittelt die InstanzId des Archive Controls (Datanbank des Variablen-Loggings)
-	private function getArchiveId()
+	private function getArchiveId(): int
 	{
 		$archiveId = IPS_GetInstanceListByModuleID("{43192F0B-135B-4CE7-A0A7-1475603F3060}");
 		if (isset($archiveId[0]))
@@ -578,7 +590,7 @@ trait myFunctions
 	}
 
 	// ermittelt RGB Farben mit Rückgabewert Int
-	private function getRgbColor($color)
+	private function getRgbColor(string $color): int
 	{
 		$color = strtolower($color);
 
@@ -607,7 +619,7 @@ trait myFunctions
 	}
 
 	// Reduce LogSize by keeping the newest value and removing all older values per Intervall $aggregation (=minute, hour, day)
-	public function RecordReducing(int $ID, int $MStartDate, int $MEndDate, string $aggregation = "i")
+	public function RecordReducing(int $ID, int $MStartDate, int $MEndDate, string $aggregation = "i"): bool
 	{
 		/* !!! ACHTUNG: Aktuell noch Fehlerhaft ! ! !
 				$ah_ID = $this->getArchiveId();

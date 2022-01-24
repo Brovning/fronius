@@ -1920,8 +1920,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				}
 			}
 		}
-		
-		private function getModbusDatatype($type)
+
+		private function getModbusDatatype(string $type)//PHP8 :mixed
 		{
 			// Datentyp ermitteln
 			// 0=Bit (1 bit)
@@ -1994,7 +1994,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			return $datenTyp;
 		}
 
-		private function getProfile($unit, $datenTyp = -1)
+		private function getProfile(string $unit, int $datenTyp = -1)//PHP8 :mixed
 		{
 			// Profil ermitteln
 			if ("a" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
@@ -2325,7 +2325,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
 		}
 
-		private function GetVariableValue($instanceIdent, $variableIdent = "Value")
+		private function GetVariableValue(string $instanceIdent, string $variableIdent = "Value")//PHP8 : mixed
 		{
 			$instanceId = IPS_GetObjectIDByIdent($this->removeInvalidChars($instanceIdent), $this->InstanceID);
 			$varId = IPS_GetObjectIDByIdent($this->removeInvalidChars($variableIdent), $instanceId);
@@ -2333,7 +2333,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			return GetValue($varId);
 		}
 
-		private function GetVariableId($instanceIdent, $variableIdent = "Value")
+		private function GetVariableId(string $instanceIdent, string $variableIdent = "Value"): int
 		{
 			$instanceId = IPS_GetObjectIDByIdent($this->removeInvalidChars($instanceIdent), $this->InstanceID);
 			$varId = IPS_GetObjectIDByIdent($this->removeInvalidChars($variableIdent), $instanceId);
@@ -2341,7 +2341,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			return $varId;
 		}
 
-		private function GetLoggedValuesInterval($id, $minutes)
+		private function GetLoggedValuesInterval(int $id, int $minutes)//PHP8 :mixed
 		{
 			$archiveId = IPS_GetInstanceListByModuleID("{43192F0B-135B-4CE7-A0A7-1475603F3060}");
 			if (isset($archiveId[0]))
