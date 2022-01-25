@@ -310,17 +310,22 @@ foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
 		SetValue(\$targetId, \$newValue);
 	}
 }");
+
 			// I160 model
 			$this->RegisterTimer("Update-I160", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("I160 Multiple MPPT Inverter Extension")."\", ".$this->InstanceID.");
 // Inverter - SF Variablen erstellen
-\$inverterModelRegister_array = array(array(40283, 40266), array(40284, 40267), array(40285, 40268), array(40286, 40269), 
-array(40303, 40266), array(40304, 40267), array(40305, 40268), array(40306, 40269));
+\$inverterModelRegister_array = array(array(40283, 40266, -2), array(40284, 40267, -2), array(40285, 40268, -1), array(40286, 40269, 0), 
+array(40303, 40266, -2), array(40304, 40267, -2), array(40305, 40268, -1), array(40306, 40269, 0));
 foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
 {
 	\$instanceId = IPS_GetObjectIDByIdent(\$inverterModelRegister[0], \$parentId);
 	\$targetId = IPS_GetObjectIDByIdent(\"Value_SF\", \$instanceId);
 	\$sourceValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", \$instanceId));
 	\$sfValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", IPS_GetObjectIDByIdent(\$inverterModelRegister[1], \$parentId)));
+	if(-5 > \$sfValue || 5 < \$sfValue)
+	{
+		\$sfValue = \$inverterModelRegister[2];
+	}
 	\$newValue = \$sourceValue * pow(10, \$sfValue);
 
 	if(GetValue(\$targetId) != \$newValue)
@@ -2178,6 +2183,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 		private function checkProfiles()
 		{
+			$deleteProfiles_array = array();
+
 			/*
 						$this->createVarProfile(MODUL_PREFIX.".TempFehler.Int", VARIABLETYPE_INTEGER, '', 0, 2, 1, 0, 0, array(
 								array('Name' => "OK", 'Wert' => 0, "OK", 'Farbe' => $this->getRgbColor("green")),
@@ -2357,6 +2364,15 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			$this->createVarProfile(MODUL_PREFIX.".Volt.Int", VARIABLETYPE_INTEGER, ' V');
 //			$this->createVarProfile(MODUL_PREFIX.".Volumenstrom.Int", VARIABLETYPE_INTEGER, ' l/min');
 			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
+
+			// delete not used profiles
+			foreach ($deleteProfiles_array as $profileName)
+			{
+				if (IPS_VariableProfileExists($profileName))
+				{
+					IPS_DeleteVariableProfile($profileName);
+				}
+			}
 		}
 
 		private function GetVariableValue(string $instanceIdent, string $variableIdent = "Value")//PHP8 : mixed
