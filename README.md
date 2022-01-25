@@ -13,7 +13,7 @@ IP-Symcon (IPS) Modul für Fronius Inverter (Wechselrichter) und SmartMeter (Ene
 
 1. [Funktionsumfang](#1-funktionsumfang)
 2. [Voraussetzungen](#2-voraussetzungen)
-3. [Software-Installation](#3-software-installation)
+3. [Modul-Installation](#3-modul-installation)
 4. [Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
 5. [Statusvariablen und Profile](#5-statusvariablen-und-profile)
 6. [WebFront](#6-webfront)
@@ -40,10 +40,23 @@ Unterhalb der Fronius Instanz werden die Modbus Adressen des Modells Inverter un
 ![alt text](./docs/Fronius%20-%20SmartMeter%20-%20Device-ID.jpg "Fronius - SmartMeter - DeviceID")
 
 
-### 3. Software-Installation
 
-* Über den Module Store das 'Fronius'-Modul installieren.
-* Alternativ über das Module Control folgende URL hinzufügen: https://github.com/Brovning/fronius
+### 3. Modul-Installation
+
+#### Variante 1 (empfohlen): Modulverwaltung (Module Control)
+
+Über das in der IP Symcon Console (unter Core Instances/Kerninstanzen) enthaltene Module Control die URL https://github.com/Brovning/fronius manuell hinzufügen.
+
+Anschließend steht das Modul zur Verfügung und eine Fronius Instanz kann hinzugefügt werden.
+
+Anmerkung: Per Klick auf das Zahnradsymbol kann in der Modulverwaltung ganz einfach für Tests zwischen "main" (stabile und getestete Versionen) und "beta" (enthält neuste Funktionen, welche teils getest und ggf. fehlerbehaftet sind) hin- und hergewechselt werden.
+
+
+#### Variante 2: Module Store
+
+Über den in der IP Symcon Console integrierten Module Store das 'Fronius'-Modul installieren.
+
+Anschließend steht das Modul zur Verfügung und eine Fronius Instanz kann hinzugefügt werden.
 
 
 ### 4. Einrichten der Instanzen in IP-Symcon
