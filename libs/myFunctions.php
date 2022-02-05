@@ -398,7 +398,7 @@ trait myFunctions
 			}
 		}
 
-		return $returnValue;
+		return (bool)$returnValue;
 	}
 
 	private function deleteInstanceRecursive(int $instanceId): bool
@@ -410,7 +410,7 @@ trait myFunctions
 		}
 		$returnValue &= IPS_DeleteInstance($instanceId);
 
-		return $returnValue;
+		return (bool)$returnValue;
 	}
 
 	private function MaintainInstanceVariable(string $Ident, string $Name, int $Typ, string $Profil = "", int $Position = 0, bool $Beibehalten = true, int $instanceId, string $varInfo = "")//PHP8 : mixed
