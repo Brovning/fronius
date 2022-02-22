@@ -417,28 +417,28 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 ### 8. Versionshistorie
 
-#### v1.5
-- Bugfix #16: Workaround für inplausible DCA_SF, DCV_SF, DCW_SF und DCWH_SF
+#### v1.5, 22.02.2022
+- Bugfix #16: Workaround für unplausible DCA_SF, DCV_SF, DCW_SF und DCWH_SF
 
-#### v1.4
+#### v1.4, 04.10.2021
 - Bugfix #15: "Die Instanz hat noch ungespeicherte Änderungen" auch wenn nichts geändert wurde
 
-#### v1.3
+#### v1.3, 08.09.2021
 - SmartMeter-Unterstützung für ID=200 hinzugefügt. Default bei GEN24.
 
-#### v1.2
+#### v1.2, 08.09.2021
 - Fronius Primo GEN24, Symo GEN24, Tauro und Galvo hinzugefügt
 - Logwerte F_Site_Power, F_Site_Energy_Day, F_Site_Energy_Year und F_Site_Energy_Total hinzugefügt
 - interne Optimierungen
 
-#### v1.1
+#### v1.1, 17.05.2020
 - Fehler #11: Nach IPS Neustart wird je ein weiteres FroniusModbusGateway und FroniusClientSocket erstellt
 - Feature Request #10: ScaleFactor (SF) berücksichtigen und Werte entsprechend umrechnen
 - Berechnung der Bits PVConn, StorConn, StActCtl und der UTC-Time Tms hinzugefügt
 - Profile SunSpec.ChaSt.Int und SunSpec.ID.Int hinzugefügt
 - interne Optimierungen
 
-#### v1.0
+#### v1.0, 22.04.2020
 - Feature Request #6: Unterstützung für 1-phasige Wechselrichter
 - Feature Request #7: Erweiterte Wechselrichter Modelle
 - Feature Request #8: SmartMeter hinzugefügt
@@ -446,15 +446,15 @@ Aktuell keine PHP-Funktionen verfügbar.
 - von byName auf byIdent umgestellt
 - Profile für Erweiterete Modelle und SmartMeter hinzugefügt
 
-#### v0.5 beta
+#### v0.5 beta, 04.04.2020
 - Behobene Fehler: #9
 - Variable für hostSwapWords für ModBusGateway hinzugefügt
 - KR_READY check des KernelRunLevel hinzugefügt
 
-#### v0.4 beta
+#### v0.4 beta, 24.11.2019
 - Behobene Fehler: #5
 
-#### v0.3
+#### v0.3, 10.11.2019
 - "Open" Schalter hinzugefügt
 - Statusmeldungen "Instanz aktiviert", "Instanz deaktiviert" und "IP oder Port sind nicht erreichbar" hinzugefügt
 - Überprüfung von IP und Port hinzugefügt
@@ -467,3 +467,13 @@ Aktuell keine PHP-Funktionen verfügbar.
 - alte ClientSockets und Modbus-Gateways werden beim Ändern der IP oder Port gelöscht
 - Modbus Geräte ID zu Konfigurationsformular hinzugefügt
 - Behobene Fehler: #1, #2, #4
+
+#### v0.2, 02.11.2019
+- Einschänkung für eine Instanz entfernt
+- "Open" Schalter hinzugefügt
+- Statusmeldungen "Instanz aktiviert", "Instanz deaktiviert" und "IP oder Port sind nicht erreichbar" hinzugefügt
+- Überprüfung von IP und Port hinzugefügt
+- Auswertung der Bitfelder Evt1, EvtVnd1, EvtVnd2, EvtVnd3 hinzugefügt
+
+#### v0.1, 01.11.2019
+- First release for public
