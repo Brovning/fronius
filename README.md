@@ -417,6 +417,9 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 ### 8. Versionshistorie
 
+#### v1.5
+- Bugfix #16: Workaround für inplausible DCA_SF, DCV_SF, DCW_SF und DCWH_SF
+
 #### v1.4
 - Bugfix #15: "Die Instanz hat noch ungespeicherte Änderungen" auch wenn nichts geändert wurde
 
