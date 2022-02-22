@@ -1,6 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../libs/myFunctions.php';  // globale Funktionen
+declare(strict_types=1);
+
+require_once __DIR__.'/../libs/myFunctions.php';  // globale Funktionen
 
 define("DEVELOPMENT", false);
 
@@ -28,6 +30,7 @@ if (!defined('IMR_START_REGISTER'))
 	define("IMR_DESCRIPTION", 5);
 	define("IMR_TYPE", 6);
 	define("IMR_UNITS", 7);
+	define("IMR_SF", 8);
 }
 
 	class Fronius extends IPSModule
@@ -46,10 +49,10 @@ if (!defined('IMR_START_REGISTER'))
 			$this->RegisterPropertyInteger('hostPort', '502');
 			$this->RegisterPropertyInteger('hostmodbusDevice', '1');
 			$this->RegisterPropertyBoolean('readIC120', 'false');
-            $this->RegisterPropertyBoolean('readIC121', 'false');
-            $this->RegisterPropertyBoolean('readIC122', 'false');
-            $this->RegisterPropertyBoolean('readIC123', 'false');
-            $this->RegisterPropertyBoolean('readIC124', 'false');
+			$this->RegisterPropertyBoolean('readIC121', 'false');
+			$this->RegisterPropertyBoolean('readIC122', 'false');
+			$this->RegisterPropertyBoolean('readIC123', 'false');
+			$this->RegisterPropertyBoolean('readIC124', 'false');
 			$this->RegisterPropertyBoolean('readI160', 'false');
 			$this->RegisterPropertyBoolean('readOnePhaseInverter', 'false');
 			$this->RegisterPropertyInteger('pollCycle', '60');
@@ -307,17 +310,22 @@ foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
 		SetValue(\$targetId, \$newValue);
 	}
 }");
+
 			// I160 model
 			$this->RegisterTimer("Update-I160", 0, "\$parentId = IPS_GetObjectIDByIdent(\"".$this->removeInvalidChars("I160 Multiple MPPT Inverter Extension")."\", ".$this->InstanceID.");
 // Inverter - SF Variablen erstellen
-\$inverterModelRegister_array = array(array(40283, 40266), array(40284, 40267), array(40285, 40268), array(40286, 40269), 
-array(40303, 40266), array(40304, 40267), array(40305, 40268), array(40306, 40269));
+\$inverterModelRegister_array = array(array(40283, 40266, -2), array(40284, 40267, -2), array(40285, 40268, -1), array(40286, 40269, 0), 
+array(40303, 40266, -2), array(40304, 40267, -2), array(40305, 40268, -1), array(40306, 40269, 0));
 foreach(\$inverterModelRegister_array AS \$inverterModelRegister)
 {
 	\$instanceId = IPS_GetObjectIDByIdent(\$inverterModelRegister[0], \$parentId);
 	\$targetId = IPS_GetObjectIDByIdent(\"Value_SF\", \$instanceId);
 	\$sourceValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", \$instanceId));
 	\$sfValue = GetValue(IPS_GetObjectIDByIdent(\"Value\", IPS_GetObjectIDByIdent(\$inverterModelRegister[1], \$parentId)));
+	if(-5 > \$sfValue || 5 < \$sfValue)
+	{
+		\$sfValue = \$inverterModelRegister[2];
+	}
 	\$newValue = \$sourceValue * pow(10, \$sfValue);
 
 	if(GetValue(\$targetId) != \$newValue)
@@ -360,6 +368,144 @@ function removeInvalidChars(\$input)
 			parent::Destroy();
 		}
 
+		public function GetConfigurationForm()
+		{
+			$formElements = array();
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Der Fronius Wechselrichter oder SmartMeter (Energiezähler) muss Modbus TCP unterstützen!",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Im Konfigurationsmenü des Fronius Wechselrichters muss unter dem Menüpunkt 'Modbus' die Datenausgabe über Modbus per 'TCP' und der Sunspec Model Type 'float' aktiviert werden.",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "Open",
+				'name' => "active",
+			);
+			$formElements[] = array(
+				'type' => "ValidationTextBox",
+				'caption' => "IP",
+				'name' => "hostIp",
+				'validate' => "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+			);
+			$formElements[] = array(
+				'type' => "NumberSpinner",
+				'caption' => "Port (Standard: 502)",
+				'name' => "hostPort",
+				'digits' => 0,
+				'minimum' => 1,
+				'maximum' => 65535,
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Geräte ID des Wechselrichters (bspw.: ID=1) oder des SmartMeters (vor GEN24: ID=240, ab GEN24: ID=200)",
+			);
+			$formElements[] = array(
+				'type' => "NumberSpinner",
+				'caption' => "Geräte ID (Standard: 1, 200 oder 240)",
+				'name' => "hostmodbusDevice",
+				'digits' => 0,
+				'minimum' => 1,
+				'maximum' => 255,
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "In welchem Zeitintervall sollen die Modbus-Werte abgefragt werden (Empfehlung: 10 bis 60 Sekunden)?",
+			);
+			$formElements[] = array(
+				'type' => "NumberSpinner",
+				'caption' => "Abfrage-Intervall (in Sekunden)",
+				'name' => "pollCycle",
+				'minimum' => 1,
+				'maximum' => 3600,
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Achtung: Die Berechnung der Wirkarbeit (Wh/kWh) wird exakter, je kleiner der Abfarge-Intervall gewählt wird.\nABER: Je kleiner der Abfrage-Intervall, um so höher die Systemlast und auch die Archiv-Größe bei aktiviertem Logging!",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Sollen die erweiterten Leistungsdaten für Wechselrichter (bspw. Scheinleistung, Blindleistung, cos(),...) angezeigt werden?",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC120 Nameplate Modell",
+				'name' => "readIC120",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC121 Basic Settings Modell",
+				'name' => "readIC121",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC122 Extended Measurements & Status Modell",
+				'name' => "readIC122",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC123 Immediate Controls Modell",
+				'name' => "readIC123",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "IC124 Basic Storage Control Model (nur Hybrid-Wechselrichter!)",
+				'name' => "readIC124",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "I160 Multiple MPPT Inverter Extension Modell",
+				'name' => "readI160",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => "Wird anstatt einens 3-phasigen Wechselrichters (Symo) ein 1-phasiger Wechselrichter (Primo) verwendet?",
+			);
+			$formElements[] = array(
+				'type' => "CheckBox",
+				'caption' => "1-phasiger Wechselrichter (bspw. Primo-Serie)",
+				'name' => "readOnePhaseInverter",
+			);
+
+			$formActions = array();
+
+			$formStatus = array();
+			$formStatus[] = array(
+				'code' => IS_IPPORTERROR,
+				'icon' => "error",
+				'caption' => "IP oder Port sind nicht erreichtbar",
+			);
+			$formStatus[] = array(
+				'code' => IS_NOARCHIVE,
+				'icon' => "error",
+				'caption' => "Archiv nicht gefunden",
+			);
+
+			return json_encode(array('elements' => $formElements, 'actions' => $formActions, 'status' => $formStatus));
+		}
+
 		public function ApplyChanges()
 		{
 			//Never delete this line!
@@ -371,11 +517,11 @@ function removeInvalidChars(\$input)
 			$hostPort = $this->ReadPropertyInteger('hostPort');
 			$hostmodbusDevice = $this->ReadPropertyInteger('hostmodbusDevice');
 			$hostSwapWords = 0; // Fronius = false
-            $readIC120 = $this->ReadPropertyBoolean('readIC120');
-            $readIC121 = $this->ReadPropertyBoolean('readIC121');
-            $readIC122 = $this->ReadPropertyBoolean('readIC122');
-            $readIC123 = $this->ReadPropertyBoolean('readIC123');
-            $readIC124 = $this->ReadPropertyBoolean('readIC124');
+			$readIC120 = $this->ReadPropertyBoolean('readIC120');
+			$readIC121 = $this->ReadPropertyBoolean('readIC121');
+			$readIC122 = $this->ReadPropertyBoolean('readIC122');
+			$readIC123 = $this->ReadPropertyBoolean('readIC123');
+			$readIC124 = $this->ReadPropertyBoolean('readIC124');
 			$readI160 = $this->ReadPropertyBoolean('readI160');
 			$readOnePhaseInverter = $this->ReadPropertyBoolean('readOnePhaseInverter');
 			$pollCycle = $this->ReadPropertyInteger('pollCycle') * 1000;
@@ -404,7 +550,7 @@ function removeInvalidChars(\$input)
 			{
 				// --> do nothing
 			}
-			else if("" == $hostIp)
+			elseif ("" == $hostIp)
 			{
 				// keine IP --> inaktiv
 				$this->SetStatus(104);
@@ -420,28 +566,28 @@ function removeInvalidChars(\$input)
 
 				/* ****** Fronius Register **************************************************************************
 					HINWEIS! Diese Register gelten nur für Wechselrichter. Für Fronius String Controls und Energiezähler sind diese Register nicht relevant
-					************************************************************************************************** */
+				 ************************************************************************************************** */
 				$inverterModelRegister_array = array(
-/*					array(212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
+					/*					array(212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
 					array(213, 1, "RW", "0x03 0x06 0x10", "F_Store_Data", "Rating data of all inverters connected to the Fronius Datamanager are persistently stored by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
 					array(214, 1, "R", "0x03", "F_Active_State_Code", "Current active state code of inverter - Description can be found in inverter manual: Status-Code des Wechselrichters: Das Register F_Active_State_Code (214) zeigt den Status-Code des Wechselrichter an der gerade aufgetreten ist. Dieser wird eventuell auch am Display des Wechselrichter angezeigt. Dieser Code wird auch als Event Flag im Inverter Modell dargestellt. Der angezeigte Code bleibt so lange aktiv bis der entsprechende Status nicht mehr am Wechselrichter anliegt. Alternativ kann der Status auch per Register F_Reset_All_Event_ Flags gelöscht werden.", "uint16", "", "", "not supported for Fronius Hybrid inverters (because of this inverter status maybe reported differently during nighttime compared to other inverter types)"),
 					array(215, 1, "RW", "0x03 0x06 0x10", "F_Reset_All_Event_Flags", "Write 0xFFFF to reset all event flags and active state code.", "uint16", "", "", "0xFFFF"),
 					array(216, 1, "RW", "0x03 0x06 0x10", "F_ModelType", "Type of SunSpec models used for inverter and meter data. Write 1 or 2 and then immediately 6 to acknowledge setting.", "uint16", "", "", "1: Floating point, 2: Integer & SF"),
 					array(217, 1, "RW", "0x03 0x06 0x10", "F_Storage_Restrictions_View_Mode", "Type of Restrictions reported in BasicStorageControl Model (IC124). Local restrictions are those that are set by Modbus Interface. Global restrictions are those that are set system wide.", "uint16", "", "", "0: local (default); 1: global"),
-*/					array(500, 2, "R", 3, "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W"),
+					 */					array(500, 2, "R", 3, "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W"),
 					array(502, 4, "R", 3, "F_Site_Energy_Day", "Total energy for current day of all connected inverters.", "uint64", "Wh"),
 					array(506, 4, "R", 3, "F_Site_Energy_Year", "Total energy for last year of all connected inverters.", "uint64", "Wh"),
 					array(510, 4, "R", 3, "F_Site_Energy_Total", "Total energy of all connected inverters.", "uint64", "Wh"),
-//				);
+					//				);
 
 
-				/* ********** Common Model **************************************************************************
+					/* ********** Common Model **************************************************************************
 					Die Beschreibung des Common Block inklusive der SID Register (Register 40001-40002)
 					zur Identifizierung als SunSpec Gerät gilt für jeden Gerätetyp (Wechselrichter, String Control,
 					Energiezähler). Jedes Gerät besitzt einen eigenen Common Block, in dem Informationen
 					über das Gerät (Modell, Seriennummer, SW Version, etc.) aufgeführt sind.
-					************************************************************************************************** */
-//				$inverterModelRegister_array = array(
+					 ************************************************************************************************** */
+					//				$inverterModelRegister_array = array(
 					// array(40001, 2, "R", 3, "SID", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map", "uint32", ""),
 					// array(40003, 1, "R", 3, "ID", "Well-known value. Uniquely identifies this as a SunSpec Common Model block", "uint16", ""), // = 1
 					// array(40004, 1, "R", 3, "L", "Registers Length of Common Model block", "uint16", ""), // = 65
@@ -451,15 +597,15 @@ function removeInvalidChars(\$input)
 					array(40045, 8, "R", 3, "Vr", "SW version of inverter", "String16", ""),
 					array(40053, 16, "R", 3, "SN", "Serialnumber of inverter, string control or energy meter", "String32", ""),
 					//  array(40069, 1, "R", 3, "DA", "Modbus Device Address 1 - 247", "uint16", ""), // = 1
-//				);
+					//				);
 
 
-//				$inverterModelRegister_array = array(
+					//				$inverterModelRegister_array = array(
 					/* ********** Inverter Model I11X ************************************************************************
 				Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
 					- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
 				HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
-						************************************************************************************************** */
+					 ************************************************************************************************** */
 					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)", "uint16", "Enumerated_ID"),
 					array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block", "uint16", ""),
 					array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
@@ -499,12 +645,12 @@ function removeInvalidChars(\$input)
 					array(40090, 2, "R", 3, "PhVphC - AC Voltage Phase-C-toneutral", "AC Voltage Phase-C-toneutral value", "float32", "V"),
 				);
 
-					/* ********** Meter Model ************************************************************************
+				/* ********** Meter Model ************************************************************************
 				Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
-					- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
-					- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
+				- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
+				- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
 				Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
-						************************************************************************************************** */
+				 ************************************************************************************************** */
 				$meterModelRegister_array = array(
 					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Meter Modbus Map (float); 211: single phase, 212: split phase, 213: three phase", "uint16", ""),
 					array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block: 124", "uint16", ""),
@@ -553,7 +699,7 @@ function removeInvalidChars(\$input)
 					array(40156, 2, "R", 3, "TotVAhImpPhA - Total VAh Imported phase A", "Total VA-hours Imported phase A", "float32", "VAh"),
 					array(40158, 2, "R", 3, "TotVAhImpPhB - Total VAh Imported phase B", "Total VA-hours Imported phase B", "float32", "VAh"),
 					array(40160, 2, "R", 3, "TotVAhImpPhC - Total VAh Imported phase C", "Total VA-hours Imported phase C", "float32", "VAh"),
-/*					array(40162, 2, "R", 3, "TotVArhImpQ1 - Total VARh Imported Q1", "Total VAR-hours Imported Q1", "float32", "VArh"),
+					/*					array(40162, 2, "R", 3, "TotVArhImpQ1 - Total VARh Imported Q1", "Total VAR-hours Imported Q1", "float32", "VArh"),
 					array(40164, 2, "R", 3, "TotVArhImpQ1phA - Total VARh Imported Q1 phase A", "Total VAR-hours Imported Q1 phase A", "float32", "VArh"),
 					array(40166, 2, "R", 3, "TotVArhImpQ1phB - Total VARh Imported Q1 phase B", "Total VAR-hours Imported Q1 phase B", "float32", "VArh"),
 					array(40168, 2, "R", 3, "TotVArhImpQ1phC - Total VARh Imported Q1 phase C", "Total VAR-hours Imported Q1 phase C", "float32", "VArh"),
@@ -569,11 +715,11 @@ function removeInvalidChars(\$input)
 					array(40188, 2, "R", 3, "TotVArhExpQ4phA - Total VARh Imported Q4 phase A", "Total VAR-hours Exported Q4 phase A", "float32", "VArh"),
 					array(40190, 2, "R", 3, "TotVArhExpQ4phB - Total VARh Imported Q4 phase B", "Total VAR-hours Exported Q4 phase B", "float32", "VArh"),
 					array(40192, 2, "R", 3, "TotVArhExpQ4phC - Total VARh Imported Q4 phase C", "Total VAR-hours Exported Q4 phase C", "float32", "VArh"),
-*/					array(40194, 2, "R", 3, "Evt - Events", "Events (bits 1-19)", "uint32", "bitfield32"),
+					 */					array(40194, 2, "R", 3, "Evt - Events", "Events (bits 1-19)", "uint32", "bitfield32"),
 				);
 
 
-				/*** Wechselrichter / Inverter ***/
+				/* Wechselrichter / Inverter */
 				if (false == $readSmartmeter)
 				{
 					$categoryId = $parentId;
@@ -593,7 +739,7 @@ function removeInvalidChars(\$input)
 					else
 					{
 						$this->deleteModbusInstancesRecursive($inverterModel3pRegister_array, $categoryId);
-					}	
+					}
 
 					// Inverter - Bit 0 - 15 für "Evt1 - Event Flags" erstellen
 					$instanceId = IPS_GetObjectIDByIdent("40120", $categoryId);
@@ -817,18 +963,18 @@ function removeInvalidChars(\$input)
 							array(40157, 1, "R", 3, "MaxDisChaRte", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", "W", 40158),
 						);
 
-						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						foreach ($inverterModelRegister_array as $inverterModelRegister)
 						{
 							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
 							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 							IPS_SetHidden($varId, true);
-							
+
 							$dataType = 7;
 							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
 
 							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
-							if("cos()" == $inverterModelRegister[IMR_UNITS])
+							if ("cos()" == $inverterModelRegister[IMR_UNITS])
 							{
 								$varId = $this->MaintainInstanceVariable("Value_cos", IPS_GetName($instanceId)."_cos", VARIABLETYPE_FLOAT, "", 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 							}
@@ -843,11 +989,11 @@ function removeInvalidChars(\$input)
 					{
 						$this->SetTimerInterval("Update-IC120", 0);
 
-						if(false !== $categoryId)
+						if (false !== $categoryId)
 						{
-							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+							foreach (IPS_GetChildrenIDs($categoryId) as $childId)
 							{
-								foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
+								foreach (IPS_GetChildrenIDs($childId) as $childChildId)
 								{
 									IPS_DeleteVariable($childChildId);
 								}
@@ -863,39 +1009,39 @@ function removeInvalidChars(\$input)
 					if ($readIC121)
 					{
 						$inverterModelRegister_array = array(
-						/******* Basic Settings Model (IC121) */
-//							array(40160, 1, "R", "0x03", "ID", "A well-known value 121.  Uniquely identifies this as a SunSpec Basic Settings Model", "uint16", "", "", "121"),
-//							array(40161, 1, "R", "0x03", "L", "Registers, Length of Basic Settings Model", "uint16", "", "", "30"),
+							/* Basic Settings Model (IC121) */
+							//							array(40160, 1, "R", "0x03", "ID", "A well-known value 121.  Uniquely identifies this as a SunSpec Basic Settings Model", "uint16", "", "", "121"),
+							//							array(40161, 1, "R", "0x03", "L", "Registers, Length of Basic Settings Model", "uint16", "", "", "30"),
 							array(40162, 1, "RW", "0x03 0x06 0x10", "WMax", "Setting for maximum power output. Default to I_WRtg.", "uint16", "", "WMax_SF", ""),
 							array(40163, 1, "RW", "0x03 0x06 0x10", "VRef", "Voltage at the PCC.", "uint16", "", "VRef_SF", ""),
 							array(40164, 1, "RW", "0x03 0x06 0x10", "VRefOfs", "Offset  from PCC to inverter.", "int16", "", "VRefOfs_SF", ""),
-//							array(40165, 1, "RW", "0x03 0x06 0x10", "VMax", "Setpoint for maximum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
-//							array(40166, 1, "RW", "0x03 0x06 0x10", "VMin", "Setpoint for minimum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
+							//							array(40165, 1, "RW", "0x03 0x06 0x10", "VMax", "Setpoint for maximum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
+							//							array(40166, 1, "RW", "0x03 0x06 0x10", "VMin", "Setpoint for minimum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
 							array(40167, 1, "RW", "0x03", "VAMax", "Setpoint for maximum apparent power. Default to I_VARtg.", "uint16", "", "VAMax_SF", ""),
 							array(40168, 1, "R", "0x03", "VARMaxQ1", "Setting for maximum reactive power in quadrant 1. Default to VArRtgQ1.", "int16", "", "VARMax_SF", ""),
-//							array(40169, 1, "R", "0x03", "VARMaxQ2", "Setting for maximum reactive power in quadrant 2. Default to VArRtgQ2.", "int16", "var", "VARMax_SF", "Not supported"),
-//							array(40170, 1, "R", "0x03", "VARMaxQ3", "Setting for maximum reactive power in quadrant 3 Default to VArRtgQ3.", "int16", "var", "VARMax_SF", "Not supported"),
+							//							array(40169, 1, "R", "0x03", "VARMaxQ2", "Setting for maximum reactive power in quadrant 2. Default to VArRtgQ2.", "int16", "var", "VARMax_SF", "Not supported"),
+							//							array(40170, 1, "R", "0x03", "VARMaxQ3", "Setting for maximum reactive power in quadrant 3 Default to VArRtgQ3.", "int16", "var", "VARMax_SF", "Not supported"),
 							array(40171, 1, "R", "0x03", "VARMaxQ4", "Setting for maximum reactive power in quadrant 4 Default to VArRtgQ4.", "int16", "", "VARMax_SF", ""),
-//							array(40172, 1, "R", "0x03", "WGra", "Default ramp rate of change of active power due to command or internal action. (% WMax/min)", "uint16", "%", "WGra_SF", "Not supported"),
+							//							array(40172, 1, "R", "0x03", "WGra", "Default ramp rate of change of active power due to command or internal action. (% WMax/min)", "uint16", "%", "WGra_SF", "Not supported"),
 							array(40173, 1, "R", "0x03", "PFMinQ1", "Setpoint for minimum power factor value in quadrant 1. Default to PFRtgQ1.", "int16", "", "PFMin_SF", ""),
-//							array(40174, 1, "R", "0x03", "PFMinQ2", "Setpoint for minimum power factor value in quadrant 2. Default to PFRtgQ2.", "int16", "cos()", "PFMin_SF", "Not supported"),
-//							array(40175, 1, "R", "0x03", "PFMinQ3", "Setpoint for minimum power factor value in quadrant 3. Default to PFRtgQ3.", "int16", "cos()", "PFMin_SF", "Not supported"),
+							//							array(40174, 1, "R", "0x03", "PFMinQ2", "Setpoint for minimum power factor value in quadrant 2. Default to PFRtgQ2.", "int16", "cos()", "PFMin_SF", "Not supported"),
+							//							array(40175, 1, "R", "0x03", "PFMinQ3", "Setpoint for minimum power factor value in quadrant 3. Default to PFRtgQ3.", "int16", "cos()", "PFMin_SF", "Not supported"),
 							array(40176, 1, "R", "0x03", "PFMinQ4", "Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4.", "int16", "", "PFMin_SF", ""),
-//							array(40177, 1, "R", "0x03", "VArAct", "VAR action on change between charging and discharging: 1=switch 2=maintain VAR characterization.", "enum16", "", "", "Not supported"),
-//							array(40178, 1, "R", "0x03", "ClcTotVA", "Calculation method for total apparent power. 1=vector 2=arithmetic.", "enum16", "", "", "Not supported"),
-//							array(40179, 1, "R", "0x03", "MaxRmpRte", "Setpoint for maximum ramp rate as percentage of nominal maximum ramp rate. This setting will limit the rate that watts delivery to the grid can increase or decrease in response to intermittent PV generation. (% WGra)", "uint16", "%", "MaxRmpRte_SF", "Not supported"),
-//							array(40180, 1, "R", "0x03", "ECPNomHz", "Setpoint for nominal frequency at the ECP.", "uint16", "Hz", "ECPNomHz_SF", "Not supported"),
-//							array(40181, 1, "R", "0x03", "ConnPh", "Identity of connected phase for single phase inverters. A=1 B=2 C=3.", "enum16", "", "", "Not supported"),
+							//							array(40177, 1, "R", "0x03", "VArAct", "VAR action on change between charging and discharging: 1=switch 2=maintain VAR characterization.", "enum16", "", "", "Not supported"),
+							//							array(40178, 1, "R", "0x03", "ClcTotVA", "Calculation method for total apparent power. 1=vector 2=arithmetic.", "enum16", "", "", "Not supported"),
+							//							array(40179, 1, "R", "0x03", "MaxRmpRte", "Setpoint for maximum ramp rate as percentage of nominal maximum ramp rate. This setting will limit the rate that watts delivery to the grid can increase or decrease in response to intermittent PV generation. (% WGra)", "uint16", "%", "MaxRmpRte_SF", "Not supported"),
+							//							array(40180, 1, "R", "0x03", "ECPNomHz", "Setpoint for nominal frequency at the ECP.", "uint16", "Hz", "ECPNomHz_SF", "Not supported"),
+							//							array(40181, 1, "R", "0x03", "ConnPh", "Identity of connected phase for single phase inverters. A=1 B=2 C=3.", "enum16", "", "", "Not supported"),
 							array(40182, 1, "R", "0x03", "WMax_SF", "Scale factor for maximum power output.", "sunssf", "", "", "1"),
 							array(40183, 1, "R", "0x03", "VRef_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "0"),
 							array(40184, 1, "R", "0x03", "VRefOfs_SF", "Scale factor for offset voltage.", "sunssf", "", "", "0"),
-//							array(40185, 1, "R", "0x03", "VMinMax_SF", "Scale factor for min/max voltages.", "sunssf", "", "", "0"),
+							//							array(40185, 1, "R", "0x03", "VMinMax_SF", "Scale factor for min/max voltages.", "sunssf", "", "", "0"),
 							array(40186, 1, "R", "0x03", "VAMax_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "1"),
 							array(40187, 1, "R", "0x03", "VARMax_SF", "Scale factor for reactive power.", "sunssf", "", "", "1"),
-//							array(40188, 1, "R", "0x03", "WGra_SF", "Scale factor for default ramp rate.", "sunssf", "", "", "Not supported"),
+							//							array(40188, 1, "R", "0x03", "WGra_SF", "Scale factor for default ramp rate.", "sunssf", "", "", "Not supported"),
 							array(40189, 1, "R", "0x03", "PFMin_SF", "Scale factor for minimum power factor.", "sunssf", "", "", "-3"),
-//							array(40190, 1, "R", "0x03", "MaxRmpRte_SF", "Scale factor for maximum ramp percentage.", "sunssf", "", "", "Not supported"),
-//							array(40191, 1, "R", "0x03", "ECPNomHz_SF", "Scale factor for nominal frequency.", "sunssf", "", "", "Not supported"),
+							//							array(40190, 1, "R", "0x03", "MaxRmpRte_SF", "Scale factor for maximum ramp percentage.", "sunssf", "", "", "Not supported"),
+							//							array(40191, 1, "R", "0x03", "ECPNomHz_SF", "Scale factor for nominal frequency.", "sunssf", "", "", "Not supported"),
 						);
 
 						if (false === $categoryId)
@@ -922,18 +1068,18 @@ function removeInvalidChars(\$input)
 							array(40176, 1, "R", "0x03", "PFMinQ4", "Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4.", "int16", "cos()", 40189),
 						);
 
-						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						foreach ($inverterModelRegister_array as $inverterModelRegister)
 						{
 							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
 							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 							IPS_SetHidden($varId, true);
-							
+
 							$dataType = 7;
 							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
 
 							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
-							if("cos()" == $inverterModelRegister[IMR_UNITS])
+							if ("cos()" == $inverterModelRegister[IMR_UNITS])
 							{
 								$varId = $this->MaintainInstanceVariable("Value_cos", IPS_GetName($instanceId)."_cos", VARIABLETYPE_FLOAT, "", 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 							}
@@ -948,11 +1094,11 @@ function removeInvalidChars(\$input)
 					{
 						$this->SetTimerInterval("Update-IC121", 0);
 
-						if(false !== $categoryId)
+						if (false !== $categoryId)
 						{
-							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+							foreach (IPS_GetChildrenIDs($categoryId) as $childId)
 							{
-								foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
+								foreach (IPS_GetChildrenIDs($childId) as $childChildId)
 								{
 									IPS_DeleteVariable($childChildId);
 								}
@@ -962,22 +1108,22 @@ function removeInvalidChars(\$input)
 						}
 					}
 
-	
+
 					$categoryName = $inverterCategoryArray['IC122'];
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC122)
 					{
 						$inverterModelRegister_array = array(
-							/******* Extended Measurements & Status Model (IC122)
+							/* Extended Measurements & Status Model (IC122)
 							Allgemeines: Dieses Modell liefert einige zusätzliche Mess- und Statuswerte, die das normale Inverter Model nicht abdeckt.
-							*/
-//							array(40192, 1, "R", "0x03", "ID", "A well-known value 122.  Uniquely identifies this as a SunSpec Measurements_Status Model", "uint16", "", "", "122"),
-//							array(40193, 1, "R", "0x03", "L", "Registers, Length of Measurements_Status Model", "uint16", "", "", "44"),
+							 */
+							//							array(40192, 1, "R", "0x03", "ID", "A well-known value 122.  Uniquely identifies this as a SunSpec Measurements_Status Model", "uint16", "", "", "122"),
+							//							array(40193, 1, "R", "0x03", "L", "Registers, Length of Measurements_Status Model", "uint16", "", "", "44"),
 							array(40194, 1, "R", "0x03", "PVConn - PV inverter status", "PV inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "Dieses Bitfeld zeigt den Status des Wechselrichter an: Bit 0: Verbunden, Bit 1: Ansprechbar, Bit 2: Arbeitet (Wechselrichter speist ein) / Bit 0: Connected, Bit 1: Available, Bit 2: Operating, Bit 3: Test"),
 							array(40195, 1, "R", "0x03", "StorConn - storage inverter status", "Storage inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "bit 0: CONNECTED, bit 1: AVAILABLE, bit 2: OPERATING, bit 3: TEST"),
 							array(40196, 1, "R", "0x03", "ECPConn - electrical connection point status", "Electrical Connection Point connection status: disconnected=0  connected=1. / Dieses Register zeigt den Verbindungsstatus zum Netz an: ECPConn = 1: Wechselrichter speist gerade ein, ECPConn = 0: Wechselrichter speist nicht ein", "uint16", "bitfield16", "", "0: Disconnected, 1: Connected"),
 							array(40197, 4, "R", "0x03", "ActWh - AC energy output", "AC lifetime active (real) energy output. / Wirkenergiezähler", "acc64", "Wh", "", ""),
-/*							array(40201, 4, "R", "0x03", "ActVAh", "AC lifetime apparent energy output.", "acc64", "VAh", "", "Not supported"),
+							/*							array(40201, 4, "R", "0x03", "ActVAh", "AC lifetime apparent energy output.", "acc64", "VAh", "", "Not supported"),
 							array(40205, 4, "R", "0x03", "ActVArhQ1", "AC lifetime reactive energy output in quadrant 1.", "acc64", "varh", "", "Not supported"),
 							array(40209, 4, "R", "0x03", "ActVArhQ2", "AC lifetime reactive energy output in quadrant 2.", "acc64", "varh", "", "Not supported"),
 							array(40213, 4, "R", "0x03", "ActVArhQ3", "AC lifetime negative energy output in quadrant 3.", "acc64", "varh", "", "Not supported"),
@@ -987,13 +1133,13 @@ function removeInvalidChars(\$input)
 							array(40223, 1, "R", "0x03", "WAval", "Amount of Watts available.", "uint16", "W", "WAval_SF", "Not supported"),
 							array(40224, 1, "R", "0x03", "WAval_SF", "Scale factor for available Watts.", "sunssf", "", "", "Not supported"),
 							array(40225, 2, "R", "0x03", "StSetLimMsk", "Bit Mask indicating setpoint limit(s) reached. Bits are persistent and must be cleared by the controller.", "uint32", "bitfield32", "", "Not supported"),
-*/							array(40227, 2, "R", "0x03", "StActCtl - inverter controls", "Bit Mask indicating which inverter controls are currently active. / Bitfeld für zurzeit aktive Wechselrichter-Modi: Bit 0: Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe), Bit 1: konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct), Bit 2: Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)", "uint32", "bitfield32", "", "Bit 0: FixedW, Bit 1: FixedVAR, Bit 2: FixedPF"),
-//							array(40229, 4, "R", "0x03", "TmSrc", "Source of time synchronization. / Quelle für die Zeitsynchronisation. Das Register liefert den String „RTC“ zurück.", "String8", "", "", "RTC"),
+							 */							array(40227, 2, "R", "0x03", "StActCtl - inverter controls", "Bit Mask indicating which inverter controls are currently active. / Bitfeld für zurzeit aktive Wechselrichter-Modi: Bit 0: Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe), Bit 1: konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct), Bit 2: Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)", "uint32", "bitfield32", "", "Bit 0: FixedW, Bit 1: FixedVAR, Bit 2: FixedPF"),
+							//							array(40229, 4, "R", "0x03", "TmSrc", "Source of time synchronization. / Quelle für die Zeitsynchronisation. Das Register liefert den String „RTC“ zurück.", "String8", "", "", "RTC"),
 							array(40233, 2, "R", "0x03", "Tms - time", "Seconds since 01-01-2000 00:00 UTC / Sekunden vom 1. Januar 2000 00:00 (UTC) bis zur aktuellen Zeit", "uint32", "", "", ""),
-/*							array(40235, 1, "R", "0x03", "RtSt", "Bit Mask indicating which voltage ride through modes are currently active.", "uint16", "bitfield16", "", "Not supported"),
+						/*							array(40235, 1, "R", "0x03", "RtSt", "Bit Mask indicating which voltage ride through modes are currently active.", "uint16", "bitfield16", "", "Not supported"),
 							array(40236, 1, "R", "0x03", "Ris", "Isolation resistance", "uint16", "Ohm", "Ris_SF", "Not supported"),
 							array(40237, 1, "R", "0x03", "Ris_SF", "Scale factor for Isolation resistance", "int16", "", "", "Not supported"),
-*/						);
+						 */);
 
 						if (false === $categoryId)
 						{
@@ -1064,18 +1210,18 @@ function removeInvalidChars(\$input)
 						IPS_SetHidden($varId, true);
 
 						$varId = $this->MaintainInstanceVariable($this->removeInvalidChars("UTC"), "UTC", VARIABLETYPE_INTEGER, "~UnixTimestamp", 0, true, $instanceId, "UTC time");
-						
+
 //						$this->SetTimerInterval("Update-IC122", 5000);
 					}
 					else
 					{
 						$this->SetTimerInterval("Update-IC122", 0);
 
-						if(false !== $categoryId)
+						if (false !== $categoryId)
 						{
-							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+							foreach (IPS_GetChildrenIDs($categoryId) as $childId)
 							{
-								foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
+								foreach (IPS_GetChildrenIDs($childId) as $childChildId)
 								{
 									IPS_DeleteVariable($childChildId);
 								}
@@ -1085,21 +1231,21 @@ function removeInvalidChars(\$input)
 						}
 					}
 
-	
+
 					$categoryName = $inverterCategoryArray['IC123'];
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC123)
 					{
 						$inverterModelRegister_array = array(
-							/******* Immediate Controls Model (IC123)
+							/* Immediate Controls Model (IC123)
 							Allgemeines:
 							Mit den Immediate Controls können folgende Einstellungen am Wechselrichter vorgenommen werden:
 							- Unterbrechung des Einspeisebetriebs des Wechselrichters (Standby)
 							- Konstante Reduktion der Ausgangsleistung
 							- Vorgabe eines konstanten Power Factors
 							- Vorgabe einer konstanten relativen Blindleistung */
-//							array(40238, 1, "R", "0x03", "ID", "A well-known value 123.  Uniquely identifies this as a SunSpec Immediate Controls Model", "uint16", "", "", "123"),
-//							array(40239, 1, "R", "0x03", "L", "Registers, Length of Immediate Controls Model", "uint16", "", "", "24"),
+							//							array(40238, 1, "R", "0x03", "ID", "A well-known value 123.  Uniquely identifies this as a SunSpec Immediate Controls Model", "uint16", "", "", "123"),
+							//							array(40239, 1, "R", "0x03", "L", "Registers, Length of Immediate Controls Model", "uint16", "", "", "24"),
 							array(40240, 1, "RW", "0x03 0x06 0x10", "Conn_WinTms", "Time window for connect/disconnect.", "uint16", "Secs", "", ""),
 							array(40241, 1, "RW", "0x03 0x06 0x10", "Conn_RvrtTms", "Timeout period for connect/disconnect.", "uint16", "Secs", "", ""),
 							array(40242, 1, "RW", "0x03 0x06 0x10", "Conn", "Enumerated valued.  Connection control.", "uint16", "bitfield16", "", "0: Disconnected, 1: Connected"),
@@ -1113,9 +1259,9 @@ function removeInvalidChars(\$input)
 							array(40250, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RvrtTms", "Timeout period for power factor.", "uint16", "Secs", "", "0 – 28800"),
 							array(40251, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
 							array(40252, 1, "RW", "0x03 0x06 0x10", "OutPFSet_Ena", "Enumerated valued.  Fixed power factor enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
-//							array(40253, 1, "R", "0x03", "VArWMaxPct", "Reactive power in percent of I_WMax. (% WMax)", "int16", "%", "VArWMaxPct_SF", "Not supported"),
+							//							array(40253, 1, "R", "0x03", "VArWMaxPct", "Reactive power in percent of I_WMax. (% WMax)", "int16", "%", "VArWMaxPct_SF", "Not supported"),
 							array(40254, 1, "RW", "0x03 0x06 0x10", "VArMaxPct", "Reactive power in percent of I_VArMax. (% VArMax)", "int16", "%", "VArPct_SF", ""),
-//							array(40255, 1, "R", "0x03", "VArAvalPct", "Reactive power in percent of I_VArAval. (% VArAval)", "int16", "%", "VArPct_SF", "Not supported"),
+							//							array(40255, 1, "R", "0x03", "VArAvalPct", "Reactive power in percent of I_VArAval. (% VArAval)", "int16", "%", "VArPct_SF", "Not supported"),
 							array(40256, 1, "RW", "0x03 0x06 0x10", "VArPct_WinTms", "Time window for VAR limit change.", "uint16", "Secs", "", "0 – 300"),
 							array(40257, 1, "RW", "0x03 0x06 0x10", "VArPct_RvrtTms", "Timeout period for VAR limit.", "uint16", "Secs", "", "0 – 28800"),
 							array(40258, 1, "RW", "0x03 0x06 0x10", "VArPct_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
@@ -1123,7 +1269,7 @@ function removeInvalidChars(\$input)
 							array(40260, 1, "RW", "0x03 0x06 0x10", "VArPct_Ena", "Enumerated valued.  Fixed VAR enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
 							array(40261, 1, "R", "0x03", "WMaxLimPct_SF", "Scale factor for power output percent.", "sunssf", "", "", "-2"),
 							array(40262, 1, "R", "0x03", "OutPFSet_SF", "Scale factor for power factor.", "sunssf", "", "", "-3"),
-//							array(40263, 1, "R", "0x03", "VArPct_SF", "Scale factor for reactive power.", "sunssf", "", "", "0"),
+							//							array(40263, 1, "R", "0x03", "VArPct_SF", "Scale factor for reactive power.", "sunssf", "", "", "0"),
 						);
 
 						if (false === $categoryId)
@@ -1148,18 +1294,18 @@ function removeInvalidChars(\$input)
 							array(40248, 1, "RW", "0x03 0x06 0x10", "OutPFSet", "Set power factor to specific value - cosine of angle.", "int16", "cos()", 40262),
 						);
 
-						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						foreach ($inverterModelRegister_array as $inverterModelRegister)
 						{
 							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
 							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 							IPS_SetHidden($varId, true);
-							
+
 							$dataType = 7;
 							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
 
 							$varId = $this->MaintainInstanceVariable("Value_SF", IPS_GetName($instanceId), VARIABLETYPE_FLOAT, $profile, 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 
-							if("cos()" == $inverterModelRegister[IMR_UNITS])
+							if ("cos()" == $inverterModelRegister[IMR_UNITS])
 							{
 								$varId = $this->MaintainInstanceVariable("Value_cos", IPS_GetName($instanceId)."_cos", VARIABLETYPE_FLOAT, "", 0, true, $instanceId, $inverterModelRegister[IMR_DESCRIPTION]);
 							}
@@ -1174,11 +1320,11 @@ function removeInvalidChars(\$input)
 					{
 						$this->SetTimerInterval("Update-IC123", 0);
 
-						if(false !== $categoryId)
+						if (false !== $categoryId)
 						{
-							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+							foreach (IPS_GetChildrenIDs($categoryId) as $childId)
 							{
-								foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
+								foreach (IPS_GetChildrenIDs($childId) as $childChildId)
 								{
 									IPS_DeleteVariable($childChildId);
 								}
@@ -1188,13 +1334,13 @@ function removeInvalidChars(\$input)
 						}
 					}
 
-	
+
 					$categoryName = $inverterCategoryArray['I160'];
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readI160)
 					{
 						$inverterModelRegister_array = array(
-							/******* Multiple MPPT Inverter Extension Model (I160)
+							/* Multiple MPPT Inverter Extension Model (I160)
 							Allgemeines:
 							Das Multiple MPPT Inverter Extension Model beinhaltet die Werte von bis zu zwei DC Eingängen
 							des Wechselrichters.
@@ -1206,17 +1352,17 @@ function removeInvalidChars(\$input)
 							zweiten Strings auf "not implemented" gesetzt (ab Register 2_DCA). Die Bezeichnung des
 							zweiten Eingangs (Register 2_IDStr) lautet in diesem Fall "Not supported". Die Werte des
 							ersten (und einzigen) Eingangs werden normal angezeigt. */
-//							array(40264, 1, "R", "0x03", "ID", "A well-known value 160.  Uniquely identifies this as a SunSpec Multiple MPPT Inverter Extension Model Mode", "uint16", "", "", "160"),
-//							array(40265, 1, "R", "0x03", "L", "Length of Multiple MPPT Inverter Extension Model", "uint16", "", "", "48"),
+							//							array(40264, 1, "R", "0x03", "ID", "A well-known value 160.  Uniquely identifies this as a SunSpec Multiple MPPT Inverter Extension Model Mode", "uint16", "", "", "160"),
+							//							array(40265, 1, "R", "0x03", "L", "Length of Multiple MPPT Inverter Extension Model", "uint16", "", "", "48"),
 							array(40266, 1, "R", "0x03", "DCA_SF", "Current Scale Factor", "sunssf", "", "", "SF=-2"),
 							array(40267, 1, "R", "0x03", "DCV_SF", "Voltage Scale Factor", "sunssf", "", "", "SF=-2"),
 							array(40268, 1, "R", "0x03", "DCW_SF", "Power Scale Factor", "sunssf", "", "", "SF=-1"),
 							array(40269, 1, "R", "0x03", "DCWH_SF", "Energy Scale Factor", "sunssf", "", "", "SF=0"),
 							array(40270, 2, "R", "0x03", "Evt", "Global Events", "uint32", "bitfield32", "", ""),
 							array(40272, 1, "R", "0x03", "N", "Number of Modules", "uint16", "", "", "2"),
-//							array(40273, 1, "R", "0x03", "TmsPer", "Timestamp Period", "uint16", "", "", "Not supported"),
-//							array(40274, 1, "R", "0x03", "1_ID", "Input ID", "uint16", "", "", "1"),
-//							array(40275, 8, "R", "0x03", "1_IDStr", "Input ID Sting", "String16", "", "", "'String 1'"),
+							//							array(40273, 1, "R", "0x03", "TmsPer", "Timestamp Period", "uint16", "", "", "Not supported"),
+							//							array(40274, 1, "R", "0x03", "1_ID", "Input ID", "uint16", "", "", "1"),
+							//							array(40275, 8, "R", "0x03", "1_IDStr", "Input ID Sting", "String16", "", "", "'String 1'"),
 							array(40283, 1, "R", "0x03", "1_DCA", "DC Current", "uint16", "", "DCA_SF", ""),
 							array(40284, 1, "R", "0x03", "1_DCV", "DC Voltage", "uint16", "", "DCV_SF", ""),
 							array(40285, 1, "R", "0x03", "1_DCW", "DC Power", "uint16", "", "DCW_SF", ""),
@@ -1225,8 +1371,8 @@ function removeInvalidChars(\$input)
 							array(40290, 1, "R", "0x03", "1_Tmp", "Temperature", "int16", "C", "", ""),
 							array(40291, 1, "R", "0x03", "1_DCSt", "Operating State", "enum16", "Enumerated_St", "", ""),
 							array(40292, 2, "R", "0x03", "1_DCEvt", "Module Events", "uint32", "bitfield32", "", ""),
-//							array(40294, 1, "R", "0x03", "2_ID", "Input ID", "uint16", "", "", "2"),
-//							array(40295, 8, "R", "0x03", "2_IDStr", "Input ID Sting", "String16", "", "", "'String 2' or 'Not supported'"),
+							//							array(40294, 1, "R", "0x03", "2_ID", "Input ID", "uint16", "", "", "2"),
+							//							array(40295, 8, "R", "0x03", "2_IDStr", "Input ID Sting", "String16", "", "", "'String 2' or 'Not supported'"),
 							array(40303, 1, "R", "0x03", "2_DCA", "DC Current", "uint16", "", "DCA_SF", "Not supported if only one DC input."),
 							array(40304, 1, "R", "0x03", "2_DCV", "DC Voltage", "uint16", "", "DCV_SF", "Not supported if only one DC input."),
 							array(40305, 1, "R", "0x03", "2_DCW", "DC Power", "uint16", "", "DCW_SF", "Not supported if only one DC input."),
@@ -1263,12 +1409,12 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 							array(40306, 2, "R", "0x03", "2_DCWH", "Lifetime Energy", "acc32", "Wh", 40269),
 						);
 
-						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						foreach ($inverterModelRegister_array as $inverterModelRegister)
 						{
 							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
 							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 							IPS_SetHidden($varId, true);
-							
+
 							$dataType = 7;
 							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
 
@@ -1284,11 +1430,11 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 					{
 						$this->SetTimerInterval("Update-I160", 0);
 
-						if(false !== $categoryId)
+						if (false !== $categoryId)
 						{
-							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+							foreach (IPS_GetChildrenIDs($categoryId) as $childId)
 							{
-								foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
+								foreach (IPS_GetChildrenIDs($childId) as $childChildId)
 								{
 									IPS_DeleteVariable($childChildId);
 								}
@@ -1298,13 +1444,13 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 						}
 					}
 
-	
+
 					$categoryName = $inverterCategoryArray['IC124'];
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC124)
 					{
 						$inverterModelRegister_array = array(
-							/******* Basic Storage Control Model (IC124) ***
+							/* Basic Storage Control Model (IC124) ***
 							Allgemeines:
 							Dieses Model ist nur für Fronius Hybrid Wechselrichter verfügbar.
 							Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselrichter
@@ -1312,13 +1458,13 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 							- Vorgabe eines Leistungsfensters, in dem sich die Lade-/Entladeleistung vom Energiespeicher bewegen soll.
 							- Vorgabe eines minimalen Ladestandes, den der Energiespeicher nicht unterschreiten soll
 							- Ladung des Energiespeichers vom Netz erlauben/verbieten */
-//							array(40314, 1, "R", "0x03", "ID", "A well-known value 124.  Uniquely identifies this as a SunSpec Basic Storage Controls Model", "uint16", "", "", "124"),
-//							array(40315, 1, "R", "0x03", "L", "Registers, Length of Basic Storage Controls", "uint16", "", "", "24"),
+							//							array(40314, 1, "R", "0x03", "ID", "A well-known value 124.  Uniquely identifies this as a SunSpec Basic Storage Controls Model", "uint16", "", "", "124"),
+							//							array(40315, 1, "R", "0x03", "L", "Registers, Length of Basic Storage Controls", "uint16", "", "", "24"),
 							array(40316, 1, "R", "0x03", "WchaMax", "Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that  InWRte and OutWRte can be negative to define ranges for charging and discharging only.", "uint16", "", "WChaMax_SF", ""),
 							array(40317, 1, "R", "0x03", "WchaGra", "Setpoint for maximum charging rate. Default is MaxChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
 							array(40318, 1, "R", "0x03", "WdisChaGra", "Setpoint for maximum discharge rate. Default is MaxDisChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
 							array(40319, 1, "RW", "0x03 0x06 0x10", "StorCtl_Mod", "Activate hold/discharge/charge storage control mode. Bitfield value. Additional Fronius description: Active hold/discharge/charge storage control mode. Set the charge field to enable charging and the discharge field to enable discharging. Bitfield value.", "uint16", "bitfield16", "", "bit 0: CHARGE, bit 1: DiSCHARGE"),
-//							array(40320, 1, "R", "0x03", "VAChaMax", "Setpoint for maximum charging VA.", "uint16", "VA", "VAChaMax_SF", "Not supported"),
+							//							array(40320, 1, "R", "0x03", "VAChaMax", "Setpoint for maximum charging VA.", "uint16", "VA", "VAChaMax_SF", "Not supported"),
 							array(40321, 1, "RW", "0x03 0x06 0x10", "MinRsvPct", "Setpoint for minimum reserve for storage as a percentage of the nominal maximum storage. (% WChaMax)", "uint16", "", "MinRsvPct_SF", ""),
 							array(40322, 1, "R", "0x03", "ChaState", "Currently available energy as a percent of the capacity rating. (% AhrRtg)", "uint16", "", "ChaState_SF", ""),
 							array(40323, 1, "R", "0x03", "StorAval", "State of charge (ChaState) minus storage reserve (MinRsvPct) times capacity rating (AhrRtg).", "uint16", "", "StorAval_SF", ""),
@@ -1326,20 +1472,20 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 							array(40325, 1, "R", "0x03", "ChaSt", "Charge status of storage device. Enumerated value.", "enum16", "Enumerated_ChaSt", "", "1: OFF, 2: EMPTY, 3: DISCHARGING, 4: CHARGING, 5: FULL, 6: HOLDING, 7: TESTING"),
 							array(40326, 1, "RW", "0x03 0x06 0x10", "OutWRte", "Percent of max discharge rate. Additional Fronius description: Defines maximum Discharge rate. If not used than the default is 100 and wChaMax defines max. Discharge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
 							array(40327, 1, "RW", "0x03 0x06 0x10", "InWRte", "Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
-//							array(40328, 1, "R", "0x03", "InOutWRte_WinTms", "Time window for charge/discharge rate change.", "uint16", "Secs", "", "Not supported"),
-//							array(40329, 1, "R", "0x03", "InOutWRte_RvrtTms", "Timeout period for charge/discharge rate.", "uint16", "Secs", "", "Not supported"),
-//							array(40330, 1, "R", "0x03", "InOutWRte_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "Not supported"),
+							//							array(40328, 1, "R", "0x03", "InOutWRte_WinTms", "Time window for charge/discharge rate change.", "uint16", "Secs", "", "Not supported"),
+							//							array(40329, 1, "R", "0x03", "InOutWRte_RvrtTms", "Timeout period for charge/discharge rate.", "uint16", "Secs", "", "Not supported"),
+							//							array(40330, 1, "R", "0x03", "InOutWRte_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "Not supported"),
 							array(40331, 1, "RW", "0x03 0x06 0x10", "ChaGriSet", "Setpoint to enable/disable charging from grid", "enum16", "", "", "0: PV (Charging from grid disabled), 1: GRID (Charging from grid enabled)"),
 							array(40332, 1, "R", "0x03", "WchaMax_SF", "Scale factor for maximum charge.", "sunssf", "", "", "0"),
 							array(40333, 1, "R", "0x03", "WchaDisChaGra_SF", "Scale factor for maximum charge and discharge rate.", "sunssf", "", "", "0"),
-//							array(40334, 1, "R", "0x03", "VAChaMax_SF", "Scale factor for maximum charging VA.", "sunssf", "", "", "Not supported"),
+							//							array(40334, 1, "R", "0x03", "VAChaMax_SF", "Scale factor for maximum charging VA.", "sunssf", "", "", "Not supported"),
 							array(40335, 1, "R", "0x03", "MinRsvPct_SF", "Scale factor for minimum reserve percentage.", "sunssf", "", "", "-2"),
 							array(40336, 1, "R", "0x03", "ChaState_SF", "Scale factor for available energy percent.", "sunssf", "", "", "-2"),
 							array(40337, 1, "R", "0x03", "StorAval_SF", "Scale factor for state of charge.", "sunssf", "", "", "-2"),
 							array(40338, 1, "R", "0x03", "InBatV_SF", "Scale factor for battery voltage.", "sunssf", "", "", "-2"),
 							array(40339, 1, "R", "0x03", "InOutWRte_SF", "Scale factor for percent charge/discharge rate.", "sunssf", "", "", "-2"),
-//							array(40340, 1, "R", "0x03", "ID", "Identifies this as End block", "uint16", "", "", "0xFFFF"),
-//							array(40341, 1, "R", "0x03", "L", "Registers, Length of model block", "uint16", "", "", "0"),
+							//							array(40340, 1, "R", "0x03", "ID", "Identifies this as End block", "uint16", "", "", "0xFFFF"),
+							//							array(40341, 1, "R", "0x03", "L", "Registers, Length of model block", "uint16", "", "", "0"),
 						);
 
 						if (false === $categoryId)
@@ -1371,12 +1517,12 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 							array(40327, 1, "RW", "0x03 0x06 0x10", "InWRte", "Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax)", "int16", "%", 40339),
 						);
 
-						foreach($inverterModelRegister_array AS $inverterModelRegister)
+						foreach ($inverterModelRegister_array as $inverterModelRegister)
 						{
 							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[IMR_START_REGISTER], $categoryId);
 							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 							IPS_SetHidden($varId, true);
-							
+
 							$dataType = 7;
 							$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $dataType);
 
@@ -1392,11 +1538,11 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					{
 						$this->SetTimerInterval("Update-IC124", 0);
 
-						if(false !== $categoryId)
+						if (false !== $categoryId)
 						{
-							foreach(IPS_GetChildrenIDs($categoryId) AS $childId)
+							foreach (IPS_GetChildrenIDs($categoryId) as $childId)
 							{
-								foreach(IPS_GetChildrenIDs($childId) AS $childChildId)
+								foreach (IPS_GetChildrenIDs($childId) as $childChildId)
 								{
 									IPS_DeleteVariable($childChildId);
 								}
@@ -1406,7 +1552,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						}
 					}
 				}
-				/*** SmartMeter ***/
+				/* SmartMeter */
 				else
 				{
 					// Inverter - Timer deaktivieren
@@ -1419,13 +1565,13 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					$this->SetTimerInterval("Update-I160", 0);
 
 					// Inverter spezifische Funktionen deaktivieren
-/* verursacht aktuell noch Probleme, da der ClientSocket erstellt/gelöscht wird!
-					if(true == IPS_GetProperty($parentId, "readIC120"))
-					{
-						IPS_SetProperty($parentId, "readIC120", false);
-						IPS_ApplyChanges($parentId);
-					}
-*/
+					/* verursacht aktuell noch Probleme, da der ClientSocket erstellt/gelöscht wird!
+										if(true == IPS_GetProperty($parentId, "readIC120"))
+										{
+											IPS_SetProperty($parentId, "readIC120", false);
+											IPS_ApplyChanges($parentId);
+										}
+					 */
 
 					// Inverter - Kategorien löschen
 					foreach ($inverterCategoryArray as $categoryName)
@@ -1482,13 +1628,12 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					{
 						$varId = $this->MaintainInstanceVariable($this->removeInvalidChars($bit['varName']), $bit['varName'], VARIABLETYPE_BOOLEAN, $bit['varProfile'], 0, true, $instanceId, $bit['varInfo']);
 					}
-
 				}
 
 
-				if($active)
+				if ($active)
 				{
-					/*** Wechselrichter / Inverter ***/
+					/* Wechselrichter / Inverter */
 					if (!$readSmartmeter)
 					{
 						// Inverter - Timer aktivieren
@@ -1527,35 +1672,37 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 					// Erreichbarkeit von IP und Port pruefen
 					$portOpen = false;
-					$waitTimeoutInSeconds = 1; 
-					if(/*Sys_Ping($hostIp, $waitTimeoutInSeconds*1000)*/ $fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
-					{   
+					$waitTimeoutInSeconds = 1;
+					if (/*Sys_Ping($hostIp, $waitTimeoutInSeconds*1000)*/ $fp = @fsockopen($hostIp, $hostPort, $errCode, $errStr, $waitTimeoutInSeconds))
+					{
 						// It worked
 						$portOpen = true;
 
-						// Client Soket aktivieren
+						// Client Socket aktivieren
 						if (false == IPS_GetProperty($interfaceId, "Open"))
 						{
 							IPS_SetProperty($interfaceId, "Open", true);
 							IPS_ApplyChanges($interfaceId);
 							//IPS_Sleep(100);
+
+							$this->SendDebug("ClientSocket-Status", "ClientSocket activated (".$interfaceId.")", 0);
 						}
-						
+
 						// aktiv
-						$this->SetStatus(102);
+						$this->SetStatus(IS_ACTIVE);
 
 						$this->SendDebug("Module-Status", MODUL_PREFIX."-module activated", 0);
 					}
 					else
 					{
 						// IP oder Port nicht erreichbar
-						$this->SetStatus(200);
+						$this->SetStatus(IS_IPPORTERROR);
 
 						$this->SendDebug("Module-Status", "ERROR: ".MODUL_PREFIX." with IP=".$hostIp." and Port=".$hostPort." cannot be reached!", 0);
 					}
 
 					// Close fsockopen
-					if(isset($fp))
+					if (isset($fp) && false !== $fp)
 					{
 						fclose($fp); // nötig für fsockopen!
 					}
@@ -1568,8 +1715,10 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						IPS_SetProperty($interfaceId, "Open", false);
 						IPS_ApplyChanges($interfaceId);
 						//IPS_Sleep(100);
+
+						$this->SendDebug("ClientSocket-Status", "ClientSocket deactivated (".$interfaceId.")", 0);
 					}
-					
+
 					// Inverter - Timer deaktivieren
 					$this->SetTimerInterval("Update-I11X", 0);
 					$this->SetTimerInterval("Update-IC120", 0);
@@ -1583,25 +1732,28 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					$this->SetTimerInterval("SM_Update-Evt", 0);
 
 					// inaktiv
-					$this->SetStatus(104);
+					$this->SetStatus(IS_INACTIVE);
 
 					$this->SendDebug("Module-Status", MODUL_PREFIX."-module deactivated", 0);
 				}
 
 
 				// pruefen, ob sich ModBus-Gateway geaendert hat
-				if(0 != $gatewayId_Old && $gatewayId != $gatewayId_Old)
+				if (0 != $gatewayId_Old && $gatewayId != $gatewayId_Old)
 				{
 					$this->deleteInstanceNotInUse($gatewayId_Old, MODBUS_ADDRESSES);
+
+					$this->SendDebug("ModbusGateway-Status", "ModbusGateway deleted (".$gatewayId_Old.")", 0);
 				}
 
 				// pruefen, ob sich ClientSocket Interface geaendert hat
-				if(0 != $interfaceId_Old && $interfaceId != $interfaceId_Old)
+				if (0 != $interfaceId_Old && $interfaceId != $interfaceId_Old)
 				{
 					$this->deleteInstanceNotInUse($interfaceId_Old, MODBUS_INSTANCES);
+
+					$this->SendDebug("ClientSocket-Status", "ClientSocket deleted (".$interfaceId_Old.")", 0);
 				}
 			}
-
 		}
 
 		private function createModbusInstances($modelRegister_array, $parentId, $gatewayId, $pollCycle, $uniqueIdent = "")
@@ -1612,15 +1764,28 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				// Erstelle Modbus Instancen
 				foreach ($modelRegister_array as $inverterModelRegister)
 				{
+					// get datatype
 					$datenTyp = $this->getModbusDatatype($inverterModelRegister[IMR_TYPE]);
-					if("continue" == $datenTyp)
+					if ("continue" == $datenTyp)
 					{
 						continue;
 					}
 
-                    if (isset($inverterModelRegister[IMR_UNITS])) {
-                        $profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $datenTyp);
-                    }
+					/*					// if scale factor is given, variable will be of type float
+										if (isset($inverterModelRegister[IMR_SF]) && 10000 >= $inverterModelRegister[IMR_SF])
+										{
+											$varDataType = MODBUSDATATYPE_REAL;
+										}
+										else
+					 */					{
+						$varDataType = $datenTyp;
+					}
+
+					// get profile
+					if (isset($inverterModelRegister[IMR_UNITS]))
+					{
+						$profile = $this->getProfile($inverterModelRegister[IMR_UNITS], $varDataType);
+					}
 					else
 					{
 						$profile = false;
@@ -1632,7 +1797,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					// Modbus-Instanz erstellen, sofern noch nicht vorhanden
 					if (false === $instanceId)
 					{
-						$this->SendDebug("create Modbus address", "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]." (datatype=".$datenTyp.", profile=".$profile.")", 0);
+						$this->SendDebug("create Modbus address", "REG_".$inverterModelRegister[IMR_START_REGISTER]." - ".$inverterModelRegister[IMR_NAME]." (modbusDataType=".$datenTyp.", varDataType=".$varDataType.", profile=".$profile.")", 0);
 
 						$instanceId = IPS_CreateInstance(MODBUS_ADDRESSES);
 
@@ -1660,45 +1825,50 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					}
 
 
-					// Modbus-Instanz konfigurieren
+					// ************************
+					// config Modbus-Instance
+					// ************************
+					// set data type
 					if ($datenTyp != IPS_GetProperty($instanceId, "DataType"))
 					{
 						IPS_SetProperty($instanceId, "DataType", $datenTyp);
 					}
+					// set emulation state
 					if (false != IPS_GetProperty($instanceId, "EmulateStatus"))
 					{
 						IPS_SetProperty($instanceId, "EmulateStatus", false);
 					}
+					// set poll cycle
 					if ($pollCycle != IPS_GetProperty($instanceId, "Poller"))
 					{
 						IPS_SetProperty($instanceId, "Poller", $pollCycle);
 					}
 					// set length for modbus datatype string
-					if (10 == $datenTyp && $inverterModelRegister[IMR_SIZE] != IPS_GetProperty($instanceId, "Length")) // if string --> set length accordingly
-					{
+					if (MODBUSDATATYPE_STRING == $datenTyp && $inverterModelRegister[IMR_SIZE] != IPS_GetProperty($instanceId, "Length"))
+					{ // if string --> set length accordingly
 						IPS_SetProperty($instanceId, "Length", $inverterModelRegister[IMR_SIZE]);
 					}
-/*
-					if(0 != IPS_GetProperty($instanceId, "Factor"))
-					{
-						IPS_SetProperty($instanceId, "Factor", 0);
-					}
-*/
+					/*					// set scale factor
+										if (isset($inverterModelRegister[IMR_SF]) && 10000 >= $inverterModelRegister[IMR_SF] && $inverterModelRegister[IMR_SF] != IPS_GetProperty($instanceId, "Factor"))
+										{
+											IPS_SetProperty($instanceId, "Factor", $inverterModelRegister[IMR_SF]);
+										}
+					 */
 
 					// Read-Settings
 					if ($inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET != IPS_GetProperty($instanceId, "ReadAddress"))
 					{
 						IPS_SetProperty($instanceId, "ReadAddress", $inverterModelRegister[IMR_START_REGISTER] + MODBUS_REGISTER_TO_ADDRESS_OFFSET);
 					}
-					if(6 == $inverterModelRegister[IMR_FUNCTION_CODE])
+					if (6 == $inverterModelRegister[IMR_FUNCTION_CODE])
 					{
 						$ReadFunctionCode = 3;
 					}
-					else if("R" == $inverterModelRegister[IMR_FUNCTION_CODE])
+					elseif ("R" == $inverterModelRegister[IMR_FUNCTION_CODE])
 					{
 						$ReadFunctionCode = 3;
 					}
-					else if("RW" == $inverterModelRegister[IMR_FUNCTION_CODE])
+					elseif ("RW" == $inverterModelRegister[IMR_FUNCTION_CODE])
 					{
 						$ReadFunctionCode = 3;
 					}
@@ -1728,7 +1898,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						IPS_SetProperty($instanceId, "WriteFunctionCode", 0);
 					}
 
-					if(IPS_HasChanges($instanceId))
+					if (IPS_HasChanges($instanceId))
 					{
 						IPS_ApplyChanges($instanceId);
 					}
@@ -1737,97 +1907,100 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
 
 					// Profil der Statusvariable initial einmal zuweisen
-					if(false != $profile && !IPS_VariableProfileExists($profile))
+					if (false != $profile && !IPS_VariableProfileExists($profile))
 					{
 						$this->SendDebug("Variable-Profile", "Profile ".$profile." does not exist!", 0);
-					}	
-					else if ($initialCreation && false != $profile)
+					}
+					elseif ($initialCreation && false != $profile)
 					{
 						// Justification Rule 11: es ist die Funktion RegisterVariable...() in diesem Fall nicht nutzbar, da die Variable durch die Modbus-Instanz bereits erstellt wurde
 						// --> Custo Profil wird initial einmal beim Instanz-erstellen gesetzt
-						IPS_SetVariableCustomProfile($varId, $profile);
+						if (!IPS_SetVariableCustomProfile($varId, $profile))
+						{
+							$this->SendDebug("Variable-Profile", "Error setting profile ".$profile." for VarID ".$varId."!", 0);
+						}
 					}
 				}
 			}
 		}
-		
-		private function getModbusDatatype($type)
+
+		private function getModbusDatatype(string $type)//PHP8 :mixed
 		{
 			// Datentyp ermitteln
 			// 0=Bit (1 bit)
 			// 1=Byte (8 bit unsigned)
 			if ("uint8" == strtolower($type)
 				|| "enum8" == strtolower($type)
-				|| "int8" == strtolower($type)
-			)
-			{
-				$datenTyp = 1;
+			) {
+				$datenTyp = MODBUSDATATYPE_BIT;
 			}
 			// 2=Word (16 bit unsigned)
-			else if ("uint16" == strtolower($type)
+			elseif ("uint16" == strtolower($type)
 				|| "enum16" == strtolower($type)
 				|| "uint8+uint8" == strtolower($type)
-			)
-			{
-				$datenTyp = 2;
+			) {
+				$datenTyp = MODBUSDATATYPE_WORD;
 			}
 			// 3=DWord (32 bit unsigned)
 			elseif ("uint32" == strtolower($type)
 				|| "acc32" == strtolower($type)
 				|| "acc64" == strtolower($type)
-			)
-			{
-				$datenTyp = 3;
+			) {
+				$datenTyp = MODBUSDATATYPE_DWORD;
 			}
 			// 4=Char / ShortInt (8 bit signed)
-			elseif ("sunssf" == strtolower($type))
-			{
-				$datenTyp = 4;
+			elseif ("sunssf" == strtolower($type)
+				|| "int8" == strtolower($type)
+			) {
+				$datenTyp = MODBUSDATATYPE_CHAR;
 			}
 			// 5=Short / SmallInt (16 bit signed)
 			elseif ("int16" == strtolower($type))
 			{
-				$datenTyp = 5;
+				$datenTyp = MODBUSDATATYPE_SHORT;
 			}
 			// 6=Integer (32 bit signed)
 			elseif ("int32" == strtolower($type))
 			{
-				$datenTyp = 6;
+				$datenTyp = MODBUSDATATYPE_INT;
 			}
 			// 7=Real (32 bit signed)
 			elseif ("float32" == strtolower($type))
 			{
-				$datenTyp = 7;
+				$datenTyp = MODBUSDATATYPE_REAL;
 			}
 			// 8=Int64
 			elseif ("uint64" == strtolower($type))
 			{
-				$datenTyp = 8;
+				$datenTyp = MODBUSDATATYPE_INT64;
 			}
-			// 9=Real64 (32 bit signed)
+			/* 9=Real64 (32 bit signed)
+			elseif ("???" == strtolower($type))
+			{
+				$datenTyp = MODBUSDATATYPE_REAL64;
+			}*/
 			// 10=String
 			elseif ("string32" == strtolower($type)
 				|| "string16" == strtolower($type)
 				|| "string8" == strtolower($type)
 				|| "string" == strtolower($type)
-			)
-			{
-				$datenTyp = 10;
+			) {
+				$datenTyp = MODBUSDATATYPE_STRING;
 			}
 			else
 			{
 				$this->SendDebug("getModbusDatatype()", "Unbekannter Datentyp '".$type."'! --> skip", 0);
 
 				return "continue";
-			}	
+			}
 
 			return $datenTyp;
 		}
 
-		private function getProfile($unit, $datenTyp = -1)
+		private function getProfile(string $unit, int $datenTyp = -1)//PHP8 :mixed
 		{
 			// Profil ermitteln
-			if ("a" == strtolower($unit) && 7 == $datenTyp)
+			if ("a" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Ampere";
 			}
@@ -1841,26 +2014,24 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			}
 			elseif (("ah" == strtolower($unit)
 					|| "vah" == strtolower($unit))
-				&& 7 == $datenTyp
-			)
-			{
-						$profile = MODUL_PREFIX.".AmpereHour.Float";
+				&& MODBUSDATATYPE_REAL == $datenTyp
+			) {
+				$profile = MODUL_PREFIX.".AmpereHour.Float";
 			}
 			elseif ("ah" == strtolower($unit)
 				|| "vah" == strtolower($unit)
-			)
-			{
-						$profile = MODUL_PREFIX.".AmpereHour.Int";
+			) {
+				$profile = MODUL_PREFIX.".AmpereHour.Int";
 			}
-			elseif ("v" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("v" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Volt";
 			}
-			elseif("v" == strtolower($unit))
+			elseif ("v" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Volt.Int";
 			}
-			elseif ("w" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("w" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Watt.14490";
 			}
@@ -1872,7 +2043,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Hours.Int";
 			}
-			elseif ("hz" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("hz" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Hertz";
 			}
@@ -1885,7 +2056,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				$profile = MODUL_PREFIX.".Volumenstrom.Int";
 			}
 			// Voltampere fuer elektrische Scheinleistung
-			elseif ("va" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("va" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = MODUL_PREFIX.".Scheinleistung.Float";
 			}
@@ -1895,7 +2066,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				$profile = MODUL_PREFIX.".Scheinleistung.Int";
 			}
 			// Var fuer elektrische Blindleistung
-			elseif ("var" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("var" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = MODUL_PREFIX.".Blindleistung.Float";
 			}
@@ -1904,7 +2075,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Blindleistung.Int";
 			}
-			elseif ("%" == $unit && 7 == $datenTyp)
+			elseif ("%" == $unit && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = "~Valve.F";
 			}
@@ -1912,7 +2083,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = "~Valve";
 			}
-			elseif ("wh" == strtolower($unit) && (7 == $datenTyp || 8 == $datenTyp))
+			elseif ("wh" == strtolower($unit) && (MODBUSDATATYPE_REAL == $datenTyp || MODBUSDATATYPE_INT64 == $datenTyp))
 			{
 				$profile = MODUL_PREFIX.".Electricity.Float";
 			}
@@ -1920,22 +2091,21 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".Electricity.Int";
 			}
-			elseif (("° C" == $unit
+			elseif ((
+				"° C" == $unit
 					|| "°C" == $unit
 					|| "C" == $unit
-				) && 7 == $datenTyp
-			)
-			{
+			) && MODBUSDATATYPE_REAL == $datenTyp
+			) {
 				$profile = "~Temperature";
 			}
 			elseif ("° C" == $unit
 				|| "°C" == $unit
 				|| "C" == $unit
-			)
-			{
+			) {
 				$profile = MODUL_PREFIX.".Temperature.Int";
 			}
-			elseif ("cos()" == strtolower($unit) && 7 == $datenTyp)
+			elseif ("cos()" == strtolower($unit) && MODBUSDATATYPE_REAL == $datenTyp)
 			{
 				$profile = MODUL_PREFIX.".Angle.Float";
 			}
@@ -1975,13 +2145,17 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$profile = MODUL_PREFIX.".StatsHeizkreis.Int";
 			}
-			elseif ("emergency-power" == strtolower($unit))
+			elseif ("enumerated_emergency-power" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Emergency-Power.Int";
 			}
-			elseif ("powermeter" == strtolower($unit))
+			elseif ("enumerated_powermeter" == strtolower($unit))
 			{
 				$profile = MODUL_PREFIX.".Powermeter.Int";
+			}
+			elseif ("enumerated_sg-ready-status" == strtolower($unit))
+			{
+				$profile = MODUL_PREFIX.".SG-Ready-Status.Int";
 			}
 			elseif ("secs" == strtolower($unit))
 			{
@@ -1991,8 +2165,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				|| "bitfield" == strtolower($unit)
 				|| "bitfield16" == strtolower($unit)
 				|| "bitfield32" == strtolower($unit)
-			)
-			{
+			) {
 				$profile = false;
 			}
 			else
@@ -2004,55 +2177,66 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				}
 			}
 
-			return $profile;			
+			return $profile;
 		}
 
 
 		private function checkProfiles()
 		{
-/*
-			$this->createVarProfile(MODUL_PREFIX.".TempFehler.Int", VARIABLETYPE_INTEGER, '', 0, 2, 1, 0, 0, array(
-					array('Name' => "OK", 'Wert' => 0, "OK", 'Farbe' => $this->getRgbColor("green")),
-					array('Name' => "Kurzschluss", 'Wert' => 1, "Kurzschlussfehler", 'Farbe' => $this->getRgbColor("red")),
-					array('Name' => "Unterbrechung", 'Wert' => 2, "Unterbrechungsfehler", 'Farbe' => $this->getRgbColor("red")),
-				)
-			);
+			$deleteProfiles_array = array();
 
-			$this->createVarProfile(MODUL_PREFIX.".Betriebsart.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
-					array('Name' => "Auto PWM", 'Wert' => 0, "Auto PWM", 'Farbe' => $this->getRgbColor("green")),
-					array('Name' => "Hand PWM", 'Wert' => 1, "Hand PWM", 'Farbe' => $this->getRgbColor("yellow")),
-					array('Name' => "Auto analog", 'Wert' => 2, "Auto analog", 'Farbe' => $this->getRgbColor("green")),
-					array('Name' => "Hand analog", 'Wert' => 3, "Hand analog", 'Farbe' => $this->getRgbColor("yellow")),
-					array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
-				)
-			);
+			/*
+						$this->createVarProfile(MODUL_PREFIX.".TempFehler.Int", VARIABLETYPE_INTEGER, '', 0, 2, 1, 0, 0, array(
+								array('Name' => "OK", 'Wert' => 0, "OK", 'Farbe' => $this->getRgbColor("green")),
+								array('Name' => "Kurzschluss", 'Wert' => 1, "Kurzschlussfehler", 'Farbe' => $this->getRgbColor("red")),
+								array('Name' => "Unterbrechung", 'Wert' => 2, "Unterbrechungsfehler", 'Farbe' => $this->getRgbColor("red")),
+							)
+						);
 
-			$this->createVarProfile(MODUL_PREFIX.".StatsHeizkreis.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
-					array('Name' => "Aus", 'Wert' => 1, "Aus"),
-					array('Name' => "Automatik", 'Wert' => 2, "Automatik"),
-					array('Name' => "Tagbetrieb", 'Wert' => 3, "Tagbetrieb"),
-					array('Name' => "Absenkbetrieb", 'Wert' => 4, "Absenkbetrieb"),
-					array('Name' => "Standby", 'Wert' => 5, "Standby"),
-					array('Name' => "Eco", 'Wert' => 6, "Eco"),
-					array('Name' => "Urlaub", 'Wert' => 7, "Urlaub"),
-					array('Name' => "WW Vorrang", 'Wert' => 8, "WW Vorrang"),
-					array('Name' => "Frostschutz", 'Wert' => 9, "Frostschutz"),
-					array('Name' => "Pumpenschutz", 'Wert' => 10, "Pumpenschutz"),
-					array('Name' => "Estrich", 'Wert' => 11, "Estrich"),
-					array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
-				)
-			);
+						$this->createVarProfile(MODUL_PREFIX.".Betriebsart.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+								array('Name' => "Auto PWM", 'Wert' => 0, "Auto PWM", 'Farbe' => $this->getRgbColor("green")),
+								array('Name' => "Hand PWM", 'Wert' => 1, "Hand PWM", 'Farbe' => $this->getRgbColor("yellow")),
+								array('Name' => "Auto analog", 'Wert' => 2, "Auto analog", 'Farbe' => $this->getRgbColor("green")),
+								array('Name' => "Hand analog", 'Wert' => 3, "Hand analog", 'Farbe' => $this->getRgbColor("yellow")),
+								array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
+							)
+						);
 
-			$this->createVarProfile(MODUL_PREFIX.".Zirkulation.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
-					array('Name' => "Aus", 'Wert' => 1, "Aus"),
-					array('Name' => "Puls", 'Wert' => 2, "Puls"),
-					array('Name' => "Temp", 'Wert' => 3, "Temp"),
-					array('Name' => "Warten", 'Wert' => 4, "Warten"),
-					array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
-				)
-			);
-*/
-			$this->createVarProfile("SunSpec.ChaSt.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+						$this->createVarProfile(MODUL_PREFIX.".StatsHeizkreis.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+								array('Name' => "Aus", 'Wert' => 1, "Aus"),
+								array('Name' => "Automatik", 'Wert' => 2, "Automatik"),
+								array('Name' => "Tagbetrieb", 'Wert' => 3, "Tagbetrieb"),
+								array('Name' => "Absenkbetrieb", 'Wert' => 4, "Absenkbetrieb"),
+								array('Name' => "Standby", 'Wert' => 5, "Standby"),
+								array('Name' => "Eco", 'Wert' => 6, "Eco"),
+								array('Name' => "Urlaub", 'Wert' => 7, "Urlaub"),
+								array('Name' => "WW Vorrang", 'Wert' => 8, "WW Vorrang"),
+								array('Name' => "Frostschutz", 'Wert' => 9, "Frostschutz"),
+								array('Name' => "Pumpenschutz", 'Wert' => 10, "Pumpenschutz"),
+								array('Name' => "Estrich", 'Wert' => 11, "Estrich"),
+								array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
+							)
+						);
+
+						$this->createVarProfile(MODUL_PREFIX.".Zirkulation.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+								array('Name' => "Aus", 'Wert' => 1, "Aus"),
+								array('Name' => "Puls", 'Wert' => 2, "Puls"),
+								array('Name' => "Temp", 'Wert' => 3, "Temp"),
+								array('Name' => "Warten", 'Wert' => 4, "Warten"),
+								array('Name' => "FEHLER", 'Wert' => 255, "FEHLER", 'Farbe' => $this->getRgbColor("red")),
+							)
+						);
+			 */
+			$this->createVarProfile(
+				"SunSpec.ChaSt.Int",
+				VARIABLETYPE_INTEGER,
+				'',
+				0,
+				0,
+				0,
+				0,
+				0,
+				array(
 					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
 					array('Name' => "OFF", 'Wert' => 1, "OFF: Energiespeicher nicht verfügbar"),
 					array('Name' => "EMPTY", 'Wert' => 2, "EMPTY: Energiespeicher vollständig entladen"),
@@ -2063,7 +2247,16 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					array('Name' => "TESTING", 'Wert' => 7, "TESTING: Energiespeicher wird getestet"),
 				)
 			);
-			$this->createVarProfile("SunSpec.ID.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+			$this->createVarProfile(
+				"SunSpec.ID.Int",
+				VARIABLETYPE_INTEGER,
+				'',
+				0,
+				0,
+				0,
+				0,
+				0,
+				array(
 					array('Name' => "single phase Inv (i)", 'Wert' => 101, "101: single phase Inverter (int)"),
 					array('Name' => "split phase Inv (i)", 'Wert' => 102, "102: split phase Inverter (int)"),
 					array('Name' => "three phase Inv (i)", 'Wert' => 103, "103: three phase Inverter (int)"),
@@ -2079,7 +2272,16 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					array('Name' => "string combiner (i)", 'Wert' => 403, "403: String Combiner (int)"),
 				)
 			);
-			$this->createVarProfile("SunSpec.StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+			$this->createVarProfile(
+				"SunSpec.StateCodes.Int",
+				VARIABLETYPE_INTEGER,
+				'',
+				0,
+				0,
+				0,
+				0,
+				0,
+				array(
 					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
 					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
 					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
@@ -2091,7 +2293,16 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					array('Name' => "STANDBY", 'Wert' => 8, "Standby"),
 				)
 			);
-			$this->createVarProfile(MODUL_PREFIX.".StateCodes.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+			$this->createVarProfile(
+				MODUL_PREFIX.".StateCodes.Int",
+				VARIABLETYPE_INTEGER,
+				'',
+				0,
+				0,
+				0,
+				0,
+				0,
+				array(
 					array('Name' => "N/A", 'Wert' => 0, "Unbekannter Status"),
 					array('Name' => "OFF", 'Wert' => 1, "Wechselrichter ist aus"),
 					array('Name' => "SLEEPING", 'Wert' => 2, "Auto-Shutdown"),
@@ -2108,30 +2319,30 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					array('Name' => "AFCI", 'Wert' => 13, "AFCI Event (Arc-Erkennung)"),
 				)
 			);
-/*
-			$this->createVarProfile(MODUL_PREFIX.".Emergency-Power.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
-					array('Name' => "nicht unterstützt", 'Wert' => 0, "Notstrom wird nicht von Ihrem Gerät unterstützt", 'Farbe' => 16753920),
-					array('Name' => "aktiv", 'Wert' => 1, "Notstrom aktiv (Ausfall des Stromnetzes)", 'Farbe' => $this->getRgbColor("green")),
-					array('Name' => "nicht aktiv", 'Wert' => 2, "Notstrom nicht aktiv", 'Farbe' => -1),
-					array('Name' => "nicht verfügbar", 'Wert' => 3, "Notstrom nicht verfügbar", 'Farbe' => 16753920),
-					array('Name' => "Fehler", 'Wert' => 4, "Der Motorschalter des S10 E befindet sich nicht in der richtigen Position, sondern wurde manuell abgeschaltet oder nicht eingeschaltet.", 'Farbe' => $this->getRgbColor("red")),
-				)
-			);
-			$this->createVarProfile(MODUL_PREFIX.".Powermeter.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
-				array('Name' => "N/A", 'Wert' => 0),
-				array('Name' => "Wurzelleistungsmesser", 'Wert' => 1, "Dies ist der Regelpunkt des Systems. Der Regelpunkt entspricht üblicherweise dem Hausanschlusspunkt."),
-				array('Name' => "Externe Produktion", 'Wert' => 2),
-				array('Name' => "Zweirichtungszähler", 'Wert' => 3),
-				array('Name' => "Externer Verbrauch", 'Wert' => 4),
-				array('Name' => "Farm", 'Wert' => 5),
-				array('Name' => "Wird nicht verwendet", 'Wert' => 6),
-				array('Name' => "Wallbox", 'Wert' => 7),
-				array('Name' => "Externer Leistungsmesser Farm", 'Wert' => 8),
-				array('Name' => "Datenanzeige", 'Wert' => 9, "Wird nicht in die Regelung eingebunden, sondern dient nur der Datenaufzeichnung des Kundenportals."),
-				array('Name' => "Regelungsbypass", 'Wert' => 10, "Die gemessene Leistung wird nicht in die Batterie geladen, aus der Batterie entladen."),
-				)
-			);
-*/
+			/*
+						$this->createVarProfile(MODUL_PREFIX.".Emergency-Power.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+								array('Name' => "nicht unterstützt", 'Wert' => 0, "Notstrom wird nicht von Ihrem Gerät unterstützt", 'Farbe' => 16753920),
+								array('Name' => "aktiv", 'Wert' => 1, "Notstrom aktiv (Ausfall des Stromnetzes)", 'Farbe' => $this->getRgbColor("green")),
+								array('Name' => "nicht aktiv", 'Wert' => 2, "Notstrom nicht aktiv", 'Farbe' => -1),
+								array('Name' => "nicht verfügbar", 'Wert' => 3, "Notstrom nicht verfügbar", 'Farbe' => 16753920),
+								array('Name' => "Fehler", 'Wert' => 4, "Der Motorschalter des S10 E befindet sich nicht in der richtigen Position, sondern wurde manuell abgeschaltet oder nicht eingeschaltet.", 'Farbe' => $this->getRgbColor("red")),
+							)
+						);
+						$this->createVarProfile(MODUL_PREFIX.".Powermeter.Int", VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 0, array(
+							array('Name' => "N/A", 'Wert' => 0),
+							array('Name' => "Wurzelleistungsmesser", 'Wert' => 1, "Dies ist der Regelpunkt des Systems. Der Regelpunkt entspricht üblicherweise dem Hausanschlusspunkt."),
+							array('Name' => "Externe Produktion", 'Wert' => 2),
+							array('Name' => "Zweirichtungszähler", 'Wert' => 3),
+							array('Name' => "Externer Verbrauch", 'Wert' => 4),
+							array('Name' => "Farm", 'Wert' => 5),
+							array('Name' => "Wird nicht verwendet", 'Wert' => 6),
+							array('Name' => "Wallbox", 'Wert' => 7),
+							array('Name' => "Externer Leistungsmesser Farm", 'Wert' => 8),
+							array('Name' => "Datenanzeige", 'Wert' => 9, "Wird nicht in die Regelung eingebunden, sondern dient nur der Datenaufzeichnung des Kundenportals."),
+							array('Name' => "Regelungsbypass", 'Wert' => 10, "Die gemessene Leistung wird nicht in die Batterie geladen, aus der Batterie entladen."),
+							)
+						);
+			 */
 			$this->createVarProfile(MODUL_PREFIX.".Ampere.Int", VARIABLETYPE_INTEGER, ' A');
 			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Float", VARIABLETYPE_FLOAT, ' Ah');
 			$this->createVarProfile(MODUL_PREFIX.".AmpereHour.Int", VARIABLETYPE_INTEGER, ' Ah');
@@ -2153,9 +2364,18 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			$this->createVarProfile(MODUL_PREFIX.".Volt.Int", VARIABLETYPE_INTEGER, ' V');
 //			$this->createVarProfile(MODUL_PREFIX.".Volumenstrom.Int", VARIABLETYPE_INTEGER, ' l/min');
 			$this->createVarProfile(MODUL_PREFIX.".Watt.Int", VARIABLETYPE_INTEGER, ' W');
+
+			// delete not used profiles
+			foreach ($deleteProfiles_array as $profileName)
+			{
+				if (IPS_VariableProfileExists($profileName))
+				{
+					IPS_DeleteVariableProfile($profileName);
+				}
+			}
 		}
 
-		private function GetVariableValue($instanceIdent, $variableIdent = "Value")
+		private function GetVariableValue(string $instanceIdent, string $variableIdent = "Value")//PHP8 : mixed
 		{
 			$instanceId = IPS_GetObjectIDByIdent($this->removeInvalidChars($instanceIdent), $this->InstanceID);
 			$varId = IPS_GetObjectIDByIdent($this->removeInvalidChars($variableIdent), $instanceId);
@@ -2163,7 +2383,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			return GetValue($varId);
 		}
 
-		private function GetVariableId($instanceIdent, $variableIdent = "Value")
+		private function GetVariableId(string $instanceIdent, string $variableIdent = "Value"): int
 		{
 			$instanceId = IPS_GetObjectIDByIdent($this->removeInvalidChars($instanceIdent), $this->InstanceID);
 			$varId = IPS_GetObjectIDByIdent($this->removeInvalidChars($variableIdent), $instanceId);
@@ -2171,7 +2391,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			return $varId;
 		}
 
-		private function GetLoggedValuesInterval($id, $minutes)
+		private function GetLoggedValuesInterval(int $id, int $minutes)//PHP8 :mixed
 		{
 			$archiveId = IPS_GetInstanceListByModuleID("{43192F0B-135B-4CE7-A0A7-1475603F3060}");
 			if (isset($archiveId[0]))
@@ -2185,12 +2405,11 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				$archiveId = false;
 
 				// no archive found
-				$this->SetStatus(201);
+				$this->SetStatus(IS_NOARCHIVE);
 
 				$returnValue = GetValue($id);
 			}
 
 			return $returnValue;
 		}
-
 	}
