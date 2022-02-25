@@ -172,7 +172,7 @@ trait myFunctions
 			// Loesche Connection-Instanz (bspw. ModbusAddress, ClientSocket,...), wenn nicht mehr in Verwendung
 			if (!$inUse)
 			{
-				$returnValue &= IPS_DeleteInstance($connectionId_Old);
+				$returnValue &= (bool)IPS_DeleteInstance($connectionId_Old);
 			}
 		}
 
@@ -483,7 +483,7 @@ trait myFunctions
 		// Zu viele Logwerte in der TimeRange vorhanden
 		elseif (10000 <= count($buffer))
 		{
-			$intervallEdge = $startTime + ($endTime - $startTime) / 2;
+			$intervallEdge = (int)($startTime + ($endTime - $startTime) / 2);
 			$bufferSum = $this->getPowerSumOfLog($logId, $startTime, $intervallEdge, $mode) + $this->getPowerSumOfLog($logId, $intervallEdge, $endTime, $mode);
 		}
 		// Logwerte vorhanden
