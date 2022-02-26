@@ -176,7 +176,7 @@ trait myFunctions
 			}
 		}
 
-		return $returnValue;
+		return (bool)$returnValue;
 	}
 
 	private function checkModbusGateway(string $hostIp, int $hostPort, int $hostmodbusDevice, int $hostSwapWords): array
