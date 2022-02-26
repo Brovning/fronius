@@ -10,6 +10,7 @@ define("DEVELOPMENT", false);
 if (!defined('MODUL_PREFIX'))
 {
 	define("MODUL_PREFIX", "Fronius");
+	define("MODUL_ID", "{850BFB11-5B5F-4A86-76D9-C3DDFDFF055C}");
 }
 
 // Offset von Register (erster Wert 1) zu Adresse (erster Wert 0) ist -1
@@ -370,7 +371,25 @@ function removeInvalidChars(\$input)
 
 		public function GetConfigurationForm()
 		{
+			$libraryJson = @IPS_GetLibrary(MODUL_ID);
+			
+			$headline = MODUL_PREFIX." Modul";
+			if(isset($libraryJson['Version']))
+			{
+				$headline .= " v".$libraryJson['Version'];
+			}
+
+			if(isset($libraryJson['Date']) && 0 != $libraryJson['Date'])
+			{
+				$headline .= " (".$libraryJson['Date'].")";
+			}
+
 			$formElements = array();
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => $headline,
+				'bold' => true,
+			);
 			$formElements[] = array(
 				'type' => "Label",
 				'label' => "Der Fronius Wechselrichter oder SmartMeter (Energiezähler) muss Modbus TCP unterstützen!",

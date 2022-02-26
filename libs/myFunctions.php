@@ -172,7 +172,7 @@ trait myFunctions
 			// Loesche Connection-Instanz (bspw. ModbusAddress, ClientSocket,...), wenn nicht mehr in Verwendung
 			if (!$inUse)
 			{
-				$returnValue &= IPS_DeleteInstance($connectionId_Old);
+				$returnValue = $returnValue && IPS_DeleteInstance($connectionId_Old);
 			}
 		}
 
@@ -352,16 +352,16 @@ trait myFunctions
 
 		if (!IPS_VariableProfileExists($ProfilName))
 		{
-			$returnValue &= IPS_CreateVariableProfile($ProfilName, $ProfileType);
-			$returnValue &= IPS_SetVariableProfileText($ProfilName, '', $Suffix);
+			$returnValue = $returnValue && IPS_CreateVariableProfile($ProfilName, $ProfileType);
+			$returnValue = $returnValue && IPS_SetVariableProfileText($ProfilName, '', $Suffix);
 
 			if (in_array($ProfileType, array(VARIABLETYPE_INTEGER, VARIABLETYPE_FLOAT)))
 			{
-				$returnValue &= IPS_SetVariableProfileValues($ProfilName, $MinValue, $MaxValue, $StepSize);
-				$returnValue &= IPS_SetVariableProfileDigits($ProfilName, $Digits);
+				$returnValue = $returnValue && IPS_SetVariableProfileValues($ProfilName, $MinValue, $MaxValue, $StepSize);
+				$returnValue = $returnValue && IPS_SetVariableProfileDigits($ProfilName, $Digits);
 			}
 
-			$returnValue &= IPS_SetVariableProfileIcon($ProfilName, $Icon);
+			$returnValue = $returnValue && IPS_SetVariableProfileIcon($ProfilName, $Icon);
 
 			foreach ($Associations as $a)
 			{
@@ -369,7 +369,7 @@ trait myFunctions
 				$n = isset($a['Name']) ? $a['Name'] : '';
 				$i = isset($a['Icon']) ? $a['Icon'] : '';
 				$f = isset($a['Farbe']) ? $a['Farbe'] : -1;
-				$returnValue &= IPS_SetVariableProfileAssociation($ProfilName, $w, $n, $i, $f);
+				$returnValue = $returnValue && IPS_SetVariableProfileAssociation($ProfilName, $w, $n, $i, $f);
 			}
 
 			$this->SendDebug("Variable-Profile", "Profile ".$ProfilName." created", 0);
@@ -392,7 +392,7 @@ trait myFunctions
 			$instanceId = @IPS_GetObjectIDByIdent($register[IMR_START_REGISTER].$uniqueIdent, $categoryId);
 			if (false !== $instanceId)
 			{
-				$returnValue &= $this->deleteInstanceRecursive($instanceId);
+				$returnValue = $returnValue && $this->deleteInstanceRecursive($instanceId);
 
 				$this->SendDebug("delete Modbus address", "REG_".$register[IMR_START_REGISTER]." - ".$register[IMR_NAME].", ID=".$instanceId, 0);
 			}
@@ -406,9 +406,9 @@ trait myFunctions
 		$returnValue = true;
 		foreach (IPS_GetChildrenIDs($instanceId) as $childChildId)
 		{
-			$returnValue &= IPS_DeleteVariable($childChildId);
+			$returnValue = $returnValue && IPS_DeleteVariable($childChildId);
 		}
-		$returnValue &= IPS_DeleteInstance($instanceId);
+		$returnValue = $returnValue && IPS_DeleteInstance($instanceId);
 
 		return (bool)$returnValue;
 	}
@@ -483,7 +483,7 @@ trait myFunctions
 		// Zu viele Logwerte in der TimeRange vorhanden
 		elseif (10000 <= count($buffer))
 		{
-			$intervallEdge = $startTime + ($endTime - $startTime) / 2;
+			$intervallEdge = (int)($startTime + ($endTime - $startTime) / 2);
 			$bufferSum = $this->getPowerSumOfLog($logId, $startTime, $intervallEdge, $mode) + $this->getPowerSumOfLog($logId, $intervallEdge, $endTime, $mode);
 		}
 		// Logwerte vorhanden
