@@ -379,6 +379,11 @@ function removeInvalidChars(\$input)
 				$headline .= " v".$libraryJson['Version'];
 			}
 
+			if(isset($libraryJson['Date']) && 0 != $libraryJson['Date'])
+			{
+				$headline .= " (".$libraryJson['Date'].")";
+			}
+
 			$formElements = array();
 			$formElements[] = array(
 				'type' => "Label",
