@@ -417,6 +417,9 @@ Aktuell keine PHP-Funktionen verfügbar.
 
 ### 8. Versionshistorie
 
+#### v1.6, 26.02.2022
+- Bugfix #18: Uncaught TypeError: deleteInstanceNotInUse()
+
 #### v1.5, 22.02.2022
 - Bugfix #16: Workaround für unplausible DCA_SF, DCV_SF, DCW_SF und DCWH_SF
 
