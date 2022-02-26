@@ -373,7 +373,7 @@ function removeInvalidChars(\$input)
 		{
 			$libraryJson = @IPS_GetLibrary(MODUL_ID);
 			
-			$headline = "Fronius Modul";
+			$headline = MODUL_PREFIX." Modul";
 			if(isset($libraryJson['Version']))
 			{
 				$headline .= " v".$libraryJson['Version'];
