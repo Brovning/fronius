@@ -172,11 +172,11 @@ trait myFunctions
 			// Loesche Connection-Instanz (bspw. ModbusAddress, ClientSocket,...), wenn nicht mehr in Verwendung
 			if (!$inUse)
 			{
-				$returnValue &= (bool)IPS_DeleteInstance($connectionId_Old);
+				$returnValue = $returnValue && IPS_DeleteInstance($connectionId_Old);
 			}
 		}
 
-		return (bool)$returnValue;
+		return $returnValue;
 	}
 
 	private function checkModbusGateway(string $hostIp, int $hostPort, int $hostmodbusDevice, int $hostSwapWords): array
