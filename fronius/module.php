@@ -34,6 +34,15 @@ if (!defined('IMR_START_REGISTER'))
 	define("IMR_SF", 8);
 }
 
+// ArrayOffsets
+if (!defined('DEVICE_WR'))
+{
+	define("DEVICE_WR", 0);
+	define("DEVICE_SM", 1);
+	define("DEVICE_WRGEN24", 2);
+	define("DEVICE_SMGEN24", 3);
+}
+
 	class Fronius extends IPSModule
 	{
 		use myFunctions;
@@ -48,6 +57,7 @@ if (!defined('IMR_START_REGISTER'))
 			$this->RegisterPropertyBoolean('active', 'true');
 			$this->RegisterPropertyString('hostIp', '');
 			$this->RegisterPropertyInteger('hostPort', '502');
+			$this->RegisterPropertyInteger('deviceType', '0');
 			$this->RegisterPropertyInteger('hostmodbusDevice', '1');
 			$this->RegisterPropertyBoolean('readIC120', 'false');
 			$this->RegisterPropertyBoolean('readIC121', 'false');
@@ -427,6 +437,37 @@ function removeInvalidChars(\$input)
 			);
 			$formElements[] = array(
 				'type' => "Label",
+				'label' => "Geräte Typ"
+			);
+			$formElements[] = array(
+				'type' => "Select",
+				'name' => "deviceType",
+				'caption' => "Geräte Typ",
+				'options' => array(
+					array(
+						'caption' => "Wechselrichter",
+						'value' => DEVICE_WR
+					),
+					array(
+						'caption' => "SmartMeter",
+						'value' => DEVICE_SM
+					),
+					array(
+						'caption' => "Wechselrichter GEN24",
+						'value' => DEVICE_WRGEN24
+					),
+					array(
+						'caption' => "SmartMeter GEN24",
+						'value' => DEVICE_SMGEN24
+					)
+				)
+			);
+			$formElements[] = array(
+				'type' => "Label",
+				'label' => " ",
+			);
+			$formElements[] = array(
+				'type' => "Label",
 				'label' => "Geräte ID des Wechselrichters (bspw.: ID=1) oder des SmartMeters (vor GEN24: ID=240, ab GEN24: ID=200)",
 			);
 			$formElements[] = array(
@@ -534,6 +575,7 @@ function removeInvalidChars(\$input)
 			$active = $this->ReadPropertyBoolean('active');
 			$hostIp = $this->ReadPropertyString('hostIp');
 			$hostPort = $this->ReadPropertyInteger('hostPort');
+			$deviceType = $this->ReadPropertyInteger('deviceType');
 			$hostmodbusDevice = $this->ReadPropertyInteger('hostmodbusDevice');
 			$hostSwapWords = 0; // Fronius = false
 			$readIC120 = $this->ReadPropertyBoolean('readIC120');
@@ -546,7 +588,7 @@ function removeInvalidChars(\$input)
 			$pollCycle = $this->ReadPropertyInteger('pollCycle') * 1000;
 
 			// SmartMeter nutzen immer die GeraeteID=240 (vor GEN24) oder GeraeteID=200 (ab GEN24)
-			$readSmartmeter = (240 == $hostmodbusDevice || 200 == $hostmodbusDevice);
+			$readSmartmeter = (DEVICE_SM == $deviceType || DEVICE_SMGEN24 == $deviceType);
 
 			$inverterCategoryArray = array(
 				"IC120" => "IC120 Nameplate",
@@ -586,157 +628,326 @@ function removeInvalidChars(\$input)
 				/* ****** Fronius Register **************************************************************************
 					HINWEIS! Diese Register gelten nur für Wechselrichter. Für Fronius String Controls und Energiezähler sind diese Register nicht relevant
 				 ************************************************************************************************** */
-				$inverterModelRegister_array = array(
-					/*					array(212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
-					array(213, 1, "RW", "0x03 0x06 0x10", "F_Store_Data", "Rating data of all inverters connected to the Fronius Datamanager are persistently stored by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
-					array(214, 1, "R", "0x03", "F_Active_State_Code", "Current active state code of inverter - Description can be found in inverter manual: Status-Code des Wechselrichters: Das Register F_Active_State_Code (214) zeigt den Status-Code des Wechselrichter an der gerade aufgetreten ist. Dieser wird eventuell auch am Display des Wechselrichter angezeigt. Dieser Code wird auch als Event Flag im Inverter Modell dargestellt. Der angezeigte Code bleibt so lange aktiv bis der entsprechende Status nicht mehr am Wechselrichter anliegt. Alternativ kann der Status auch per Register F_Reset_All_Event_ Flags gelöscht werden.", "uint16", "", "", "not supported for Fronius Hybrid inverters (because of this inverter status maybe reported differently during nighttime compared to other inverter types)"),
-					array(215, 1, "RW", "0x03 0x06 0x10", "F_Reset_All_Event_Flags", "Write 0xFFFF to reset all event flags and active state code.", "uint16", "", "", "0xFFFF"),
-					array(216, 1, "RW", "0x03 0x06 0x10", "F_ModelType", "Type of SunSpec models used for inverter and meter data. Write 1 or 2 and then immediately 6 to acknowledge setting.", "uint16", "", "", "1: Floating point, 2: Integer & SF"),
-					array(217, 1, "RW", "0x03 0x06 0x10", "F_Storage_Restrictions_View_Mode", "Type of Restrictions reported in BasicStorageControl Model (IC124). Local restrictions are those that are set by Modbus Interface. Global restrictions are those that are set system wide.", "uint16", "", "", "0: local (default); 1: global"),
-					 */					array(500, 2, "R", 3, "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W"),
-					array(502, 4, "R", 3, "F_Site_Energy_Day", "Total energy for current day of all connected inverters.", "uint64", "Wh"),
-					array(506, 4, "R", 3, "F_Site_Energy_Year", "Total energy for last year of all connected inverters.", "uint64", "Wh"),
-					array(510, 4, "R", 3, "F_Site_Energy_Total", "Total energy of all connected inverters.", "uint64", "Wh"),
-					//				);
+				// Wechselrichter (nicht GEN24)
+				if(DEVICE_WR == $deviceType || DEVICE_SM == $deviceType)
+				{
+					$inverterModelRegister_array = array(
+						/*					array(212, 1, "RW", "0x03 0x06 0x10", "F_Delete_Data", "Delete stored ratings of the current inverter by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
+						array(213, 1, "RW", "0x03 0x06 0x10", "F_Store_Data", "Rating data of all inverters connected to the Fronius Datamanager are persistently stored by writing 0xFFFF.", "uint16", "", "", "0xFFFF"),
+						array(214, 1, "R", "0x03", "F_Active_State_Code", "Current active state code of inverter - Description can be found in inverter manual: Status-Code des Wechselrichters: Das Register F_Active_State_Code (214) zeigt den Status-Code des Wechselrichter an der gerade aufgetreten ist. Dieser wird eventuell auch am Display des Wechselrichter angezeigt. Dieser Code wird auch als Event Flag im Inverter Modell dargestellt. Der angezeigte Code bleibt so lange aktiv bis der entsprechende Status nicht mehr am Wechselrichter anliegt. Alternativ kann der Status auch per Register F_Reset_All_Event_ Flags gelöscht werden.", "uint16", "", "", "not supported for Fronius Hybrid inverters (because of this inverter status maybe reported differently during nighttime compared to other inverter types)"),
+						array(215, 1, "RW", "0x03 0x06 0x10", "F_Reset_All_Event_Flags", "Write 0xFFFF to reset all event flags and active state code.", "uint16", "", "", "0xFFFF"),
+						array(216, 1, "RW", "0x03 0x06 0x10", "F_ModelType", "Type of SunSpec models used for inverter and meter data. Write 1 or 2 and then immediately 6 to acknowledge setting.", "uint16", "", "", "1: Floating point, 2: Integer & SF"),
+						array(217, 1, "RW", "0x03 0x06 0x10", "F_Storage_Restrictions_View_Mode", "Type of Restrictions reported in BasicStorageControl Model (IC124). Local restrictions are those that are set by Modbus Interface. Global restrictions are those that are set system wide.", "uint16", "", "", "0: local (default); 1: global"),
+						*/					array(500, 2, "R", 3, "F_Site_Power", "Total power (site sum) of all connected inverters.", "uint32", "W"),
+						array(502, 4, "R", 3, "F_Site_Energy_Day", "Total energy for current day of all connected inverters.", "uint64", "Wh"),
+						array(506, 4, "R", 3, "F_Site_Energy_Year", "Total energy for last year of all connected inverters.", "uint64", "Wh"),
+						array(510, 4, "R", 3, "F_Site_Energy_Total", "Total energy of all connected inverters.", "uint64", "Wh"),
+						//				);
 
 
-					/* ********** Common Model **************************************************************************
-					Die Beschreibung des Common Block inklusive der SID Register (Register 40001-40002)
-					zur Identifizierung als SunSpec Gerät gilt für jeden Gerätetyp (Wechselrichter, String Control,
-					Energiezähler). Jedes Gerät besitzt einen eigenen Common Block, in dem Informationen
-					über das Gerät (Modell, Seriennummer, SW Version, etc.) aufgeführt sind.
-					 ************************************************************************************************** */
-					//				$inverterModelRegister_array = array(
-					// array(40001, 2, "R", 3, "SID", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map", "uint32", ""),
-					// array(40003, 1, "R", 3, "ID", "Well-known value. Uniquely identifies this as a SunSpec Common Model block", "uint16", ""), // = 1
-					// array(40004, 1, "R", 3, "L", "Registers Length of Common Model block", "uint16", ""), // = 65
-					array(40005, 16, "R", 3, "Mn", "Manufacturer z.B. Fronius", "String32", ""),
-					array(40021, 16, "R", 3, "Md", "Device model z.B. IG+150V", "String32", ""),
-					array(40037, 8, "R", 3, "Opt", "SW version of datamanager z.B. 3.3.6-13", "String16", ""),
-					array(40045, 8, "R", 3, "Vr", "SW version of inverter", "String16", ""),
-					array(40053, 16, "R", 3, "SN", "Serialnumber of inverter, string control or energy meter", "String32", ""),
-					//  array(40069, 1, "R", 3, "DA", "Modbus Device Address 1 - 247", "uint16", ""), // = 1
-					//				);
+						/* ********** Common Model **************************************************************************
+						Die Beschreibung des Common Block inklusive der SID Register (Register 40001-40002)
+						zur Identifizierung als SunSpec Gerät gilt für jeden Gerätetyp (Wechselrichter, String Control,
+						Energiezähler). Jedes Gerät besitzt einen eigenen Common Block, in dem Informationen
+						über das Gerät (Modell, Seriennummer, SW Version, etc.) aufgeführt sind.
+						************************************************************************************************** */
+						//				$inverterModelRegister_array = array(
+						// array(40001, 2, "R", 3, "SID", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map", "uint32", ""),
+						// array(40003, 1, "R", 3, "ID", "Well-known value. Uniquely identifies this as a SunSpec Common Model block", "uint16", ""), // = 1
+						// array(40004, 1, "R", 3, "L", "Registers Length of Common Model block", "uint16", ""), // = 65
+						array(40005, 16, "R", 3, "Mn", "Manufacturer z.B. Fronius", "String32", ""),
+						array(40021, 16, "R", 3, "Md", "Device model z.B. IG+150V", "String32", ""),
+						array(40037, 8, "R", 3, "Opt", "SW version of datamanager z.B. 3.3.6-13", "String16", ""),
+						array(40045, 8, "R", 3, "Vr", "SW version of inverter", "String16", ""),
+						array(40053, 16, "R", 3, "SN", "Serialnumber of inverter, string control or energy meter", "String32", ""),
+						//  array(40069, 1, "R", 3, "DA", "Modbus Device Address 1 - 247", "uint16", ""), // = 1
+						//				);
 
 
-					//				$inverterModelRegister_array = array(
-					/* ********** Inverter Model I11X ************************************************************************
-				Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
-					- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
-				HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
-					 ************************************************************************************************** */
-					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)", "uint16", "Enumerated_ID"),
-					array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block", "uint16", ""),
-					array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
-					array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "AC Phase-A Current value", "float32", "A"),
-					array(40086, 2, "R", 3, "PhVphA - AC Voltage Phase-A-toneutral", "AC Voltage Phase-A-toneutral value", "float32", "V"),
-					array(40092, 2, "R", 3, "W - AC Power", "AC Power value", "float32", "W"),
-					array(40094, 2, "R", 3, "Hz - AC Frequency", "AC Frequency value", "float32", "Hz"),
-					array(40096, 2, "R", 3, "VA - Apparent Power", "Apparent Power", "float32", "VA"),
-					array(40098, 2, "R", 3, "VAr - Reactive Power", "Reactive Power", "float32", "VAr"),
-					array(40100, 2, "R", 3, "PF - Power Factor", "Power Factor", "float32", "%"),
-					array(40102, 2, "R", 3, "WH - AC Lifetime Energy production", "AC Lifetime Energy production", "float32", "Wh"),
-					//	array(40104, 2, "R", 3, "DCA", "DC Current value (DC current only if one MPPT available; with multiple MPPT 'not implemented')", "float32", "A"),
-					//	array(40106, 2, "R", 3, "DCV", "DC Voltage value (DC voltage only if one MPPT available; with multiple MPPT 'not implemented')", "float32", "V"),
-					array(40108, 2, "R", 3, "DCW - DC Power", "DC Power value", "float32", "W"),
-					//	array(40110, 2, "R", 3, "TmpCab", "Cabinet Temperature", "float32", "° C"), // Not supported
-					//	array(40112, 2, "R", 3, "TmpSnk", "Coolant or Heat Sink Temperature", "float32", "° C"), // Not supported
-					//	array(40114, 2, "R", 3, "TmpTrns", "Transformer Temperature", "float32", "° C"), // Not supported
-					//	array(40116, 2, "R", 3, "TmpOt", "Other Temperature", "float32", "° C"), // Not supported
-					array(40118, 1, "R", 3, "St - Operating State", "Operating State (SunSpec State Codes)", "enum16", "Enumerated_St"),
-					array(40119, 1, "R", 3, "StVnd - Vendor Operating State", "Vendor Defined Operating State (Fronius State Codes)", "enum16", "Enumerated_StVnd"),
-					array(40120, 2, "R", 3, "Evt1 - Event Flags", "Event Flags (bits 0-31)", "uint32", "Bitfield"),
-					array(40122, 2, "R", 3, "Evt2 - Event Flags", "Event Flags (bits 32-63)", "uint32", "Bitfield"),
-					array(40124, 2, "R", 3, "EvtVnd1 - Vendor Event Flags", "Vendor Defined Event Flags (bits 0-31)", "uint32", "Bitfield"),
-					array(40126, 2, "R", 3, "EvtVnd2 - Vendor Event Flags", "Vendor Defined Event Flags (bits 32-63)", "uint32", "Bitfield"),
-					array(40128, 2, "R", 3, "EvtVnd3 - Vendor Event Flags", "Vendor Defined Event Flags (bits 64-95)", "uint32", "Bitfield"),
-					array(40130, 2, "R", 3, "EvtVnd4 - Vendor Event Flags", "Vendor Defined Event Flags (bits 96-127)", "uint32", "Bitfield"),
-				);
+						//				$inverterModelRegister_array = array(
+						/* ********** Inverter Model I11X ************************************************************************
+					Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
+						- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
+					HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+						************************************************************************************************** */
+						array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Inverter Modbus Map (111: single phase, 112: split phase, 113: three phase)", "uint16", "Enumerated_ID"),
+						array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block", "uint16", ""),
+						array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
+						array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "AC Phase-A Current value", "float32", "A"),
+						array(40086, 2, "R", 3, "PhVphA - AC Voltage Phase-A-toneutral", "AC Voltage Phase-A-toneutral value", "float32", "V"),
+						array(40092, 2, "R", 3, "W - AC Power", "AC Power value", "float32", "W"),
+						array(40094, 2, "R", 3, "Hz - AC Frequency", "AC Frequency value", "float32", "Hz"),
+						array(40096, 2, "R", 3, "VA - Apparent Power", "Apparent Power", "float32", "VA"),
+						array(40098, 2, "R", 3, "VAr - Reactive Power", "Reactive Power", "float32", "VAr"),
+						array(40100, 2, "R", 3, "PF - Power Factor", "Power Factor", "float32", "%"),
+						array(40102, 2, "R", 3, "WH - AC Lifetime Energy production", "AC Lifetime Energy production", "float32", "Wh"),
+						//	array(40104, 2, "R", 3, "DCA", "DC Current value (DC current only if one MPPT available; with multiple MPPT 'not implemented')", "float32", "A"),
+						//	array(40106, 2, "R", 3, "DCV", "DC Voltage value (DC voltage only if one MPPT available; with multiple MPPT 'not implemented')", "float32", "V"),
+						array(40108, 2, "R", 3, "DCW - DC Power", "DC Power value", "float32", "W"),
+						//	array(40110, 2, "R", 3, "TmpCab", "Cabinet Temperature", "float32", "° C"), // Not supported
+						//	array(40112, 2, "R", 3, "TmpSnk", "Coolant or Heat Sink Temperature", "float32", "° C"), // Not supported
+						//	array(40114, 2, "R", 3, "TmpTrns", "Transformer Temperature", "float32", "° C"), // Not supported
+						//	array(40116, 2, "R", 3, "TmpOt", "Other Temperature", "float32", "° C"), // Not supported
+						array(40118, 1, "R", 3, "St - Operating State", "Operating State (SunSpec State Codes)", "enum16", "Enumerated_St"),
+						array(40119, 1, "R", 3, "StVnd - Vendor Operating State", "Vendor Defined Operating State (Fronius State Codes)", "enum16", "Enumerated_StVnd"),
+						array(40120, 2, "R", 3, "Evt1 - Event Flags", "Event Flags (bits 0-31)", "uint32", "Bitfield"),
+						array(40122, 2, "R", 3, "Evt2 - Event Flags", "Event Flags (bits 32-63)", "uint32", "Bitfield"),
+						array(40124, 2, "R", 3, "EvtVnd1 - Vendor Event Flags", "Vendor Defined Event Flags (bits 0-31)", "uint32", "Bitfield"),
+						array(40126, 2, "R", 3, "EvtVnd2 - Vendor Event Flags", "Vendor Defined Event Flags (bits 32-63)", "uint32", "Bitfield"),
+						array(40128, 2, "R", 3, "EvtVnd3 - Vendor Event Flags", "Vendor Defined Event Flags (bits 64-95)", "uint32", "Bitfield"),
+						array(40130, 2, "R", 3, "EvtVnd4 - Vendor Event Flags", "Vendor Defined Event Flags (bits 96-127)", "uint32", "Bitfield"),
+					);
+				
+					$inverterModel3pRegister_array = array(
+						/* ********** Inverter Model (3-phase) *********************************************************************** */
+						array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "AC Phase-B Current value", "float32", "A"),
+						array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "AC Phase-C Current value", "float32", "A"),
+						array(40080, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "AC Voltage Phase-AB value", "float32", "V"),
+						array(40082, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "AC Voltage Phase-BC value", "float32", "V"),
+						array(40084, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "AC Voltage Phase-CA value", "float32", "V"),
+						array(40088, 2, "R", 3, "PhVphB - AC Voltage Phase-B-toneutral", "AC Voltage Phase-B-toneutral value", "float32", "V"),
+						array(40090, 2, "R", 3, "PhVphC - AC Voltage Phase-C-toneutral", "AC Voltage Phase-C-toneutral value", "float32", "V"),
+					);
 
-				$inverterModel3pRegister_array = array(
-					/* ********** Inverter Model (3-phase) *********************************************************************** */
-					array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "AC Phase-B Current value", "float32", "A"),
-					array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "AC Phase-C Current value", "float32", "A"),
-					array(40080, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "AC Voltage Phase-AB value", "float32", "V"),
-					array(40082, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "AC Voltage Phase-BC value", "float32", "V"),
-					array(40084, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "AC Voltage Phase-CA value", "float32", "V"),
-					array(40088, 2, "R", 3, "PhVphB - AC Voltage Phase-B-toneutral", "AC Voltage Phase-B-toneutral value", "float32", "V"),
-					array(40090, 2, "R", 3, "PhVphC - AC Voltage Phase-C-toneutral", "AC Voltage Phase-C-toneutral value", "float32", "V"),
-				);
+					/* ********** Meter Model ************************************************************************
+					Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
+					- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
+					- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
+					Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+					************************************************************************************************** */
+					$meterModelRegister_array = array(
+						array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Meter Modbus Map (float); 211: single phase, 212: split phase, 213: three phase", "uint16", ""),
+						array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block: 124", "uint16", ""),
+						array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
+						array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "AC Phase-A Current value", "float32", "A"),
+						array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "AC Phase-B Current value", "float32", "A"),
+						array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "AC Phase-C Current value", "float32", "A"),
+						array(40080, 2, "R", 3, "PhV - AC Voltage Average", "AC Voltage Average Phase-to-neutral value", "float32", "V"),
+						array(40082, 2, "R", 3, "PhVphA - AC Voltage Phase-A-to-neutral", "AC Voltage Phase-A-to-neutral value", "float32", "V"),
+						array(40084, 2, "R", 3, "PhVphB - AC Voltage Phase-B-to-neutral", "AC Voltage Phase-B-to-neutral value", "float32", "V"),
+						array(40086, 2, "R", 3, "PhVphC - AC Voltage Phase-C-to-neutral", "AC Voltage Phase-C-to-neutral value", "float32", "V"),
+						array(40088, 2, "R", 3, "PPV - AC Voltage Average Phase-to-phase", "AC Voltage Average Phase-to-phase value", "float32", "V"),
+						array(40090, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "AC Voltage Phase-AB value", "float32", "V"),
+						array(40092, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "AC Voltage Phase-BC value", "float32", "V"),
+						array(40094, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "AC Voltage Phase-CA value", "float32", "V"),
+						array(40096, 2, "R", 3, "Hz - AC Frequency", "AC Frequency value", "float32", "Hz"),
+						array(40098, 2, "R", 3, "W - AC Power", "AC Power value", "float32", "W"),
+						array(40100, 2, "R", 3, "WphA - AC Power Phase A", "AC Power Phase A value", "float32", "W"),
+						array(40102, 2, "R", 3, "WphB - AC Power Phase B", "AC Power Phase B value", "float32", "W"),
+						array(40104, 2, "R", 3, "WphC - AC Power Phase C", "AC Power Phase C value", "float32", "W"),
+						array(40106, 2, "R", 3, "VA - AC Apparent Power", "AC Apparent Power value", "float32", "VA"),
+						array(40108, 2, "R", 3, "VAphA - AC Apparent Power Phase A", "AC Apparent Power Phase A value", "float32", "VA"),
+						array(40110, 2, "R", 3, "VAphB - AC Apparent Power Phase B", "AC Apparent Power Phase B value", "float32", "VA"),
+						array(40112, 2, "R", 3, "VAphC - AC Apparent Power Phase C", "AC Apparent Power Phase C value", "float32", "VA"),
+						array(40114, 2, "R", 3, "VAR - AC Reactive Power", "AC Reactive Power value", "float32", "VAr"),
+						array(40116, 2, "R", 3, "VARphA - AC Reactive Power Phase A", "AC Reactive Power Phase A value", "float32", "VAr"),
+						array(40118, 2, "R", 3, "VARphB - AC Reactive Power Phase B", "AC Reactive Power Phase B value", "float32", "VAr"),
+						array(40120, 2, "R", 3, "VARphC - AC Reactive Power Phase C", "AC Reactive Power Phase C value", "float32", "VAr"),
+						array(40122, 2, "R", 3, "PF - Power Factor", "Power Factor value", "float32", "cos()"),
+						array(40124, 2, "R", 3, "PFphA - Power Factor Phase A", "Power Factor Phase A value", "float32", "cos()"),
+						array(40126, 2, "R", 3, "PFphB - Power Factor Phase B", "Power Factor Phase B value", "float32", "cos()"),
+						array(40128, 2, "R", 3, "PFphC - Power Factor Phase C", "Power Factor Phase C value", "float32", "cos()"),
+						array(40130, 2, "R", 3, "TotWhExp - Total Wh Exported", "Total Watt-hours Exported", "float32", "Wh"),
+						array(40132, 2, "R", 3, "TotWhExpPhA - Total Wh Exported phase A", "Total Watt-hours Exported phase A", "float32", "Wh"),
+						array(40134, 2, "R", 3, "TotWhExpPhB - Total Wh Exported phase B", "Total Watt-hours Exported phase B", "float32", "Wh"),
+						array(40136, 2, "R", 3, "TotWhExpPhC - Total Wh Exported phase C", "Total Watt-hours Exported phase C", "float32", "Wh"),
+						array(40138, 2, "R", 3, "TotWhImp - Total Wh Imported", "Total Watt-hours Imported", "float32", "Wh"),
+						array(40140, 2, "R", 3, "TotWhImpPhA - Total Wh Imported phase A", "Total Watt-hours Imported phase A", "float32", "Wh"),
+						array(40142, 2, "R", 3, "TotWhImpPhB - Total Wh Imported phase B", "Total Watt-hours Imported phase B", "float32", "Wh"),
+						array(40144, 2, "R", 3, "TotWhImpPhC - Total Wh Imported phase C", "Total Watt-hours Imported phase C", "float32", "Wh"),
+						array(40146, 2, "R", 3, "TotVAhExp - Total VAh Exported", "Total VA-hours Exported", "float32", "VAh"),
+						array(40148, 2, "R", 3, "TotVAhExpPhA - Total VAh Exported phase A", "Total VA-hours Exported phase A", "float32", "VAh"),
+						array(40150, 2, "R", 3, "TotVAhExpPhB - Total VAh Exported phase B", "Total VA-hours Exported phase B", "float32", "VAh"),
+						array(40152, 2, "R", 3, "TotVAhExpPhC - Total VAh Exported phase C", "Total VA-hours Exported phase C", "float32", "VAh"),
+						array(40154, 2, "R", 3, "TotVAhImp - Total VAh Imported", "Total VA-hours Imported", "float32", "VAh"),
+						array(40156, 2, "R", 3, "TotVAhImpPhA - Total VAh Imported phase A", "Total VA-hours Imported phase A", "float32", "VAh"),
+						array(40158, 2, "R", 3, "TotVAhImpPhB - Total VAh Imported phase B", "Total VA-hours Imported phase B", "float32", "VAh"),
+						array(40160, 2, "R", 3, "TotVAhImpPhC - Total VAh Imported phase C", "Total VA-hours Imported phase C", "float32", "VAh"),
+						/*
+						array(40162, 2, "R", 3, "TotVArhImpQ1 - Total VARh Imported Q1", "Total VAR-hours Imported Q1", "float32", "VArh"),
+						array(40164, 2, "R", 3, "TotVArhImpQ1phA - Total VARh Imported Q1 phase A", "Total VAR-hours Imported Q1 phase A", "float32", "VArh"),
+						array(40166, 2, "R", 3, "TotVArhImpQ1phB - Total VARh Imported Q1 phase B", "Total VAR-hours Imported Q1 phase B", "float32", "VArh"),
+						array(40168, 2, "R", 3, "TotVArhImpQ1phC - Total VARh Imported Q1 phase C", "Total VAR-hours Imported Q1 phase C", "float32", "VArh"),
+						array(40170, 2, "R", 3, "TotVArhImpQ2 - Total VArh Imported Q2", "Total VAr-hours Imported Q2", "float32", "VArh"),
+						array(40172, 2, "R", 3, "TotVArhImpQ2phA - Total VARh Imported Q2 phase A", "Total VAR-hours Imported Q2 phase A", "float32", "VArh"),
+						array(40174, 2, "R", 3, "TotVArhImpQ2phB - Total VARh Imported Q2 phase B", "Total VAR-hours Imported Q2 phase B", "float32", "VArh"),
+						array(40176, 2, "R", 3, "TotVArhImpQ2phC - Total VARh Imported Q2 phase C", "Total VAR-hours Imported Q2 phase C", "float32", "VArh"),
+						array(40178, 2, "R", 3, "TotVArhExpQ3 - Total VArh Imported Q3", "Total VAr-hours Exported Q3", "float32", "VArh"),
+						array(40180, 2, "R", 3, "TotVArhExpQ3phA - Total VARh Imported Q3 phase A", "Total VAR-hours Exported Q3 phase A", "float32", "VArh"),
+						array(40182, 2, "R", 3, "TotVArhExpQ3phB - Total VARh Imported Q3 phase B", "Total VAR-hours Exported Q3 phase B", "float32", "VArh"),
+						array(40184, 2, "R", 3, "TotVArhExpQ3phC - Total VARh Imported Q3 phase C", "Total VAR-hours Exported Q3 phase C", "float32", "VArh"),
+						array(40186, 2, "R", 3, "TotVArhExpQ4 - Total VArh Imported Q4", "Total VAr-hours Exported Q4", "float32", "VArh"),
+						array(40188, 2, "R", 3, "TotVArhExpQ4phA - Total VARh Imported Q4 phase A", "Total VAR-hours Exported Q4 phase A", "float32", "VArh"),
+						array(40190, 2, "R", 3, "TotVArhExpQ4phB - Total VARh Imported Q4 phase B", "Total VAR-hours Exported Q4 phase B", "float32", "VArh"),
+						array(40192, 2, "R", 3, "TotVArhExpQ4phC - Total VARh Imported Q4 phase C", "Total VAR-hours Exported Q4 phase C", "float32", "VArh"),
+						*/
+						array(40194, 2, "R", 3, "Evt - Events", "Events (bits 1-19)", "uint32", "bitfield32"),
+					);
+				}
+				// Wechselrichter GEN24
+				else if(DEVICE_WRGEN24 == $deviceType || DEVICE_SMGEN24 == $deviceType)
+				{
+					$inverterModelRegister_array = array(
+						/* not available:					
+						array(212, 
+						...
+						array(510,
+						*/
 
-				/* ********** Meter Model ************************************************************************
-				Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
-				- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
-				- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
-				Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
-				 ************************************************************************************************** */
-				$meterModelRegister_array = array(
-					array(40070, 1, "R", 3, "ID", "Uniquely identifies this as a SunSpec Meter Modbus Map (float); 211: single phase, 212: split phase, 213: three phase", "uint16", ""),
-					array(40071, 1, "R", 3, "L - Registers", "Registers, Length of inverter model block: 124", "uint16", ""),
-					array(40072, 2, "R", 3, "A - AC Total Current", "AC Total Current value", "float32", "A"),
-					array(40074, 2, "R", 3, "AphA - AC Phase-A Current", "AC Phase-A Current value", "float32", "A"),
-					array(40076, 2, "R", 3, "AphB - AC Phase-B Current", "AC Phase-B Current value", "float32", "A"),
-					array(40078, 2, "R", 3, "AphC - AC Phase-C Current", "AC Phase-C Current value", "float32", "A"),
-					array(40080, 2, "R", 3, "PhV - AC Voltage Average", "AC Voltage Average Phase-to-neutral value", "float32", "V"),
-					array(40082, 2, "R", 3, "PhVphA - AC Voltage Phase-A-to-neutral", "AC Voltage Phase-A-to-neutral value", "float32", "V"),
-					array(40084, 2, "R", 3, "PhVphB - AC Voltage Phase-B-to-neutral", "AC Voltage Phase-B-to-neutral value", "float32", "V"),
-					array(40086, 2, "R", 3, "PhVphC - AC Voltage Phase-C-to-neutral", "AC Voltage Phase-C-to-neutral value", "float32", "V"),
-					array(40088, 2, "R", 3, "PPV - AC Voltage Average Phase-to-phase", "AC Voltage Average Phase-to-phase value", "float32", "V"),
-					array(40090, 2, "R", 3, "PPVphAB - AC Voltage Phase-AB", "AC Voltage Phase-AB value", "float32", "V"),
-					array(40092, 2, "R", 3, "PPVphBC - AC Voltage Phase-BC", "AC Voltage Phase-BC value", "float32", "V"),
-					array(40094, 2, "R", 3, "PPVphCA - AC Voltage Phase-CA", "AC Voltage Phase-CA value", "float32", "V"),
-					array(40096, 2, "R", 3, "Hz - AC Frequency", "AC Frequency value", "float32", "Hz"),
-					array(40098, 2, "R", 3, "W - AC Power", "AC Power value", "float32", "W"),
-					array(40100, 2, "R", 3, "WphA - AC Power Phase A", "AC Power Phase A value", "float32", "W"),
-					array(40102, 2, "R", 3, "WphB - AC Power Phase B", "AC Power Phase B value", "float32", "W"),
-					array(40104, 2, "R", 3, "WphC - AC Power Phase C", "AC Power Phase C value", "float32", "W"),
-					array(40106, 2, "R", 3, "VA - AC Apparent Power", "AC Apparent Power value", "float32", "VA"),
-					array(40108, 2, "R", 3, "VAphA - AC Apparent Power Phase A", "AC Apparent Power Phase A value", "float32", "VA"),
-					array(40110, 2, "R", 3, "VAphB - AC Apparent Power Phase B", "AC Apparent Power Phase B value", "float32", "VA"),
-					array(40112, 2, "R", 3, "VAphC - AC Apparent Power Phase C", "AC Apparent Power Phase C value", "float32", "VA"),
-					array(40114, 2, "R", 3, "VAR - AC Reactive Power", "AC Reactive Power value", "float32", "VAr"),
-					array(40116, 2, "R", 3, "VARphA - AC Reactive Power Phase A", "AC Reactive Power Phase A value", "float32", "VAr"),
-					array(40118, 2, "R", 3, "VARphB - AC Reactive Power Phase B", "AC Reactive Power Phase B value", "float32", "VAr"),
-					array(40120, 2, "R", 3, "VARphC - AC Reactive Power Phase C", "AC Reactive Power Phase C value", "float32", "VAr"),
-					array(40122, 2, "R", 3, "PF - Power Factor", "Power Factor value", "float32", "cos()"),
-					array(40124, 2, "R", 3, "PFphA - Power Factor Phase A", "Power Factor Phase A value", "float32", "cos()"),
-					array(40126, 2, "R", 3, "PFphB - Power Factor Phase B", "Power Factor Phase B value", "float32", "cos()"),
-					array(40128, 2, "R", 3, "PFphC - Power Factor Phase C", "Power Factor Phase C value", "float32", "cos()"),
-					array(40130, 2, "R", 3, "TotWhExp - Total Wh Exported", "Total Watt-hours Exported", "float32", "Wh"),
-					array(40132, 2, "R", 3, "TotWhExpPhA - Total Wh Exported phase A", "Total Watt-hours Exported phase A", "float32", "Wh"),
-					array(40134, 2, "R", 3, "TotWhExpPhB - Total Wh Exported phase B", "Total Watt-hours Exported phase B", "float32", "Wh"),
-					array(40136, 2, "R", 3, "TotWhExpPhC - Total Wh Exported phase C", "Total Watt-hours Exported phase C", "float32", "Wh"),
-					array(40138, 2, "R", 3, "TotWhImp - Total Wh Imported", "Total Watt-hours Imported", "float32", "Wh"),
-					array(40140, 2, "R", 3, "TotWhImpPhA - Total Wh Imported phase A", "Total Watt-hours Imported phase A", "float32", "Wh"),
-					array(40142, 2, "R", 3, "TotWhImpPhB - Total Wh Imported phase B", "Total Watt-hours Imported phase B", "float32", "Wh"),
-					array(40144, 2, "R", 3, "TotWhImpPhC - Total Wh Imported phase C", "Total Watt-hours Imported phase C", "float32", "Wh"),
-					array(40146, 2, "R", 3, "TotVAhExp - Total VAh Exported", "Total VA-hours Exported", "float32", "VAh"),
-					array(40148, 2, "R", 3, "TotVAhExpPhA - Total VAh Exported phase A", "Total VA-hours Exported phase A", "float32", "VAh"),
-					array(40150, 2, "R", 3, "TotVAhExpPhB - Total VAh Exported phase B", "Total VA-hours Exported phase B", "float32", "VAh"),
-					array(40152, 2, "R", 3, "TotVAhExpPhC - Total VAh Exported phase C", "Total VA-hours Exported phase C", "float32", "VAh"),
-					array(40154, 2, "R", 3, "TotVAhImp - Total VAh Imported", "Total VA-hours Imported", "float32", "VAh"),
-					array(40156, 2, "R", 3, "TotVAhImpPhA - Total VAh Imported phase A", "Total VA-hours Imported phase A", "float32", "VAh"),
-					array(40158, 2, "R", 3, "TotVAhImpPhB - Total VAh Imported phase B", "Total VA-hours Imported phase B", "float32", "VAh"),
-					array(40160, 2, "R", 3, "TotVAhImpPhC - Total VAh Imported phase C", "Total VA-hours Imported phase C", "float32", "VAh"),
-					/*					array(40162, 2, "R", 3, "TotVArhImpQ1 - Total VARh Imported Q1", "Total VAR-hours Imported Q1", "float32", "VArh"),
-					array(40164, 2, "R", 3, "TotVArhImpQ1phA - Total VARh Imported Q1 phase A", "Total VAR-hours Imported Q1 phase A", "float32", "VArh"),
-					array(40166, 2, "R", 3, "TotVArhImpQ1phB - Total VARh Imported Q1 phase B", "Total VAR-hours Imported Q1 phase B", "float32", "VArh"),
-					array(40168, 2, "R", 3, "TotVArhImpQ1phC - Total VARh Imported Q1 phase C", "Total VAR-hours Imported Q1 phase C", "float32", "VArh"),
-					array(40170, 2, "R", 3, "TotVArhImpQ2 - Total VArh Imported Q2", "Total VAr-hours Imported Q2", "float32", "VArh"),
-					array(40172, 2, "R", 3, "TotVArhImpQ2phA - Total VARh Imported Q2 phase A", "Total VAR-hours Imported Q2 phase A", "float32", "VArh"),
-					array(40174, 2, "R", 3, "TotVArhImpQ2phB - Total VARh Imported Q2 phase B", "Total VAR-hours Imported Q2 phase B", "float32", "VArh"),
-					array(40176, 2, "R", 3, "TotVArhImpQ2phC - Total VARh Imported Q2 phase C", "Total VAR-hours Imported Q2 phase C", "float32", "VArh"),
-					array(40178, 2, "R", 3, "TotVArhExpQ3 - Total VArh Imported Q3", "Total VAr-hours Exported Q3", "float32", "VArh"),
-					array(40180, 2, "R", 3, "TotVArhExpQ3phA - Total VARh Imported Q3 phase A", "Total VAR-hours Exported Q3 phase A", "float32", "VArh"),
-					array(40182, 2, "R", 3, "TotVArhExpQ3phB - Total VARh Imported Q3 phase B", "Total VAR-hours Exported Q3 phase B", "float32", "VArh"),
-					array(40184, 2, "R", 3, "TotVArhExpQ3phC - Total VARh Imported Q3 phase C", "Total VAR-hours Exported Q3 phase C", "float32", "VArh"),
-					array(40186, 2, "R", 3, "TotVArhExpQ4 - Total VArh Imported Q4", "Total VAr-hours Exported Q4", "float32", "VArh"),
-					array(40188, 2, "R", 3, "TotVArhExpQ4phA - Total VARh Imported Q4 phase A", "Total VAR-hours Exported Q4 phase A", "float32", "VArh"),
-					array(40190, 2, "R", 3, "TotVArhExpQ4phB - Total VARh Imported Q4 phase B", "Total VAR-hours Exported Q4 phase B", "float32", "VArh"),
-					array(40192, 2, "R", 3, "TotVArhExpQ4phC - Total VARh Imported Q4 phase C", "Total VAR-hours Exported Q4 phase C", "float32", "VArh"),
-					 */					array(40194, 2, "R", 3, "Evt - Events", "Events (bits 1-19)", "uint32", "bitfield32"),
-				);
 
+						/* ********** Common Model **************************************************************************
+						Die Beschreibung des Common Block inklusive der SID Register (Register 40001-40002)
+						zur Identifizierung als SunSpec Gerät gilt für jeden Gerätetyp (Wechselrichter, String Control,
+						Energiezähler). Jedes Gerät besitzt einen eigenen Common Block, in dem Informationen
+						über das Gerät (Modell, Seriennummer, SW Version, etc.) aufgeführt sind.
+						************************************************************************************************** */
+						//				$inverterModelRegister_array = array(
+						// array(40001,2, "R", "0x03", "SID", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map", "uint32", "", ""),
+						// array(40003,1, "R", "0x03", "ID", "Well-known value. Uniquely identifies this as a sunspec model common (1)", "uint16", "", ""),
+						// array(40004,1, "R", "0x03", "L", "Length of sunspec model common (1)", "uint16", "Registers", ""),
+						array(40005,16, "R", "0x03", "Mn", "Manufacturer", "string", "", ""),
+						array(40021,16, "R", "0x03", "Md", "Device", "string", "", ""),
+						array(40037,8, "R", "0x03", "Opt", "Options", "string", "", ""),
+						array(40045,8, "R", "0x03", "Vr", "SW version of inverter", "string", "", ""),
+						array(40053,16, "R", "0x03", "SN", "Serialnumber of the inverter", "string", "", ""),
+						//array(40069,1, "R", "0x03", "DA", "Modbus Device Address", "uint16", "", ""),
+						//				);
+
+
+						//				$inverterModelRegister_array = array(
+						/* ********** Inverter Model I11X ************************************************************************
+					Für die Wechselrichter-Daten werden zwei verschiedene SunSpec Models unterstützt:
+						- das standardmäßig eingestellte Inverter Model mit Gleitkomma-Darstellung (Einstellung „float“; I111, I112 oder I113)
+					HINWEIS! Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+						************************************************************************************************** */
+						array(40070,1, "R", "0x03", "ID", "Well-known value. Uniquely identifies this as a sunspec model inverter (11x)", "uint16", "", ""),
+						array(40071,1, "R", "0x03", "L", "Length of sunspec model inverter (11x)", "uint16", "Registers", ""),
+						array(40072,2, "R", "0x03", "A", "AC Current", "float32", "A", ""),
+						array(40074,2, "R", "0x03", "AphA", "Phase A Current", "float32", "A", ""),
+						array(40086,2, "R", "0x03", "PhVphA", "Phase Voltage AN", "float32", "V", ""),
+						array(40092,2, "R", "0x03", "W", "AC Power", "float32", "W", ""),
+						array(40094,2, "R", "0x03", "Hz", "Line Frequency", "float32", "Hz", ""),
+						array(40096,2, "R", "0x03", "VA", "AC Apparent Power", "float32", "VA", ""),
+						array(40098,2, "R", "0x03", "VAr", "AC Reactive Power", "float32", "var", ""),
+						array(40100,2, "R", "0x03", "PF", "AC Power Factor", "float32", "Pct", ""),
+						array(40102,2, "R", "0x03", "WH", "AC Energy", "float32", "Wh", ""),
+						//array(40104,2, "R", "0x03", "DCA", "DC Current (not supported if the inverter has multiple DC inputs current of DC-strings can be found in MPPT model 160)", "float32", "A", ""),
+						//array(40106,2, "R", "0x03", "DCV", "DC Voltage (not supported if the inverter has multiple DC inputs current of DC-strings can be found in MPPT model 160)", "float32", "V", ""),
+						array(40108,2, "R", "0x03", "DCW", "DC Power", "float32", "W", ""),
+						array(40110,2, "R", "0x03", "TmpCab", "Cabinet Temperature", "float32", "C", ""),
+						//array(40112,2, "R", "0x03", "TmpSnk", "Heat Sink Temperature", "float32", "C", ""),// Not supported
+						//array(40114,2, "R", "0x03", "TmpTrns", "Transformer Temperature", "float32", "C", ""),// Not supported
+						//array(40116,2, "R", "0x03", "TmpOt", "Other Temperature", "float32", "C", ""),// Not supported
+						array(40118,1, "R", "0x03", "St", "Enumerated value.  Operating state", "enum16", "", ""),
+						array(40119,1, "R", "0x03", "StVnd", "Vendor specific operating state code", "enum16", "", ""),
+						array(40120,2, "R", "0x03", "Evt1", "Bitmask value. Event fields", "uint32", "Bitfield", ""),
+						array(40122,2, "R", "0x03", "Evt2", "Reserved for future use", "uint32", "Bitfield", ""),
+						array(40124,2, "R", "0x03", "EvtVnd1", "Vendor defined events", "uint32", "Bitfield", ""),
+						array(40126,2, "R", "0x03", "EvtVnd2", "Vendor defined events", "uint32", "Bitfield", ""),
+						array(40128,2, "R", "0x03", "EvtVnd3", "Vendor defined events", "uint32", "Bitfield", ""),
+						array(40130,2, "R", "0x03", "EvtVnd4", "Vendor defined events", "uint32", "Bitfield", ""),
+					);
+				
+					$inverterModel3pRegister_array = array(
+						/* ********** Inverter Model (3-phase) *********************************************************************** */
+						array(40076,2, "R", "0x03", "AphB", "Phase B Current", "float32", "A", ""),
+						array(40078,2, "R", "0x03", "AphC", "Phase C Current", "float32", "A", ""),
+						array(40080,2, "R", "0x03", "PPVphAB", "Phase Voltage AB", "float32", "V", ""),
+						array(40082,2, "R", "0x03", "PPVphBC", "Phase Voltage BC", "float32", "V", ""),
+						array(40084,2, "R", "0x03", "PPVphCA", "Phase Voltage CA", "float32", "V", ""),
+						array(40088,2, "R", "0x03", "PhVphB", "Phase Voltage BN", "float32", "V", ""),
+						array(40090,2, "R", "0x03", "PhVphC", "Phase Voltage CN", "float32", "V", ""),
+					);
+
+					/* ********** Meter Model ************************************************************************
+					Ähnlich wie bei den Inverter Models gibt es auch für SmartMeter zwei verschiedene SunSpec Models:
+					- das Meter Model mit Gleitkommadarstellung (Einstellung „float“; 211, 212 oder 213)
+					- das Meter Model mit ganzen Zahlen und Skalierungsfaktoren (Einstellung „int+SF“; 201, 202 oder 203)
+					Die Registeranzahl der beiden Model-Typen ist unterschiedlich!
+					************************************************************************************************** */
+					$meterModelRegister_array = array(
+						//array(40001, 2, "R", "0x03", "SID", "Well-known value. Uniquely identifies this as a SunSpec Modbus Map", "uint32", "", ""),
+						//array(40003, 1, "R", "0x03", "ID", "Well-known value. Uniquely identifies this as a sunspec model common (1)", "uint16", "", ""),
+						//array(40004, 1, "R", "0x03", "L", "Length of sunspec model common (1)", "uint16", "Registers", ""),
+						//array(40005, 16, "R", "0x03", "Mn", "Smart Meter Manufacturer", "string", "", ""),
+						array(40021, 16, "R", "0x03", "Md", "Smart Meter Model", "string", "", ""),
+						array(40037, 8, "R", "0x03", "Opt", "Smart Meter Name", "string", "", ""),
+						array(40045, 8, "R", "0x03", "Vr", "SW version of ", "string", "", ""),
+						array(40053, 16, "R", "0x03", "SN", "Smart Meter Serialnumber", "string", "", ""),
+						//array(40069, 1, "R", "0x03", "DA", "Modbus Device Address", "uint16", "", ""),
+						array(40070, 1, "R", "0x03", "ID", "Well-known value. Uniquely identifies this as a sunspec model ac_meter (21x)", "uint16", "", ""),
+						array(40071, 1, "R", "0x03", "L", "Length of sunspec model ac_meter (21x)", "uint16", "Registers", ""),
+						array(40072, 2, "R", "0x03", "A", "Total AC Current", "float32", "A", ""),
+						array(40074, 2, "R", "0x03", "AphA", "Phase A Current", "float32", "A", ""),
+						array(40076, 2, "R", "0x03", "AphB", "Phase B Current", "float32", "A", ""),
+						array(40078, 2, "R", "0x03", "AphC", "Phase C Current", "float32", "A", ""),
+						array(40080, 2, "R", "0x03", "PhV", "Line to Neutral AC Voltage (average of active phases)", "float32", "V", ""),
+						array(40082, 2, "R", "0x03", "PhVphA", "Phase Voltage AN", "float32", "V", ""),
+						array(40084, 2, "R", "0x03", "PhVphB", "Phase Voltage BN", "float32", "V", ""),
+						array(40086, 2, "R", "0x03", "PhVphC", "Phase Voltage CN", "float32", "V", ""),
+						array(40088, 2, "R", "0x03", "PPV", "Line to Line AC Voltage (average of active phases)", "float32", "V", ""),
+						array(40090, 2, "R", "0x03", "PPVphAB", "Phase Voltage AB", "float32", "V", ""),
+						array(40092, 2, "R", "0x03", "PPVphBC", "Phase Voltage BC", "float32", "V", ""),
+						array(40094, 2, "R", "0x03", "PPVphCA", "Phase Voltage CA", "float32", "V", ""),
+						array(40096, 2, "R", "0x03", "Hz", "Frequency", "float32", "Hz", ""),
+						array(40098, 2, "R", "0x03", "W", "Total Real Power", "float32", "W", ""),
+						array(40100, 2, "R", "0x03", "WphA", "Watts phase A", "float32", "W", ""),
+						array(40102, 2, "R", "0x03", "WphB", "Watts phase B", "float32", "W", ""),
+						array(40104, 2, "R", "0x03", "WphC", "Watts phase C", "float32", "W", ""),
+						array(40106, 2, "R", "0x03", "VA", "AC Apparent Power", "float32", "VA", ""),
+						array(40108, 2, "R", "0x03", "VAphA", "VA phase A", "float32", "VA", ""),
+						array(40110, 2, "R", "0x03", "VAphB", "VA phase B", "float32", "VA", ""),
+						array(40112, 2, "R", "0x03", "VAphC", "VA phase C", "float32", "VA", ""),
+						array(40114, 2, "R", "0x03", "VAR", "Reactive Power", "float32", "var", ""),
+						array(40116, 2, "R", "0x03", "VARphA", "VAR phase A", "float32", "var", ""),
+						array(40118, 2, "R", "0x03", "VARphB", "VAR phase B", "float32", "var", ""),
+						array(40120, 2, "R", "0x03", "VARphC", "VAR phase C", "float32", "var", ""),
+						array(40122, 2, "R", "0x03", "PF", "Power Factor", "float32", "PF", ""),
+						array(40124, 2, "R", "0x03", "PFphA", "PF phase A", "float32", "PF", ""),
+						array(40126, 2, "R", "0x03", "PFphB", "PF phase B", "float32", "PF", ""),
+						array(40128, 2, "R", "0x03", "PFphC", "PF phase C", "float32", "PF", ""),
+						array(40130, 2, "R", "0x03", "TotWhExp", "Total Real Energy Exported", "float32", "Wh", ""),
+						array(40132, 2, "R", "0x03", "TotWhExpPhA", "Total Watt-hours Exported phase A", "float32", "Wh", ""),
+						array(40134, 2, "R", "0x03", "TotWhExpPhB", "Total Watt-hours Exported phase B", "float32", "Wh", ""),
+						array(40136, 2, "R", "0x03", "TotWhExpPhC", "Total Watt-hours Exported phase C", "float32", "Wh", ""),
+						array(40138, 2, "R", "0x03", "TotWhImp", "Total Real Energy Imported", "float32", "Wh", ""),
+						array(40140, 2, "R", "0x03", "TotWhImpPhA", "Total Watt-hours Imported phase A", "float32", "Wh", ""),
+						array(40142, 2, "R", "0x03", "TotWhImpPhB", "Total Watt-hours Imported phase B", "float32", "Wh", ""),
+						array(40144, 2, "R", "0x03", "TotWhImpPhC", "Total Watt-hours Imported phase C", "float32", "Wh", ""),
+						array(40146, 2, "R", "0x03", "TotVAhExp", "Total Apparent Energy Exported", "float32", "VAh", ""),
+						array(40148, 2, "R", "0x03", "TotVAhExpPhA", "Total VA-hours Exported phase A", "float32", "VAh", ""),
+						array(40150, 2, "R", "0x03", "TotVAhExpPhB", "Total VA-hours Exported phase B", "float32", "VAh", ""),
+						array(40152, 2, "R", "0x03", "TotVAhExpPhC", "Total VA-hours Exported phase C", "float32", "VAh", ""),
+						array(40154, 2, "R", "0x03", "TotVAhImp", "Total Apparent Energy Imported", "float32", "VAh", ""),
+						array(40156, 2, "R", "0x03", "TotVAhImpPhA", "Total VA-hours Imported phase A", "float32", "VAh", ""),
+						array(40158, 2, "R", "0x03", "TotVAhImpPhB", "Total VA-hours Imported phase B", "float32", "VAh", ""),
+						array(40160, 2, "R", "0x03", "TotVAhImpPhC", "Total VA-hours Imported phase C", "float32", "VAh", ""),
+						//array(40162, 2, "R", "0x03", "TotVArhImpQ1", "Total Reactive Energy Imported Quadrant 1", "float32", "varh", ""), //not supported
+						//array(40164, 2, "R", "0x03", "TotVArhImpQ1phA", "Total VAr-hours Imported Q1 phase A", "float32", "varh", ""), //not supported
+						//array(40166, 2, "R", "0x03", "TotVArhImpQ1phB", "Total VAr-hours Imported Q1 phase B", "float32", "varh", ""), //not supported
+						//array(40168, 2, "R", "0x03", "TotVArhImpQ1phC", "Total VAr-hours Imported Q1 phase C", "float32", "varh", ""), //not supported
+						//array(40170, 2, "R", "0x03", "TotVArhImpQ2", "Total Reactive Power Imported Quadrant 2", "float32", "varh", ""), //not supported
+						//array(40172, 2, "R", "0x03", "TotVArhImpQ2phA", "Total VAr-hours Imported Q2 phase A", "float32", "varh", ""), //not supported
+						//array(40174, 2, "R", "0x03", "TotVArhImpQ2phB", "Total VAr-hours Imported Q2 phase B", "float32", "varh", ""), //not supported
+						//array(40176, 2, "R", "0x03", "TotVArhImpQ2phC", "Total VAr-hours Imported Q2 phase C", "float32", "varh", ""), //not supported
+						//array(40178, 2, "R", "0x03", "TotVArhExpQ3", "Total Reactive Power Exported Quadrant 3", "float32", "varh", ""), //not supported
+						//array(40180, 2, "R", "0x03", "TotVArhExpQ3phA", "Total VAr-hours Exported Q3 phase A", "float32", "varh", ""), //not supported
+						//array(40182, 2, "R", "0x03", "TotVArhExpQ3phB", "Total VAr-hours Exported Q3 phase B", "float32", "varh", ""), //not supported
+						//array(40184, 2, "R", "0x03", "TotVArhExpQ3phC", "Total VAr-hours Exported Q3 phase C", "float32", "varh", ""), //not supported
+						//array(40186, 2, "R", "0x03", "TotVArhExpQ4", "Total Reactive Power Exported Quadrant 4", "float32", "varh", ""), //not supported
+						//array(40188, 2, "R", "0x03", "TotVArhExpQ4phA", "Total VAr-hours Exported Q4 Imported phase A", "float32", "varh", ""), //not supported
+						//array(40190, 2, "R", "0x03", "TotVArhExpQ4phB", "Total VAr-hours Exported Q4 Imported phase B", "float32", "varh", ""), //not supported
+						//array(40192, 2, "R", "0x03", "TotVArhExpQ4phC", "Total VAr-hours Exported Q4 Imported phase C", "float32", "varh", ""), //not supported
+						array(40194, 2, "R", "0x03", "Evt", "Meter Event Flags", "uint32", "Bitfield", ""),
+						//array(40196, 1, "R", "0x03", "ID", "Identifies this as End block", "uint16", "", ""),
+						//array(40197, 1, "R", "0x03", "L", "Length of model block", "uint16", "", ""),
+					);		
+				}
+				else
+				{
+					echo "ERROR1: Device Type '".$deviceType."' not defined ! ! !";
+					return 0;
+				}
 
 				/* Wechselrichter / Inverter */
 				if (false == $readSmartmeter)
@@ -904,47 +1115,60 @@ function removeInvalidChars(\$input)
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC120)
 					{
-						$inverterModelRegister_array = array(
-							/* ********** Nameplate Model (IC120) ***************************************************************
-						Dieses Modell entspricht einem Leistungsschild. Folgende Daten können ausgelesen werden:
-							- DERType (3): Art des Geräts. Das Register liefert den Wert 4 zurück (PV-Gerät)
-							- WRtg (4): Nennleistung des Wechselrichters
-							- VARtg (6): Nenn-Scheinleistung des Wechselrichters
-							- VArRtgQ1 (8) - VArRtgQ4 (11): Nenn-Blindleistungswerte für die vier Quadranten
-							- ARtg (13): Nennstrom des Wechselrichters
-							- PFRtgQ1 (15) – PFRtgQ4 (18): Minimale Werte für den Power Factor für die vier Quadranten
-						Startadresse: - bei Einstellung „float“: 40131
-							 ************************************************************************************************** */
-							//	array(40132, 1, "R", 3, "ID", "A well-known value 120. Uniquely identifies this as a SunSpec Nameplate Model", "uint16", ""), // = 120
-							//	array(40133, 1, "R", 3, "L", "uint16", "Registers", "Length of Nameplate Model"), // = 26
-							//	array(40134, 1, "R", 3, "DERTyp", "enum16", "", "Type of DER device. Default value is 4 to indicate PV device."), // = 4
-							array(40135, 1, "R", 3, "WRtg", "WRtg_SF Continuous power output capability of the inverter.", "uint16", ""),
-							array(40137, 1, "R", 3, "VARtg", "VARtg_SF Continuous Volt-Ampere capability of the inverter.", "uint16", ""),
-							array(40139, 1, "R", 3, "VArRtgQ1", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 1.", "int16", ""),
-							array(40140, 1, "R", 3, "VArRtgQ2", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 2.", "int16", ""),
-							array(40141, 1, "R", 3, "VArRtgQ3", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 3.", "int16", ""),
-							array(40142, 1, "R", 3, "VArRtgQ4", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 4.", "int16", ""),
-							array(40144, 1, "R", 3, "ARtg", "ARtg_SF Maximum RMS AC current level capability of the inverter.", "uint16", ""),
-							array(40146, 1, "R", 3, "PFRtgQ1", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 1.", "int16", ""),
-							array(40147, 1, "R", 3, "PFRtgQ2", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 2.", "int16", ""),
-							array(40148, 1, "R", 3, "PFRtgQ3", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 3.", "int16", ""),
-							array(40149, 1, "R", 3, "PFRtgQ4", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 4.", "int16", ""),
-							array(40151, 1, "R", 3, "WHRtg", "WHRtg_SF Nominal energy rating of storage device. (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
-							array(40153, 1, "R", 3, "AhrRtg", "AhrRtg_SF The useable capacity of the battery. Maximum charge minus minimum charge from a technology capability perspective (Amp-hour capacity rating).", "uint16", ""),
-							array(40155, 1, "R", 3, "MaxChaRte", "MaxChaRte_SF Maximum rate of energy transfer into the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
-							array(40157, 1, "R", 3, "MaxDisChaRte", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
-							array(40136, 1, "R", 3, "WRtg_SF", "	Scale factor 1", "sunssf", ""),
-							array(40138, 1, "R", 3, "VARtg_SF", "	Scale factor 1", "sunssf", ""),
-							array(40143, 1, "R", 3, "VArRtg_SF", "Scale factor 1", "sunssf", ""),
-							array(40145, 1, "R", 3, "ARtg_SF", "Scale factor -2", "sunssf", ""),
-							array(40150, 1, "R", 3, "PFRtg_SF", "Scale factor -3", "sunssf", ""),
-							array(40152, 1, "R", 3, "WHRtg_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
-							array(40154, 1, "R", 3, "AhrRtg_SF", "Scale factor for amphour rating.", "sunssf", ""),
-							array(40156, 1, "R", 3, "MaxChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
-							array(40158, 1, "R", 3, "MaxDisChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
-							//	array(40159, 1, "R", 3, "Pad", "	Pad register", "", ""),
-						);
-
+						if(DEVICE_WR == $deviceType)
+						{
+								$inverterModelRegister_array = array(
+								/* ********** Nameplate Model (IC120) ***************************************************************
+							Dieses Modell entspricht einem Leistungsschild. Folgende Daten können ausgelesen werden:
+								- DERType (3): Art des Geräts. Das Register liefert den Wert 4 zurück (PV-Gerät)
+								- WRtg (4): Nennleistung des Wechselrichters
+								- VARtg (6): Nenn-Scheinleistung des Wechselrichters
+								- VArRtgQ1 (8) - VArRtgQ4 (11): Nenn-Blindleistungswerte für die vier Quadranten
+								- ARtg (13): Nennstrom des Wechselrichters
+								- PFRtgQ1 (15) – PFRtgQ4 (18): Minimale Werte für den Power Factor für die vier Quadranten
+							Startadresse: - bei Einstellung „float“: 40131
+								************************************************************************************************** */
+								//	array(40132, 1, "R", 3, "ID", "A well-known value 120. Uniquely identifies this as a SunSpec Nameplate Model", "uint16", ""), // = 120
+								//	array(40133, 1, "R", 3, "L", "uint16", "Registers", "Length of Nameplate Model"), // = 26
+								//	array(40134, 1, "R", 3, "DERTyp", "enum16", "", "Type of DER device. Default value is 4 to indicate PV device."), // = 4
+								array(40135, 1, "R", 3, "WRtg", "WRtg_SF Continuous power output capability of the inverter.", "uint16", ""),
+								array(40137, 1, "R", 3, "VARtg", "VARtg_SF Continuous Volt-Ampere capability of the inverter.", "uint16", ""),
+								array(40139, 1, "R", 3, "VArRtgQ1", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 1.", "int16", ""),
+								array(40140, 1, "R", 3, "VArRtgQ2", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 2.", "int16", ""),
+								array(40141, 1, "R", 3, "VArRtgQ3", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 3.", "int16", ""),
+								array(40142, 1, "R", 3, "VArRtgQ4", "VArRtg_SF Continuous VAR capability of the inverter in quadrant 4.", "int16", ""),
+								array(40144, 1, "R", 3, "ARtg", "ARtg_SF Maximum RMS AC current level capability of the inverter.", "uint16", ""),
+								array(40146, 1, "R", 3, "PFRtgQ1", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 1.", "int16", ""),
+								array(40147, 1, "R", 3, "PFRtgQ2", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 2.", "int16", ""),
+								array(40148, 1, "R", 3, "PFRtgQ3", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 3.", "int16", ""),
+								array(40149, 1, "R", 3, "PFRtgQ4", "PFRtg_SF Minimum power factor capability of the inverter in quadrant 4.", "int16", ""),
+								array(40151, 1, "R", 3, "WHRtg", "WHRtg_SF Nominal energy rating of storage device. (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
+								array(40153, 1, "R", 3, "AhrRtg", "AhrRtg_SF The useable capacity of the battery. Maximum charge minus minimum charge from a technology capability perspective (Amp-hour capacity rating).", "uint16", ""),
+								array(40155, 1, "R", 3, "MaxChaRte", "MaxChaRte_SF Maximum rate of energy transfer into the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
+								array(40157, 1, "R", 3, "MaxDisChaRte", "Max-DisChaRte_SF Maximum rate of energy transfer out of the storage device.  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "uint16", ""),
+								array(40136, 1, "R", 3, "WRtg_SF", "	Scale factor 1", "sunssf", ""),
+								array(40138, 1, "R", 3, "VARtg_SF", "	Scale factor 1", "sunssf", ""),
+								array(40143, 1, "R", 3, "VArRtg_SF", "Scale factor 1", "sunssf", ""),
+								array(40145, 1, "R", 3, "ARtg_SF", "Scale factor -2", "sunssf", ""),
+								array(40150, 1, "R", 3, "PFRtg_SF", "Scale factor -3", "sunssf", ""),
+								array(40152, 1, "R", 3, "WHRtg_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+								array(40154, 1, "R", 3, "AhrRtg_SF", "Scale factor for amphour rating.", "sunssf", ""),
+								array(40156, 1, "R", 3, "MaxChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+								array(40158, 1, "R", 3, "MaxDisChaRte_SF", "Scale factor 0  (wird nur von Fronius Hybrid Wechselrichtern unterstützt)", "sunssf", ""),
+								//	array(40159, 1, "R", 3, "Pad", "	Pad register", "", ""),
+							);
+						}
+						else if(DEVICE_WRGEN24 == $deviceType)
+						{
+							echo "Inverter GEN24 for '".$categoryName."' not implemented yet! Please do not select this option!";
+							return 0;
+						}
+						else
+						{
+							echo "ERROR2: WR Type not defined ! ! !";
+							return 0;
+						}
+			
 						if (false === $categoryId)
 						{
 							$categoryId = IPS_CreateCategory();
@@ -1027,41 +1251,54 @@ function removeInvalidChars(\$input)
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC121)
 					{
-						$inverterModelRegister_array = array(
-							/* Basic Settings Model (IC121) */
-							//							array(40160, 1, "R", "0x03", "ID", "A well-known value 121.  Uniquely identifies this as a SunSpec Basic Settings Model", "uint16", "", "", "121"),
-							//							array(40161, 1, "R", "0x03", "L", "Registers, Length of Basic Settings Model", "uint16", "", "", "30"),
-							array(40162, 1, "RW", "0x03 0x06 0x10", "WMax", "Setting for maximum power output. Default to I_WRtg.", "uint16", "", "WMax_SF", ""),
-							array(40163, 1, "RW", "0x03 0x06 0x10", "VRef", "Voltage at the PCC.", "uint16", "", "VRef_SF", ""),
-							array(40164, 1, "RW", "0x03 0x06 0x10", "VRefOfs", "Offset  from PCC to inverter.", "int16", "", "VRefOfs_SF", ""),
-							//							array(40165, 1, "RW", "0x03 0x06 0x10", "VMax", "Setpoint for maximum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
-							//							array(40166, 1, "RW", "0x03 0x06 0x10", "VMin", "Setpoint for minimum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
-							array(40167, 1, "RW", "0x03", "VAMax", "Setpoint for maximum apparent power. Default to I_VARtg.", "uint16", "", "VAMax_SF", ""),
-							array(40168, 1, "R", "0x03", "VARMaxQ1", "Setting for maximum reactive power in quadrant 1. Default to VArRtgQ1.", "int16", "", "VARMax_SF", ""),
-							//							array(40169, 1, "R", "0x03", "VARMaxQ2", "Setting for maximum reactive power in quadrant 2. Default to VArRtgQ2.", "int16", "var", "VARMax_SF", "Not supported"),
-							//							array(40170, 1, "R", "0x03", "VARMaxQ3", "Setting for maximum reactive power in quadrant 3 Default to VArRtgQ3.", "int16", "var", "VARMax_SF", "Not supported"),
-							array(40171, 1, "R", "0x03", "VARMaxQ4", "Setting for maximum reactive power in quadrant 4 Default to VArRtgQ4.", "int16", "", "VARMax_SF", ""),
-							//							array(40172, 1, "R", "0x03", "WGra", "Default ramp rate of change of active power due to command or internal action. (% WMax/min)", "uint16", "%", "WGra_SF", "Not supported"),
-							array(40173, 1, "R", "0x03", "PFMinQ1", "Setpoint for minimum power factor value in quadrant 1. Default to PFRtgQ1.", "int16", "", "PFMin_SF", ""),
-							//							array(40174, 1, "R", "0x03", "PFMinQ2", "Setpoint for minimum power factor value in quadrant 2. Default to PFRtgQ2.", "int16", "cos()", "PFMin_SF", "Not supported"),
-							//							array(40175, 1, "R", "0x03", "PFMinQ3", "Setpoint for minimum power factor value in quadrant 3. Default to PFRtgQ3.", "int16", "cos()", "PFMin_SF", "Not supported"),
-							array(40176, 1, "R", "0x03", "PFMinQ4", "Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4.", "int16", "", "PFMin_SF", ""),
-							//							array(40177, 1, "R", "0x03", "VArAct", "VAR action on change between charging and discharging: 1=switch 2=maintain VAR characterization.", "enum16", "", "", "Not supported"),
-							//							array(40178, 1, "R", "0x03", "ClcTotVA", "Calculation method for total apparent power. 1=vector 2=arithmetic.", "enum16", "", "", "Not supported"),
-							//							array(40179, 1, "R", "0x03", "MaxRmpRte", "Setpoint for maximum ramp rate as percentage of nominal maximum ramp rate. This setting will limit the rate that watts delivery to the grid can increase or decrease in response to intermittent PV generation. (% WGra)", "uint16", "%", "MaxRmpRte_SF", "Not supported"),
-							//							array(40180, 1, "R", "0x03", "ECPNomHz", "Setpoint for nominal frequency at the ECP.", "uint16", "Hz", "ECPNomHz_SF", "Not supported"),
-							//							array(40181, 1, "R", "0x03", "ConnPh", "Identity of connected phase for single phase inverters. A=1 B=2 C=3.", "enum16", "", "", "Not supported"),
-							array(40182, 1, "R", "0x03", "WMax_SF", "Scale factor for maximum power output.", "sunssf", "", "", "1"),
-							array(40183, 1, "R", "0x03", "VRef_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "0"),
-							array(40184, 1, "R", "0x03", "VRefOfs_SF", "Scale factor for offset voltage.", "sunssf", "", "", "0"),
-							//							array(40185, 1, "R", "0x03", "VMinMax_SF", "Scale factor for min/max voltages.", "sunssf", "", "", "0"),
-							array(40186, 1, "R", "0x03", "VAMax_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "1"),
-							array(40187, 1, "R", "0x03", "VARMax_SF", "Scale factor for reactive power.", "sunssf", "", "", "1"),
-							//							array(40188, 1, "R", "0x03", "WGra_SF", "Scale factor for default ramp rate.", "sunssf", "", "", "Not supported"),
-							array(40189, 1, "R", "0x03", "PFMin_SF", "Scale factor for minimum power factor.", "sunssf", "", "", "-3"),
-							//							array(40190, 1, "R", "0x03", "MaxRmpRte_SF", "Scale factor for maximum ramp percentage.", "sunssf", "", "", "Not supported"),
-							//							array(40191, 1, "R", "0x03", "ECPNomHz_SF", "Scale factor for nominal frequency.", "sunssf", "", "", "Not supported"),
-						);
+						if(DEVICE_WR == $deviceType)
+						{
+							$inverterModelRegister_array = array(
+								/* Basic Settings Model (IC121) */
+								//							array(40160, 1, "R", "0x03", "ID", "A well-known value 121.  Uniquely identifies this as a SunSpec Basic Settings Model", "uint16", "", "", "121"),
+								//							array(40161, 1, "R", "0x03", "L", "Registers, Length of Basic Settings Model", "uint16", "", "", "30"),
+								array(40162, 1, "RW", "0x03 0x06 0x10", "WMax", "Setting for maximum power output. Default to I_WRtg.", "uint16", "", "WMax_SF", ""),
+								array(40163, 1, "RW", "0x03 0x06 0x10", "VRef", "Voltage at the PCC.", "uint16", "", "VRef_SF", ""),
+								array(40164, 1, "RW", "0x03 0x06 0x10", "VRefOfs", "Offset  from PCC to inverter.", "int16", "", "VRefOfs_SF", ""),
+								//							array(40165, 1, "RW", "0x03 0x06 0x10", "VMax", "Setpoint for maximum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
+								//							array(40166, 1, "RW", "0x03 0x06 0x10", "VMin", "Setpoint for minimum voltage.", "uint16", "V", "VMinMax_SF", "Not supported"),
+								array(40167, 1, "RW", "0x03", "VAMax", "Setpoint for maximum apparent power. Default to I_VARtg.", "uint16", "", "VAMax_SF", ""),
+								array(40168, 1, "R", "0x03", "VARMaxQ1", "Setting for maximum reactive power in quadrant 1. Default to VArRtgQ1.", "int16", "", "VARMax_SF", ""),
+								//							array(40169, 1, "R", "0x03", "VARMaxQ2", "Setting for maximum reactive power in quadrant 2. Default to VArRtgQ2.", "int16", "var", "VARMax_SF", "Not supported"),
+								//							array(40170, 1, "R", "0x03", "VARMaxQ3", "Setting for maximum reactive power in quadrant 3 Default to VArRtgQ3.", "int16", "var", "VARMax_SF", "Not supported"),
+								array(40171, 1, "R", "0x03", "VARMaxQ4", "Setting for maximum reactive power in quadrant 4 Default to VArRtgQ4.", "int16", "", "VARMax_SF", ""),
+								//							array(40172, 1, "R", "0x03", "WGra", "Default ramp rate of change of active power due to command or internal action. (% WMax/min)", "uint16", "%", "WGra_SF", "Not supported"),
+								array(40173, 1, "R", "0x03", "PFMinQ1", "Setpoint for minimum power factor value in quadrant 1. Default to PFRtgQ1.", "int16", "", "PFMin_SF", ""),
+								//							array(40174, 1, "R", "0x03", "PFMinQ2", "Setpoint for minimum power factor value in quadrant 2. Default to PFRtgQ2.", "int16", "cos()", "PFMin_SF", "Not supported"),
+								//							array(40175, 1, "R", "0x03", "PFMinQ3", "Setpoint for minimum power factor value in quadrant 3. Default to PFRtgQ3.", "int16", "cos()", "PFMin_SF", "Not supported"),
+								array(40176, 1, "R", "0x03", "PFMinQ4", "Setpoint for minimum power factor value in quadrant 4. Default to PFRtgQ4.", "int16", "", "PFMin_SF", ""),
+								//							array(40177, 1, "R", "0x03", "VArAct", "VAR action on change between charging and discharging: 1=switch 2=maintain VAR characterization.", "enum16", "", "", "Not supported"),
+								//							array(40178, 1, "R", "0x03", "ClcTotVA", "Calculation method for total apparent power. 1=vector 2=arithmetic.", "enum16", "", "", "Not supported"),
+								//							array(40179, 1, "R", "0x03", "MaxRmpRte", "Setpoint for maximum ramp rate as percentage of nominal maximum ramp rate. This setting will limit the rate that watts delivery to the grid can increase or decrease in response to intermittent PV generation. (% WGra)", "uint16", "%", "MaxRmpRte_SF", "Not supported"),
+								//							array(40180, 1, "R", "0x03", "ECPNomHz", "Setpoint for nominal frequency at the ECP.", "uint16", "Hz", "ECPNomHz_SF", "Not supported"),
+								//							array(40181, 1, "R", "0x03", "ConnPh", "Identity of connected phase for single phase inverters. A=1 B=2 C=3.", "enum16", "", "", "Not supported"),
+								array(40182, 1, "R", "0x03", "WMax_SF", "Scale factor for maximum power output.", "sunssf", "", "", "1"),
+								array(40183, 1, "R", "0x03", "VRef_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "0"),
+								array(40184, 1, "R", "0x03", "VRefOfs_SF", "Scale factor for offset voltage.", "sunssf", "", "", "0"),
+								//							array(40185, 1, "R", "0x03", "VMinMax_SF", "Scale factor for min/max voltages.", "sunssf", "", "", "0"),
+								array(40186, 1, "R", "0x03", "VAMax_SF", "Scale factor for voltage at the PCC.", "sunssf", "", "", "1"),
+								array(40187, 1, "R", "0x03", "VARMax_SF", "Scale factor for reactive power.", "sunssf", "", "", "1"),
+								//							array(40188, 1, "R", "0x03", "WGra_SF", "Scale factor for default ramp rate.", "sunssf", "", "", "Not supported"),
+								array(40189, 1, "R", "0x03", "PFMin_SF", "Scale factor for minimum power factor.", "sunssf", "", "", "-3"),
+								//							array(40190, 1, "R", "0x03", "MaxRmpRte_SF", "Scale factor for maximum ramp percentage.", "sunssf", "", "", "Not supported"),
+								//							array(40191, 1, "R", "0x03", "ECPNomHz_SF", "Scale factor for nominal frequency.", "sunssf", "", "", "Not supported"),
+							);
+						}
+						else if(DEVICE_WRGEN24 == $deviceType)
+						{
+							echo "Inverter GEN24 for '".$categoryName."' not implemented yet! Please do not select this option!";
+							return 0;
+						}
+						else
+						{
+							echo "ERROR3: WR Type not defined ! ! !";
+							return 0;
+						}
 
 						if (false === $categoryId)
 						{
@@ -1132,33 +1369,47 @@ function removeInvalidChars(\$input)
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC122)
 					{
-						$inverterModelRegister_array = array(
-							/* Extended Measurements & Status Model (IC122)
-							Allgemeines: Dieses Modell liefert einige zusätzliche Mess- und Statuswerte, die das normale Inverter Model nicht abdeckt.
-							 */
-							//							array(40192, 1, "R", "0x03", "ID", "A well-known value 122.  Uniquely identifies this as a SunSpec Measurements_Status Model", "uint16", "", "", "122"),
-							//							array(40193, 1, "R", "0x03", "L", "Registers, Length of Measurements_Status Model", "uint16", "", "", "44"),
-							array(40194, 1, "R", "0x03", "PVConn - PV inverter status", "PV inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "Dieses Bitfeld zeigt den Status des Wechselrichter an: Bit 0: Verbunden, Bit 1: Ansprechbar, Bit 2: Arbeitet (Wechselrichter speist ein) / Bit 0: Connected, Bit 1: Available, Bit 2: Operating, Bit 3: Test"),
-							array(40195, 1, "R", "0x03", "StorConn - storage inverter status", "Storage inverter present/available status. Enumerated value.", "uint16", "bitfield16", "", "bit 0: CONNECTED, bit 1: AVAILABLE, bit 2: OPERATING, bit 3: TEST"),
-							array(40196, 1, "R", "0x03", "ECPConn - electrical connection point status", "Electrical Connection Point connection status: disconnected=0  connected=1. / Dieses Register zeigt den Verbindungsstatus zum Netz an: ECPConn = 1: Wechselrichter speist gerade ein, ECPConn = 0: Wechselrichter speist nicht ein", "uint16", "bitfield16", "", "0: Disconnected, 1: Connected"),
-							array(40197, 4, "R", "0x03", "ActWh - AC energy output", "AC lifetime active (real) energy output. / Wirkenergiezähler", "acc64", "Wh", "", ""),
-							/*							array(40201, 4, "R", "0x03", "ActVAh", "AC lifetime apparent energy output.", "acc64", "VAh", "", "Not supported"),
-							array(40205, 4, "R", "0x03", "ActVArhQ1", "AC lifetime reactive energy output in quadrant 1.", "acc64", "varh", "", "Not supported"),
-							array(40209, 4, "R", "0x03", "ActVArhQ2", "AC lifetime reactive energy output in quadrant 2.", "acc64", "varh", "", "Not supported"),
-							array(40213, 4, "R", "0x03", "ActVArhQ3", "AC lifetime negative energy output in quadrant 3.", "acc64", "varh", "", "Not supported"),
-							array(40217, 4, "R", "0x03", "ActVArhQ4", "AC lifetime reactive energy output in quadrant 4.", "acc64", "varh", "", "Not supported"),
-							array(40221, 1, "R", "0x03", "VArAval", "Amount of VARs available without impacting watts output.", "int16", "var", "VArAval_SF", "Not supported"),
-							array(40222, 1, "R", "0x03", "VArAval_SF", "Scale factor for available VARs.", "sunssf", "", "", "Not supported"),
-							array(40223, 1, "R", "0x03", "WAval", "Amount of Watts available.", "uint16", "W", "WAval_SF", "Not supported"),
-							array(40224, 1, "R", "0x03", "WAval_SF", "Scale factor for available Watts.", "sunssf", "", "", "Not supported"),
-							array(40225, 2, "R", "0x03", "StSetLimMsk", "Bit Mask indicating setpoint limit(s) reached. Bits are persistent and must be cleared by the controller.", "uint32", "bitfield32", "", "Not supported"),
-							 */							array(40227, 2, "R", "0x03", "StActCtl - inverter controls", "Bit Mask indicating which inverter controls are currently active. / Bitfeld für zurzeit aktive Wechselrichter-Modi: Bit 0: Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe), Bit 1: konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct), Bit 2: Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)", "uint32", "bitfield32", "", "Bit 0: FixedW, Bit 1: FixedVAR, Bit 2: FixedPF"),
-							//							array(40229, 4, "R", "0x03", "TmSrc", "Source of time synchronization. / Quelle für die Zeitsynchronisation. Das Register liefert den String „RTC“ zurück.", "String8", "", "", "RTC"),
-							array(40233, 2, "R", "0x03", "Tms - time", "Seconds since 01-01-2000 00:00 UTC / Sekunden vom 1. Januar 2000 00:00 (UTC) bis zur aktuellen Zeit", "uint32", "", "", ""),
-						/*							array(40235, 1, "R", "0x03", "RtSt", "Bit Mask indicating which voltage ride through modes are currently active.", "uint16", "bitfield16", "", "Not supported"),
-							array(40236, 1, "R", "0x03", "Ris", "Isolation resistance", "uint16", "Ohm", "Ris_SF", "Not supported"),
-							array(40237, 1, "R", "0x03", "Ris_SF", "Scale factor for Isolation resistance", "int16", "", "", "Not supported"),
-						 */);
+						if(DEVICE_WR == $deviceType)
+						{
+							$inverterModelRegister_array = array(
+								/* Extended Measurements & Status Model (IC122)
+								Allgemeines: Dieses Modell liefert einige zusätzliche Mess- und Statuswerte, die das normale Inverter Model nicht abdeckt.
+								*/
+								//							array(40192, 1, "R", "0x03", "ID", "A well-known value 122.  Uniquely identifies this as a SunSpec Measurements_Status Model", "uint16", "", "", "122"),
+								//							array(40193, 1, "R", "0x03", "L", "Registers, Length of Measurements_Status Model", "uint16", "", "", "44"),
+								array(40194, 1, "R", "0x03", "PVConn - PV inverter status", "PV inverter present/available status. Enumerated value.", "uint16", "uint16", "bitfield16", "Dieses Bitfeld zeigt den Status des Wechselrichter an: Bit 0: Verbunden, Bit 1: Ansprechbar, Bit 2: Arbeitet (Wechselrichter speist ein) / Bit 0: Connected, Bit 1: Available, Bit 2: Operating, Bit 3: Test"),
+								array(40195, 1, "R", "0x03", "StorConn - storage inverter status", "Storage inverter present/available status. Enumerated value.", "uint16", "uint16", "bitfield16", "bit 0: CONNECTED, bit 1: AVAILABLE, bit 2: OPERATING, bit 3: TEST"),
+								array(40196, 1, "R", "0x03", "ECPConn - electrical connection point status", "Electrical Connection Point connection status: disconnected=0  connected=1. / Dieses Register zeigt den Verbindungsstatus zum Netz an: ECPConn = 1: Wechselrichter speist gerade ein, ECPConn = 0: Wechselrichter speist nicht ein", "uint16", "uint16", "bitfield16", "0: Disconnected, 1: Connected"),
+								array(40197, 4, "R", "0x03", "ActWh - AC energy output", "AC lifetime active (real) energy output. / Wirkenergiezähler", "acc64", "Wh", "", ""),
+								/*							array(40201, 4, "R", "0x03", "ActVAh", "AC lifetime apparent energy output.", "acc64", "VAh", "", "Not supported"),
+								array(40205, 4, "R", "0x03", "ActVArhQ1", "AC lifetime reactive energy output in quadrant 1.", "acc64", "varh", "", "Not supported"),
+								array(40209, 4, "R", "0x03", "ActVArhQ2", "AC lifetime reactive energy output in quadrant 2.", "acc64", "varh", "", "Not supported"),
+								array(40213, 4, "R", "0x03", "ActVArhQ3", "AC lifetime negative energy output in quadrant 3.", "acc64", "varh", "", "Not supported"),
+								array(40217, 4, "R", "0x03", "ActVArhQ4", "AC lifetime reactive energy output in quadrant 4.", "acc64", "varh", "", "Not supported"),
+								array(40221, 1, "R", "0x03", "VArAval", "Amount of VARs available without impacting watts output.", "int16", "var", "VArAval_SF", "Not supported"),
+								array(40222, 1, "R", "0x03", "VArAval_SF", "Scale factor for available VARs.", "sunssf", "", "", "Not supported"),
+								array(40223, 1, "R", "0x03", "WAval", "Amount of Watts available.", "uint16", "W", "WAval_SF", "Not supported"),
+								array(40224, 1, "R", "0x03", "WAval_SF", "Scale factor for available Watts.", "sunssf", "", "", "Not supported"),
+								array(40225, 2, "R", "0x03", "StSetLimMsk", "Bit Mask indicating setpoint limit(s) reached. Bits are persistent and must be cleared by the controller.", "uint32", "uint32", "Bitfield", "Not supported"),
+								*/							array(40227, 2, "R", "0x03", "StActCtl - inverter controls", "Bit Mask indicating which inverter controls are currently active. / Bitfeld für zurzeit aktive Wechselrichter-Modi: Bit 0: Leistungsreduktion (FixedW; entspricht WMaxLimPct Vorgabe), Bit 1: konstante Blindleistungs-Vorgabe (FixedVAR; entspricht VArMaxPct), Bit 2: Vorgabe eines konstanten Power Factors (FixedPF; entspricht OutPFSet)", "uint32", "uint32", "Bitfield", "Bit 0: FixedW, Bit 1: FixedVAR, Bit 2: FixedPF"),
+								//							array(40229, 4, "R", "0x03", "TmSrc", "Source of time synchronization. / Quelle für die Zeitsynchronisation. Das Register liefert den String „RTC“ zurück.", "String8", "", "", "RTC"),
+								array(40233, 2, "R", "0x03", "Tms - time", "Seconds since 01-01-2000 00:00 UTC / Sekunden vom 1. Januar 2000 00:00 (UTC) bis zur aktuellen Zeit", "uint32", "", "", ""),
+							/*							array(40235, 1, "R", "0x03", "RtSt", "Bit Mask indicating which voltage ride through modes are currently active.", "uint16", "uint16", "bitfield16", "Not supported"),
+								array(40236, 1, "R", "0x03", "Ris", "Isolation resistance", "uint16", "Ohm", "Ris_SF", "Not supported"),
+								array(40237, 1, "R", "0x03", "Ris_SF", "Scale factor for Isolation resistance", "int16", "", "", "Not supported"),
+							*/
+							);
+						}
+						else if(DEVICE_WRGEN24 == $deviceType)
+						{
+							echo "Inverter GEN24 for '".$categoryName."' not implemented yet! Please do not select this option!";
+							return 0;
+						}
+						else
+						{
+							echo "ERROR4: WR Type not defined ! ! !";
+							return 0;
+						}
 
 						if (false === $categoryId)
 						{
@@ -1255,41 +1506,54 @@ function removeInvalidChars(\$input)
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC123)
 					{
-						$inverterModelRegister_array = array(
-							/* Immediate Controls Model (IC123)
-							Allgemeines:
-							Mit den Immediate Controls können folgende Einstellungen am Wechselrichter vorgenommen werden:
-							- Unterbrechung des Einspeisebetriebs des Wechselrichters (Standby)
-							- Konstante Reduktion der Ausgangsleistung
-							- Vorgabe eines konstanten Power Factors
-							- Vorgabe einer konstanten relativen Blindleistung */
-							//							array(40238, 1, "R", "0x03", "ID", "A well-known value 123.  Uniquely identifies this as a SunSpec Immediate Controls Model", "uint16", "", "", "123"),
-							//							array(40239, 1, "R", "0x03", "L", "Registers, Length of Immediate Controls Model", "uint16", "", "", "24"),
-							array(40240, 1, "RW", "0x03 0x06 0x10", "Conn_WinTms", "Time window for connect/disconnect.", "uint16", "Secs", "", ""),
-							array(40241, 1, "RW", "0x03 0x06 0x10", "Conn_RvrtTms", "Timeout period for connect/disconnect.", "uint16", "Secs", "", ""),
-							array(40242, 1, "RW", "0x03 0x06 0x10", "Conn", "Enumerated valued.  Connection control.", "uint16", "bitfield16", "", "0: Disconnected, 1: Connected"),
-							array(40243, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct", "Set power output to specified level. (% WMax)", "uint16", "", "WMaxLimPct_SF", ""),
-							array(40244, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct_WinTms", "Time window for power limit change.", "uint16", "Secs", "", "0 – 300"),
-							array(40245, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct_RvrtTms", "Timeout period for power limit.", "uint16", "Secs", "", "0 – 28800"),
-							array(40246, 1, "RW", "0x03", "WMaxLimPct_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
-							array(40247, 1, "RW", "0x03 0x06 0x10", "WMaxLim_Ena", "Enumerated valued.  Throttle enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
-							array(40248, 1, "RW", "0x03 0x06 0x10", "OutPFSet", "Set power factor to specific value - cosine of angle.", "int16", "", "OutPFSet_SF", ""),
-							array(40249, 1, "RW", "0x03 0x06 0x10", "OutPFSet_WinTms", "Time window for power factor change.", "uint16", "Secs", "", "0 – 300"),
-							array(40250, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RvrtTms", "Timeout period for power factor.", "uint16", "Secs", "", "0 – 28800"),
-							array(40251, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
-							array(40252, 1, "RW", "0x03 0x06 0x10", "OutPFSet_Ena", "Enumerated valued.  Fixed power factor enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
-							//							array(40253, 1, "R", "0x03", "VArWMaxPct", "Reactive power in percent of I_WMax. (% WMax)", "int16", "%", "VArWMaxPct_SF", "Not supported"),
-							array(40254, 1, "RW", "0x03 0x06 0x10", "VArMaxPct", "Reactive power in percent of I_VArMax. (% VArMax)", "int16", "%", "VArPct_SF", ""),
-							//							array(40255, 1, "R", "0x03", "VArAvalPct", "Reactive power in percent of I_VArAval. (% VArAval)", "int16", "%", "VArPct_SF", "Not supported"),
-							array(40256, 1, "RW", "0x03 0x06 0x10", "VArPct_WinTms", "Time window for VAR limit change.", "uint16", "Secs", "", "0 – 300"),
-							array(40257, 1, "RW", "0x03 0x06 0x10", "VArPct_RvrtTms", "Timeout period for VAR limit.", "uint16", "Secs", "", "0 – 28800"),
-							array(40258, 1, "RW", "0x03 0x06 0x10", "VArPct_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
-							array(40259, 1, "R", "0x03", "VArPct_Mod", "Enumerated value. VAR limit mode.", "enum16", "", "", "2: VAR limit as a % of VArMax"),
-							array(40260, 1, "RW", "0x03 0x06 0x10", "VArPct_Ena", "Enumerated valued.  Fixed VAR enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
-							array(40261, 1, "R", "0x03", "WMaxLimPct_SF", "Scale factor for power output percent.", "sunssf", "", "", "-2"),
-							array(40262, 1, "R", "0x03", "OutPFSet_SF", "Scale factor for power factor.", "sunssf", "", "", "-3"),
-							//							array(40263, 1, "R", "0x03", "VArPct_SF", "Scale factor for reactive power.", "sunssf", "", "", "0"),
-						);
+						if(DEVICE_WR == $deviceType)
+						{
+								$inverterModelRegister_array = array(
+								/* Immediate Controls Model (IC123)
+								Allgemeines:
+								Mit den Immediate Controls können folgende Einstellungen am Wechselrichter vorgenommen werden:
+								- Unterbrechung des Einspeisebetriebs des Wechselrichters (Standby)
+								- Konstante Reduktion der Ausgangsleistung
+								- Vorgabe eines konstanten Power Factors
+								- Vorgabe einer konstanten relativen Blindleistung */
+								//							array(40238, 1, "R", "0x03", "ID", "A well-known value 123.  Uniquely identifies this as a SunSpec Immediate Controls Model", "uint16", "", "", "123"),
+								//							array(40239, 1, "R", "0x03", "L", "Registers, Length of Immediate Controls Model", "uint16", "", "", "24"),
+								array(40240, 1, "RW", "0x03 0x06 0x10", "Conn_WinTms", "Time window for connect/disconnect.", "uint16", "Secs", "", ""),
+								array(40241, 1, "RW", "0x03 0x06 0x10", "Conn_RvrtTms", "Timeout period for connect/disconnect.", "uint16", "Secs", "", ""),
+								array(40242, 1, "RW", "0x03 0x06 0x10", "Conn", "Enumerated valued.  Connection control.", "uint16", "uint16", "bitfield16", "0: Disconnected, 1: Connected"),
+								array(40243, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct", "Set power output to specified level. (% WMax)", "uint16", "", "WMaxLimPct_SF", ""),
+								array(40244, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct_WinTms", "Time window for power limit change.", "uint16", "Secs", "", "0 – 300"),
+								array(40245, 1, "RW", "0x03 0x06 0x10", "WMaxLimPct_RvrtTms", "Timeout period for power limit.", "uint16", "Secs", "", "0 – 28800"),
+								array(40246, 1, "RW", "0x03", "WMaxLimPct_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
+								array(40247, 1, "RW", "0x03 0x06 0x10", "WMaxLim_Ena", "Enumerated valued.  Throttle enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
+								array(40248, 1, "RW", "0x03 0x06 0x10", "OutPFSet", "Set power factor to specific value - cosine of angle.", "int16", "", "OutPFSet_SF", ""),
+								array(40249, 1, "RW", "0x03 0x06 0x10", "OutPFSet_WinTms", "Time window for power factor change.", "uint16", "Secs", "", "0 – 300"),
+								array(40250, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RvrtTms", "Timeout period for power factor.", "uint16", "Secs", "", "0 – 28800"),
+								array(40251, 1, "RW", "0x03 0x06 0x10", "OutPFSet_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
+								array(40252, 1, "RW", "0x03 0x06 0x10", "OutPFSet_Ena", "Enumerated valued.  Fixed power factor enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
+								//							array(40253, 1, "R", "0x03", "VArWMaxPct", "Reactive power in percent of I_WMax. (% WMax)", "int16", "%", "VArWMaxPct_SF", "Not supported"),
+								array(40254, 1, "RW", "0x03 0x06 0x10", "VArMaxPct", "Reactive power in percent of I_VArMax. (% VArMax)", "int16", "%", "VArPct_SF", ""),
+								//							array(40255, 1, "R", "0x03", "VArAvalPct", "Reactive power in percent of I_VArAval. (% VArAval)", "int16", "%", "VArPct_SF", "Not supported"),
+								array(40256, 1, "RW", "0x03 0x06 0x10", "VArPct_WinTms", "Time window for VAR limit change.", "uint16", "Secs", "", "0 – 300"),
+								array(40257, 1, "RW", "0x03 0x06 0x10", "VArPct_RvrtTms", "Timeout period for VAR limit.", "uint16", "Secs", "", "0 – 28800"),
+								array(40258, 1, "RW", "0x03 0x06 0x10", "VArPct_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "0 - 65534 (0xFFFF has the same effect as 0x0000)"),
+								array(40259, 1, "R", "0x03", "VArPct_Mod", "Enumerated value. VAR limit mode.", "enum16", "", "", "2: VAR limit as a % of VArMax"),
+								array(40260, 1, "RW", "0x03 0x06 0x10", "VArPct_Ena", "Enumerated valued.  Fixed VAR enable/disable control.", "enum16", "", "", "0: Disabled, 1: Enabled"),
+								array(40261, 1, "R", "0x03", "WMaxLimPct_SF", "Scale factor for power output percent.", "sunssf", "", "", "-2"),
+								array(40262, 1, "R", "0x03", "OutPFSet_SF", "Scale factor for power factor.", "sunssf", "", "", "-3"),
+								//							array(40263, 1, "R", "0x03", "VArPct_SF", "Scale factor for reactive power.", "sunssf", "", "", "0"),
+							);
+						}
+						else if(DEVICE_WRGEN24 == $deviceType)
+						{
+							echo "Inverter GEN24 for '".$categoryName."' not implemented yet! Please do not select this option!";
+							return 0;
+						}
+						else
+						{
+							echo "ERROR5: WR Type not defined ! ! !";
+							return 0;
+						}
 
 						if (false === $categoryId)
 						{
@@ -1358,49 +1622,62 @@ function removeInvalidChars(\$input)
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readI160)
 					{
-						$inverterModelRegister_array = array(
-							/* Multiple MPPT Inverter Extension Model (I160)
-							Allgemeines:
-							Das Multiple MPPT Inverter Extension Model beinhaltet die Werte von bis zu zwei DC Eingängen
-							des Wechselrichters.
-							Verfügt der Wechselrichter über zwei DC Eingänge, so werden Strom, Spannung, Leistung,
-							Energie und Statusmeldungen der einzelnen Eingänge hier aufgelistet. Im Inverter
-							Model (101 -103 oder 111 - 113) wird in diesem Fall nur die gesamte DC Leistung beider
-							Eingänge ausgegeben. DC Strom und DC Spannung werden als "not implemented" angezeigt.
-							Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Werte des
-							zweiten Strings auf "not implemented" gesetzt (ab Register 2_DCA). Die Bezeichnung des
-							zweiten Eingangs (Register 2_IDStr) lautet in diesem Fall "Not supported". Die Werte des
-							ersten (und einzigen) Eingangs werden normal angezeigt. */
-							//							array(40264, 1, "R", "0x03", "ID", "A well-known value 160.  Uniquely identifies this as a SunSpec Multiple MPPT Inverter Extension Model Mode", "uint16", "", "", "160"),
-							//							array(40265, 1, "R", "0x03", "L", "Length of Multiple MPPT Inverter Extension Model", "uint16", "", "", "48"),
-							array(40266, 1, "R", "0x03", "DCA_SF", "Current Scale Factor", "sunssf", "", "", "SF=-2"),
-							array(40267, 1, "R", "0x03", "DCV_SF", "Voltage Scale Factor", "sunssf", "", "", "SF=-2"),
-							array(40268, 1, "R", "0x03", "DCW_SF", "Power Scale Factor", "sunssf", "", "", "SF=-1"),
-							array(40269, 1, "R", "0x03", "DCWH_SF", "Energy Scale Factor", "sunssf", "", "", "SF=0"),
-							array(40270, 2, "R", "0x03", "Evt", "Global Events", "uint32", "bitfield32", "", ""),
-							array(40272, 1, "R", "0x03", "N", "Number of Modules", "uint16", "", "", "2"),
-							//							array(40273, 1, "R", "0x03", "TmsPer", "Timestamp Period", "uint16", "", "", "Not supported"),
-							//							array(40274, 1, "R", "0x03", "1_ID", "Input ID", "uint16", "", "", "1"),
-							//							array(40275, 8, "R", "0x03", "1_IDStr", "Input ID Sting", "String16", "", "", "'String 1'"),
-							array(40283, 1, "R", "0x03", "1_DCA", "DC Current", "uint16", "", "DCA_SF", ""),
-							array(40284, 1, "R", "0x03", "1_DCV", "DC Voltage", "uint16", "", "DCV_SF", ""),
-							array(40285, 1, "R", "0x03", "1_DCW", "DC Power", "uint16", "", "DCW_SF", ""),
-							array(40286, 2, "R", "0x03", "1_DCWH", "Lifetime Energy", "acc32", "", "DCWH_SF", ""),
-							array(40288, 2, "R", "0x03", "1_Tms", "Timestamp", "uint32", "Secs", "", ""),
-							array(40290, 1, "R", "0x03", "1_Tmp", "Temperature", "int16", "C", "", ""),
-							array(40291, 1, "R", "0x03", "1_DCSt", "Operating State", "enum16", "Enumerated_St", "", ""),
-							array(40292, 2, "R", "0x03", "1_DCEvt", "Module Events", "uint32", "bitfield32", "", ""),
-							//							array(40294, 1, "R", "0x03", "2_ID", "Input ID", "uint16", "", "", "2"),
-							//							array(40295, 8, "R", "0x03", "2_IDStr", "Input ID Sting", "String16", "", "", "'String 2' or 'Not supported'"),
-							array(40303, 1, "R", "0x03", "2_DCA", "DC Current", "uint16", "", "DCA_SF", "Not supported if only one DC input."),
-							array(40304, 1, "R", "0x03", "2_DCV", "DC Voltage", "uint16", "", "DCV_SF", "Not supported if only one DC input."),
-							array(40305, 1, "R", "0x03", "2_DCW", "DC Power", "uint16", "", "DCW_SF", "Not supported if only one DC input."),
-							array(40306, 2, "R", "0x03", "2_DCWH", "Lifetime Energy", "acc32", "", "DCWH_SF", "Not supported if only one DC input."),
-							array(40308, 2, "R", "0x03", "2_Tms", "Timestamp", "uint32", "Secs", "", "Not supported if only one DC input."),
-							array(40310, 1, "R", "0x03", "2_Tmp", "Temperature", "int16", "C", "", "Not supported if only one DC input."),
-							array(40311, 1, "R", "0x03", "2_DCSt", "Operating State", "enum16", "Enumerated_St", "", "Not supported if only one DC input."),
-							array(40312, 2, "R", "0x03", "2_DCEvt", "Module Events", "uint32", "bitfield32", "", "Not supported if only one DC input."),
-						);
+						if(DEVICE_WR == $deviceType)
+						{
+							$inverterModelRegister_array = array(
+								/* Multiple MPPT Inverter Extension Model (I160)
+								Allgemeines:
+								Das Multiple MPPT Inverter Extension Model beinhaltet die Werte von bis zu zwei DC Eingängen
+								des Wechselrichters.
+								Verfügt der Wechselrichter über zwei DC Eingänge, so werden Strom, Spannung, Leistung,
+								Energie und Statusmeldungen der einzelnen Eingänge hier aufgelistet. Im Inverter
+								Model (101 -103 oder 111 - 113) wird in diesem Fall nur die gesamte DC Leistung beider
+								Eingänge ausgegeben. DC Strom und DC Spannung werden als "not implemented" angezeigt.
+								Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Werte des
+								zweiten Strings auf "not implemented" gesetzt (ab Register 2_DCA). Die Bezeichnung des
+								zweiten Eingangs (Register 2_IDStr) lautet in diesem Fall "Not supported". Die Werte des
+								ersten (und einzigen) Eingangs werden normal angezeigt. */
+								//							array(40264, 1, "R", "0x03", "ID", "A well-known value 160.  Uniquely identifies this as a SunSpec Multiple MPPT Inverter Extension Model Mode", "uint16", "", "", "160"),
+								//							array(40265, 1, "R", "0x03", "L", "Length of Multiple MPPT Inverter Extension Model", "uint16", "", "", "48"),
+								array(40266, 1, "R", "0x03", "DCA_SF", "Current Scale Factor", "sunssf", "", "", "SF=-2"),
+								array(40267, 1, "R", "0x03", "DCV_SF", "Voltage Scale Factor", "sunssf", "", "", "SF=-2"),
+								array(40268, 1, "R", "0x03", "DCW_SF", "Power Scale Factor", "sunssf", "", "", "SF=-1"),
+								array(40269, 1, "R", "0x03", "DCWH_SF", "Energy Scale Factor", "sunssf", "", "", "SF=0"),
+								array(40270, 2, "R", "0x03", "Evt", "Global Events", "uint32", "uint32", "Bitfield", ""),
+								array(40272, 1, "R", "0x03", "N", "Number of Modules", "uint16", "", "", "2"),
+								//							array(40273, 1, "R", "0x03", "TmsPer", "Timestamp Period", "uint16", "", "", "Not supported"),
+								//							array(40274, 1, "R", "0x03", "1_ID", "Input ID", "uint16", "", "", "1"),
+								//							array(40275, 8, "R", "0x03", "1_IDStr", "Input ID Sting", "String16", "", "", "'String 1'"),
+								array(40283, 1, "R", "0x03", "1_DCA", "DC Current", "uint16", "", "DCA_SF", ""),
+								array(40284, 1, "R", "0x03", "1_DCV", "DC Voltage", "uint16", "", "DCV_SF", ""),
+								array(40285, 1, "R", "0x03", "1_DCW", "DC Power", "uint16", "", "DCW_SF", ""),
+								array(40286, 2, "R", "0x03", "1_DCWH", "Lifetime Energy", "acc32", "", "DCWH_SF", ""),
+								array(40288, 2, "R", "0x03", "1_Tms", "Timestamp", "uint32", "Secs", "", ""),
+								array(40290, 1, "R", "0x03", "1_Tmp", "Temperature", "int16", "C", "", ""),
+								array(40291, 1, "R", "0x03", "1_DCSt", "Operating State", "enum16", "Enumerated_St", "", ""),
+								array(40292, 2, "R", "0x03", "1_DCEvt", "Module Events", "uint32", "uint32", "Bitfield", ""),
+								//							array(40294, 1, "R", "0x03", "2_ID", "Input ID", "uint16", "", "", "2"),
+								//							array(40295, 8, "R", "0x03", "2_IDStr", "Input ID Sting", "String16", "", "", "'String 2' or 'Not supported'"),
+								array(40303, 1, "R", "0x03", "2_DCA", "DC Current", "uint16", "", "DCA_SF", "Not supported if only one DC input."),
+								array(40304, 1, "R", "0x03", "2_DCV", "DC Voltage", "uint16", "", "DCV_SF", "Not supported if only one DC input."),
+								array(40305, 1, "R", "0x03", "2_DCW", "DC Power", "uint16", "", "DCW_SF", "Not supported if only one DC input."),
+								array(40306, 2, "R", "0x03", "2_DCWH", "Lifetime Energy", "acc32", "", "DCWH_SF", "Not supported if only one DC input."),
+								array(40308, 2, "R", "0x03", "2_Tms", "Timestamp", "uint32", "Secs", "", "Not supported if only one DC input."),
+								array(40310, 1, "R", "0x03", "2_Tmp", "Temperature", "int16", "C", "", "Not supported if only one DC input."),
+								array(40311, 1, "R", "0x03", "2_DCSt", "Operating State", "enum16", "Enumerated_St", "", "Not supported if only one DC input."),
+								array(40312, 2, "R", "0x03", "2_DCEvt", "Module Events", "uint32", "uint32", "Bitfield", "Not supported if only one DC input."),
+							);
+						}
+						else if(DEVICE_WRGEN24 == $deviceType)
+						{
+							echo "Inverter GEN24 for '".$categoryName."' not implemented yet! Please do not select this option!";
+							return 0;
+						}
+						else
+						{
+							echo "ERROR6: WR Type not defined ! ! !";
+							return 0;
+						}
 
 						if (false === $categoryId)
 						{
@@ -1468,44 +1745,57 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 					$categoryId = @IPS_GetObjectIDByIdent($this->removeInvalidChars($categoryName), $parentId);
 					if ($readIC124)
 					{
-						$inverterModelRegister_array = array(
-							/* Basic Storage Control Model (IC124) ***
-							Allgemeines:
-							Dieses Model ist nur für Fronius Hybrid Wechselrichter verfügbar.
-							Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselrichter
-							vorgenommen werden:
-							- Vorgabe eines Leistungsfensters, in dem sich die Lade-/Entladeleistung vom Energiespeicher bewegen soll.
-							- Vorgabe eines minimalen Ladestandes, den der Energiespeicher nicht unterschreiten soll
-							- Ladung des Energiespeichers vom Netz erlauben/verbieten */
-							//							array(40314, 1, "R", "0x03", "ID", "A well-known value 124.  Uniquely identifies this as a SunSpec Basic Storage Controls Model", "uint16", "", "", "124"),
-							//							array(40315, 1, "R", "0x03", "L", "Registers, Length of Basic Storage Controls", "uint16", "", "", "24"),
-							array(40316, 1, "R", "0x03", "WchaMax", "Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that  InWRte and OutWRte can be negative to define ranges for charging and discharging only.", "uint16", "", "WChaMax_SF", ""),
-							array(40317, 1, "R", "0x03", "WchaGra", "Setpoint for maximum charging rate. Default is MaxChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
-							array(40318, 1, "R", "0x03", "WdisChaGra", "Setpoint for maximum discharge rate. Default is MaxDisChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
-							array(40319, 1, "RW", "0x03 0x06 0x10", "StorCtl_Mod", "Activate hold/discharge/charge storage control mode. Bitfield value. Additional Fronius description: Active hold/discharge/charge storage control mode. Set the charge field to enable charging and the discharge field to enable discharging. Bitfield value.", "uint16", "bitfield16", "", "bit 0: CHARGE, bit 1: DiSCHARGE"),
-							//							array(40320, 1, "R", "0x03", "VAChaMax", "Setpoint for maximum charging VA.", "uint16", "VA", "VAChaMax_SF", "Not supported"),
-							array(40321, 1, "RW", "0x03 0x06 0x10", "MinRsvPct", "Setpoint for minimum reserve for storage as a percentage of the nominal maximum storage. (% WChaMax)", "uint16", "", "MinRsvPct_SF", ""),
-							array(40322, 1, "R", "0x03", "ChaState", "Currently available energy as a percent of the capacity rating. (% AhrRtg)", "uint16", "", "ChaState_SF", ""),
-							array(40323, 1, "R", "0x03", "StorAval", "State of charge (ChaState) minus storage reserve (MinRsvPct) times capacity rating (AhrRtg).", "uint16", "", "StorAval_SF", ""),
-							array(40324, 1, "R", "0x03", "InBatV", "Internal battery voltage.", "uint16", "", "InBatV_SF", ""),
-							array(40325, 1, "R", "0x03", "ChaSt", "Charge status of storage device. Enumerated value.", "enum16", "Enumerated_ChaSt", "", "1: OFF, 2: EMPTY, 3: DISCHARGING, 4: CHARGING, 5: FULL, 6: HOLDING, 7: TESTING"),
-							array(40326, 1, "RW", "0x03 0x06 0x10", "OutWRte", "Percent of max discharge rate. Additional Fronius description: Defines maximum Discharge rate. If not used than the default is 100 and wChaMax defines max. Discharge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
-							array(40327, 1, "RW", "0x03 0x06 0x10", "InWRte", "Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
-							//							array(40328, 1, "R", "0x03", "InOutWRte_WinTms", "Time window for charge/discharge rate change.", "uint16", "Secs", "", "Not supported"),
-							//							array(40329, 1, "R", "0x03", "InOutWRte_RvrtTms", "Timeout period for charge/discharge rate.", "uint16", "Secs", "", "Not supported"),
-							//							array(40330, 1, "R", "0x03", "InOutWRte_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "Not supported"),
-							array(40331, 1, "RW", "0x03 0x06 0x10", "ChaGriSet", "Setpoint to enable/disable charging from grid", "enum16", "", "", "0: PV (Charging from grid disabled), 1: GRID (Charging from grid enabled)"),
-							array(40332, 1, "R", "0x03", "WchaMax_SF", "Scale factor for maximum charge.", "sunssf", "", "", "0"),
-							array(40333, 1, "R", "0x03", "WchaDisChaGra_SF", "Scale factor for maximum charge and discharge rate.", "sunssf", "", "", "0"),
-							//							array(40334, 1, "R", "0x03", "VAChaMax_SF", "Scale factor for maximum charging VA.", "sunssf", "", "", "Not supported"),
-							array(40335, 1, "R", "0x03", "MinRsvPct_SF", "Scale factor for minimum reserve percentage.", "sunssf", "", "", "-2"),
-							array(40336, 1, "R", "0x03", "ChaState_SF", "Scale factor for available energy percent.", "sunssf", "", "", "-2"),
-							array(40337, 1, "R", "0x03", "StorAval_SF", "Scale factor for state of charge.", "sunssf", "", "", "-2"),
-							array(40338, 1, "R", "0x03", "InBatV_SF", "Scale factor for battery voltage.", "sunssf", "", "", "-2"),
-							array(40339, 1, "R", "0x03", "InOutWRte_SF", "Scale factor for percent charge/discharge rate.", "sunssf", "", "", "-2"),
-							//							array(40340, 1, "R", "0x03", "ID", "Identifies this as End block", "uint16", "", "", "0xFFFF"),
-							//							array(40341, 1, "R", "0x03", "L", "Registers, Length of model block", "uint16", "", "", "0"),
-						);
+						if(DEVICE_WR == $deviceType)
+						{
+							$inverterModelRegister_array = array(
+								/* Basic Storage Control Model (IC124) ***
+								Allgemeines:
+								Dieses Model ist nur für Fronius Hybrid Wechselrichter verfügbar.
+								Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselrichter
+								vorgenommen werden:
+								- Vorgabe eines Leistungsfensters, in dem sich die Lade-/Entladeleistung vom Energiespeicher bewegen soll.
+								- Vorgabe eines minimalen Ladestandes, den der Energiespeicher nicht unterschreiten soll
+								- Ladung des Energiespeichers vom Netz erlauben/verbieten */
+								//							array(40314, 1, "R", "0x03", "ID", "A well-known value 124.  Uniquely identifies this as a SunSpec Basic Storage Controls Model", "uint16", "", "", "124"),
+								//							array(40315, 1, "R", "0x03", "L", "Registers, Length of Basic Storage Controls", "uint16", "", "", "24"),
+								array(40316, 1, "R", "0x03", "WchaMax", "Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that  InWRte and OutWRte can be negative to define ranges for charging and discharging only.", "uint16", "", "WChaMax_SF", ""),
+								array(40317, 1, "R", "0x03", "WchaGra", "Setpoint for maximum charging rate. Default is MaxChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
+								array(40318, 1, "R", "0x03", "WdisChaGra", "Setpoint for maximum discharge rate. Default is MaxDisChaRte. (% WChaMax/sec)", "uint16", "", "WChaDisChaGra_SF", "100"),
+								array(40319, 1, "RW", "0x03 0x06 0x10", "StorCtl_Mod", "Activate hold/discharge/charge storage control mode. Bitfield value. Additional Fronius description: Active hold/discharge/charge storage control mode. Set the charge field to enable charging and the discharge field to enable discharging. Bitfield value.", "uint16", "uint16", "bitfield16", "bit 0: CHARGE, bit 1: DiSCHARGE"),
+								//							array(40320, 1, "R", "0x03", "VAChaMax", "Setpoint for maximum charging VA.", "uint16", "VA", "VAChaMax_SF", "Not supported"),
+								array(40321, 1, "RW", "0x03 0x06 0x10", "MinRsvPct", "Setpoint for minimum reserve for storage as a percentage of the nominal maximum storage. (% WChaMax)", "uint16", "", "MinRsvPct_SF", ""),
+								array(40322, 1, "R", "0x03", "ChaState", "Currently available energy as a percent of the capacity rating. (% AhrRtg)", "uint16", "", "ChaState_SF", ""),
+								array(40323, 1, "R", "0x03", "StorAval", "State of charge (ChaState) minus storage reserve (MinRsvPct) times capacity rating (AhrRtg).", "uint16", "", "StorAval_SF", ""),
+								array(40324, 1, "R", "0x03", "InBatV", "Internal battery voltage.", "uint16", "", "InBatV_SF", ""),
+								array(40325, 1, "R", "0x03", "ChaSt", "Charge status of storage device. Enumerated value.", "enum16", "Enumerated_ChaSt", "", "1: OFF, 2: EMPTY, 3: DISCHARGING, 4: CHARGING, 5: FULL, 6: HOLDING, 7: TESTING"),
+								array(40326, 1, "RW", "0x03 0x06 0x10", "OutWRte", "Percent of max discharge rate. Additional Fronius description: Defines maximum Discharge rate. If not used than the default is 100 and wChaMax defines max. Discharge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
+								array(40327, 1, "RW", "0x03 0x06 0x10", "InWRte", "Percent of max charging rate. Additional Fronius description: Defines maximum Charge rate. If not used than the default is 100 and wChaMax defines max. Charge rate. See wChaMax for details. (% WChaMax)", "int16", "", "InOutWRte_SF", ""),
+								//							array(40328, 1, "R", "0x03", "InOutWRte_WinTms", "Time window for charge/discharge rate change.", "uint16", "Secs", "", "Not supported"),
+								//							array(40329, 1, "R", "0x03", "InOutWRte_RvrtTms", "Timeout period for charge/discharge rate.", "uint16", "Secs", "", "Not supported"),
+								//							array(40330, 1, "R", "0x03", "InOutWRte_RmpTms", "Ramp time for moving from current setpoint to new setpoint.", "uint16", "Secs", "", "Not supported"),
+								array(40331, 1, "RW", "0x03 0x06 0x10", "ChaGriSet", "Setpoint to enable/disable charging from grid", "enum16", "", "", "0: PV (Charging from grid disabled), 1: GRID (Charging from grid enabled)"),
+								array(40332, 1, "R", "0x03", "WchaMax_SF", "Scale factor for maximum charge.", "sunssf", "", "", "0"),
+								array(40333, 1, "R", "0x03", "WchaDisChaGra_SF", "Scale factor for maximum charge and discharge rate.", "sunssf", "", "", "0"),
+								//							array(40334, 1, "R", "0x03", "VAChaMax_SF", "Scale factor for maximum charging VA.", "sunssf", "", "", "Not supported"),
+								array(40335, 1, "R", "0x03", "MinRsvPct_SF", "Scale factor for minimum reserve percentage.", "sunssf", "", "", "-2"),
+								array(40336, 1, "R", "0x03", "ChaState_SF", "Scale factor for available energy percent.", "sunssf", "", "", "-2"),
+								array(40337, 1, "R", "0x03", "StorAval_SF", "Scale factor for state of charge.", "sunssf", "", "", "-2"),
+								array(40338, 1, "R", "0x03", "InBatV_SF", "Scale factor for battery voltage.", "sunssf", "", "", "-2"),
+								array(40339, 1, "R", "0x03", "InOutWRte_SF", "Scale factor for percent charge/discharge rate.", "sunssf", "", "", "-2"),
+								//							array(40340, 1, "R", "0x03", "ID", "Identifies this as End block", "uint16", "", "", "0xFFFF"),
+								//							array(40341, 1, "R", "0x03", "L", "Registers, Length of model block", "uint16", "", "", "0"),
+							);
+						}
+						else if(DEVICE_WRGEN24 == $deviceType)
+						{
+							echo "Inverter GEN24 for '".$categoryName."' not implemented yet! Please do not select this option!";
+							return 0;
+						}
+						else
+						{
+							echo "ERROR7: WR Type not defined ! ! !";
+							return 0;
+						}
 
 						if (false === $categoryId)
 						{
