@@ -2713,7 +2713,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			public functions
 		 */
 
-		public function CyclicDataUpdate(string $model): bool
+		public function CyclicDataUpdate(string $model)//: bool
 		{
 			// I11X model (Evt1, EvtVnd1, EvtVnd2, EvtVnd3)
 			if("I11X" == $model)
