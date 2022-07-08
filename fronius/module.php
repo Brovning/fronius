@@ -2713,7 +2713,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			public functions
 		 */
 
-		public function CyclicDataUpdate($model)
+		public function CyclicDataUpdate(string $model): bool
 		{
 			// I11X model (Evt1, EvtVnd1, EvtVnd2, EvtVnd3)
 			if("I11X" == $model)
@@ -2785,6 +2785,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						SetValue($bitId, $bitValue);
 					}
 				}
+
+				return true;
 			}
 
 			// IC120 model
@@ -2817,6 +2819,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						}
 					}
 				}
+
+				return true;
 			}
 
 			// IC121 model
@@ -2849,6 +2853,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						}
 					}
 				}
+
+				return true;
 			}
 
 			// IC122 model (PVConn, StorConn, StActCtl, Tms)
@@ -2921,6 +2927,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				{
 					SetValue($bitId, $bitValue);
 				}
+
+				return true;
 			}
 
 			// IC123 model
@@ -2953,6 +2961,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						}
 					}
 				}
+
+				return true;
 			}
 
 			// IC124 model
@@ -2982,6 +2992,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						}
 					}
 				}
+
+				return true;
 			}
 
 			// I160 model
@@ -3008,6 +3020,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						SetValue($targetId, $newValue);
 					}
 				}
+
+				return true;
 			}
 
 			// *** SmartMeter - Erstelle deaktivierte Timer ***
@@ -3030,11 +3044,15 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						SetValue($bitId, $bitValue);
 					}
 				}
+
+				return true;
 			}
 
 			else
 			{
 				$this->SendDebug("CyclicDataUpdate()", "Error: Model ".$model." unknown!", 0);
 			}
+
+			return false;
 		}
 	}
