@@ -1523,6 +1523,10 @@ if (!defined('DEVICE_WR'))
 								array(40311, 1, "R", "0x03", "2_DCSt", "Operating State", "enum16", "Enumerated_St", "", "Not supported if only one DC input."),
 								array(40312, 2, "R", "0x03", "2_DCEvt", "Module Events", "uint32", "Bitfield", "Not supported if only one DC input."),
 							);
+
+							$inverterModelRegisterTms_array = array(
+								array(40288, "time()"), array(40308, "time()"), 
+							);
 						}
 						else if(DEVICE_WRGEN24 == $deviceType)
 						{
@@ -1569,6 +1573,10 @@ if (!defined('DEVICE_WR'))
 								array(40311, 1, "R", "0x03", "2_DCSt", "Operating State", "enum16", "", ""),
 								array(40312, 2, "R", "0x03", "2_DCEvt", "Module Events", "bitfield32", "", ""),
 							);
+
+							$inverterModelRegisterTms_array = array(
+								array(40288, "time()"), array(40308, "time()"), 
+							);
 						}
 						else
 						{
@@ -1589,6 +1597,14 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
 
+						// Inverter - UTC für "Tms" erstellen
+						foreach($inverterModelRegisterTms_array AS $inverterModelRegister)
+						{
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[0], $categoryId);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+							$varId = $this->MaintainInstanceVariable($this->removeInvalidChars("UTC"), "UTC", VARIABLETYPE_INTEGER, "~UnixTimestamp", 0, true, $instanceId, "UTC time");
+						}
 
 						// Inverter - "SF" Variablen erstellen
 						$inverterModelRegister_array = array(
@@ -1682,6 +1698,8 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 								//array(40340, 1, "R", "0x03", "ID", "Identifies this as End block", "uint16", "", "", "0xFFFF"),
 								//array(40341, 1, "R", "0x03", "L", "Registers, Length of model block", "uint16", "", "", "0"),
 							);
+
+							$inverterModelRegisterTms_array = array();
 						}
 						else if(DEVICE_WRGEN24 == $deviceType)
 						{
@@ -1694,6 +1712,10 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 								- Vorgabe eines Leistungsfensters, in dem sich die Lade-/Entladeleistung vom Energiespeicher bewegen soll.
 								- Vorgabe eines minimalen Ladestandes, den der Energiespeicher nicht unterschreiten soll
 								- Ladung des Energiespeichers vom Netz erlauben/verbieten */
+								array(40266, 1, "R", "0x03", "DCA_SF", "Current Scale Factor", "sunssf", "", ""),
+								array(40267, 1, "R", "0x03", "DCV_SF", "Voltage Scale Factor", "sunssf", "", ""),
+								array(40268, 1, "R", "0x03", "DCW_SF", "Power Scale Factor", "sunssf", "", ""),
+								array(40269, 1, "R", "0x03", "DCWH_SF", "Energy Scale Factor", "sunssf", "", ""),
 								//array(40314, 1, "R", "0x03", "3_ID", "Input ID", "uint16", "", ""),
 								//array(40315, 8, "R", "0x03", "3_IDStr", "Input ID Sting", "string", "", ""),
 								array(40323, 1, "R", "0x03", "3_DCA", "DC Current", "uint16", "A", "DCA_SF"),
@@ -1741,6 +1763,10 @@ Sollte der Wechselrichter nur über einen DC Eingang verfügen, werden alle Wert
 								//array(40378, 1, "R", "0x03", "InBatV_SF", "Scale factor for battery voltage.", "sunssf", "", ""),
 								array(40379, 1, "R", "0x03", "InOutWRte_SF", "Scale factor for percent charge/discharge rate.", "sunssf", "", ""),
 							);
+
+							$inverterModelRegisterTms_array = array(
+								array(40328, "time()"), array(40348, "time()"),
+							);
 						}
 						else
 						{
@@ -1764,6 +1790,16 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						$this->createModbusInstances($inverterModelRegister_array, $categoryId, $gatewayId, $pollCycle);
 
 
+						// Inverter - UTC für "Tms" erstellen
+						foreach($inverterModelRegisterTms_array AS $inverterModelRegister)
+						{
+							$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[0], $categoryId);
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							IPS_SetHidden($varId, true);
+							$varId = $this->MaintainInstanceVariable($this->removeInvalidChars("UTC"), "UTC", VARIABLETYPE_INTEGER, "~UnixTimestamp", 0, true, $instanceId, "UTC time");
+						}
+
+						
 						if(DEVICE_WR == $deviceType)
 						{
 							// Inverter - "SF" Variablen erstellen
@@ -1783,14 +1819,14 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 						{
 							// Inverter - "SF" Variablen erstellen
 							$inverterModelRegister_array = array(
-								//array(40323, 1, "R", "0x03", "3_DCA", "DC Current", "uint16", "A", "DCA_SF"),
-								//array(40324, 1, "R", "0x03", "3_DCV", "DC Voltage", "uint16", "V", "DCV_SF"),
-								//array(40325, 1, "R", "0x03", "3_DCW", "DC Power", "uint16", "W", "DCW_SF"),
-								//array(40326, 2, "R", "0x03", "3_DCWH", "Lifetime Energy", "acc32", "Wh", "DCWH_SF"),
-								//array(40343, 1, "R", "0x03", "4_DCA", "DC Current", "uint16", "A", "DCA_SF"),
-								//array(40344, 1, "R", "0x03", "4_DCV", "DC Voltage", "uint16", "V", "DCV_SF"),
-								//array(40345, 1, "R", "0x03", "4_DCW", "DC Power", "uint16", "W", "DCW_SF"),
-								//array(40346, 2, "R", "0x03", "4_DCWH", "Lifetime Energy", "acc32", "Wh", "DCWH_SF"),
+								array(40323, 1, "R", "0x03", "3_DCA", "DC Current", "uint16", "A", 40266),
+								array(40324, 1, "R", "0x03", "3_DCV", "DC Voltage", "uint16", "V", 40267),
+								array(40325, 1, "R", "0x03", "3_DCW", "DC Power", "uint16", "W", 40268),
+								array(40326, 2, "R", "0x03", "3_DCWH", "Lifetime Energy", "acc32", "Wh", 40269),
+								array(40343, 1, "R", "0x03", "4_DCA", "DC Current", "uint16", "A", 40266),
+								array(40344, 1, "R", "0x03", "4_DCV", "DC Voltage", "uint16", "V", 40267),
+								array(40345, 1, "R", "0x03", "4_DCW", "DC Power", "uint16", "W", 40268),
+								array(40346, 2, "R", "0x03", "4_DCWH", "Lifetime Energy", "acc32", "Wh", 40269),
 								array(40356, 1, "R", "0x03", "WChaMax", "Setpoint for maximum charge. Additional Fronius description: Reference Value for maximum Charge and Discharge. Multiply this value by InWRte to define maximum charging and OutWRte to define maximum discharging. Every rate between this two limits is allowed. Note that InWRte and OutWRte can be negative to define ranges for charging and discharging only", "uint16", "W", 40372),
 								array(40357, 1, "R", "0x03", "WChaGra", "Setpoint for maximum charging rate. Default is MaxChaRte.", "uint16", "%", 40373),
 								array(40358, 1, "R", "0x03", "WDisChaGra", "Setpoint for maximum discharge rate. Default is MaxDisChaRte.", "uint16", "%", 40373),
@@ -2715,6 +2751,8 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 
 		public function CyclicDataUpdate(string $model)//: bool
 		{
+			$deviceType = $this->ReadPropertyInteger('deviceType');
+
 			// I11X model (Evt1, EvtVnd1, EvtVnd2, EvtVnd3)
 			if("I11X" == $model)
 			{
@@ -2970,25 +3008,59 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 			{
 				$parentId = IPS_GetObjectIDByIdent($this->removeInvalidChars("IC124 Basic Storage Control"), $this->InstanceID);
 				// Inverter - SF Variablen erstellen
-				$inverterModelRegister_array = array(
+				if(DEVICE_WR == $deviceType)
+				{
 					// Inverter
-					array(40316, 40332), array(40317, 40333), array(40318, 40333), array(40321, 40335), array(40322, 40336), array(40323, 40337), array(40324, 40338), array(40326, 40339), array(40327, 40339),
+					$inverterModelRegister_array = array(
+						array(40316, 40332, 0), array(40317, 40333, 0), array(40318, 40333, 0), array(40321, 40335, -2), array(40322, 40336, -2), array(40323, 40337, -2), array(40324, 40338, -2), array(40326, 40339, -2), array(40327, 40339, -2),
+					);
+				}
+				else
+				{
 					// Inverter GEN24
-					array(40356, 40372), array(40357, 40373), array(40358, 40373), array(40361, 40375), array(40362, 40376), array(40366, 40379), array(40367, 40379)
-				);
+					$inverterModelRegister_array = array(
+						array(40288, "time()"), array(40308, "time()"), array(40328, "time()"), array(40348, "time()"), 
+						array(40326, "DCWH_SF"),
+						array(40346, "DCWH_SF"),
+						array(40356, 40372, 0), array(40357, 40373, 0), array(40358, 40373, 0), array(40361, 40375, -2), array(40362, 40376, -2), array(40366, 40379, -2), array(40367, 40379)
+					);
+				}
+				
 				foreach($inverterModelRegister_array AS $inverterModelRegister)
 				{
 					$instanceId = @IPS_GetObjectIDByIdent($inverterModelRegister[0], $parentId);
 					if(false !== $instanceId)
 					{
-						$targetId = IPS_GetObjectIDByIdent("Value_SF", $instanceId);
-						$sourceValue = GetValue(IPS_GetObjectIDByIdent("Value", $instanceId));
-						$sfValue = GetValue(IPS_GetObjectIDByIdent("Value", IPS_GetObjectIDByIdent($inverterModelRegister[1], $parentId)));
-						$newValue = $sourceValue * pow(10, $sfValue);
-
-						if(GetValue($targetId) != $newValue)
+						$targetId = @IPS_GetObjectIDByIdent("UTC", $instanceId);
+						if(false !== $targetId)
 						{
-							SetValue($targetId, $newValue);
+							//Tms
+							$varId = IPS_GetObjectIDByIdent("Value", $instanceId);
+							$varValue = GetValue($varId);
+
+							$targetId = IPS_GetObjectIDByIdent($this->removeInvalidChars("UTC"), $instanceId);
+							$bitValue = $varValue + 946681200;
+
+							if(GetValue($targetId) != $bitValue)
+							{
+								SetValue($targetId, $bitValue);
+							}
+						}
+						else if("time()" != $inverterModelRegister[1])
+						{
+							$targetId = IPS_GetObjectIDByIdent("Value_SF", $instanceId);
+							$sourceValue = GetValue(IPS_GetObjectIDByIdent("Value", $instanceId));
+							$sfValue = GetValue(IPS_GetObjectIDByIdent("Value", IPS_GetObjectIDByIdent($inverterModelRegister[1], $parentId)));
+							if(isset($inverterModelRegister[2]) && (-5 > $sfValue || 5 < $sfValue))
+							{
+								$sfValue = $inverterModelRegister[2];
+							}
+							$newValue = $sourceValue * pow(10, $sfValue);
+
+							if(GetValue($targetId) != $newValue)
+							{
+								SetValue($targetId, $newValue);
+							}
 						}
 					}
 				}
@@ -3005,19 +3077,22 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 				array(40303, 40266, -2), array(40304, 40267, -2), array(40305, 40268, -1), array(40306, 40269, 0));
 				foreach($inverterModelRegister_array AS $inverterModelRegister)
 				{
-					$instanceId = IPS_GetObjectIDByIdent($inverterModelRegister[0], $parentId);
-					$targetId = IPS_GetObjectIDByIdent("Value_SF", $instanceId);
-					$sourceValue = GetValue(IPS_GetObjectIDByIdent("Value", $instanceId));
-					$sfValue = GetValue(IPS_GetObjectIDByIdent("Value", IPS_GetObjectIDByIdent($inverterModelRegister[1], $parentId)));
-					if(-5 > $sfValue || 5 < $sfValue)
+					$instanceId = @IPS_GetObjectIDByIdent($inverterModelRegister[0], $parentId);
+					if(false !== $instanceId)
 					{
-						$sfValue = $inverterModelRegister[2];
-					}
-					$newValue = $sourceValue * pow(10, $sfValue);
+						$targetId = IPS_GetObjectIDByIdent("Value_SF", $instanceId);
+						$sourceValue = GetValue(IPS_GetObjectIDByIdent("Value", $instanceId));
+						$sfValue = GetValue(IPS_GetObjectIDByIdent("Value", IPS_GetObjectIDByIdent($inverterModelRegister[1], $parentId)));
+						if(isset($inverterModelRegister[2]) && (-5 > $sfValue || 5 < $sfValue))
+						{
+							$sfValue = $inverterModelRegister[2];
+						}
+						$newValue = $sourceValue * pow(10, $sfValue);
 
-					if(GetValue($targetId) != $newValue)
-					{
-						SetValue($targetId, $newValue);
+						if(GetValue($targetId) != $newValue)
+						{
+							SetValue($targetId, $newValue);
+						}
 					}
 				}
 
