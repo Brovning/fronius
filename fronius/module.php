@@ -3020,8 +3020,7 @@ Mit dem Basic Storage Control Model können folgende Einstellungen am Wechselric
 					// Inverter GEN24
 					$inverterModelRegister_array = array(
 						array(40288, "time()"), array(40308, "time()"), array(40328, "time()"), array(40348, "time()"), 
-						array(40326, "DCWH_SF"),
-						array(40346, "DCWH_SF"),
+						array(40323, 40266), array(40324, 40267), array(40325, 40268), array(40326, 40269), array(40343, 40266), array(40344, 40267), array(40345, 40268), array(40346, 40269),
 						array(40356, 40372, 0), array(40357, 40373, 0), array(40358, 40373, 0), array(40361, 40375, -2), array(40362, 40376, -2), array(40366, 40379, -2), array(40367, 40379)
 					);
 				}
